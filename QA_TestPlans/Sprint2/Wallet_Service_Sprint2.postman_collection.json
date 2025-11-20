@@ -1,0 +1,598 @@
+{
+  "info": {
+    "name": "Wallet Service - Sprint 2 Tests",
+    "description": "Comprehensive test suite for Sprint 2 bug fixes and wallet endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "BUG-001: Single Currency Balance",
+      "item": [
+        {
+          "name": "GET /wallet/balance/TRY (Valid)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wallet/balance/TRY",
+              "host": ["{{base_url}}"],
+              "path": ["wallet", "balance", "TRY"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /wallet/balance/BTC (Valid)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wallet/balance/BTC",
+              "host": ["{{base_url}}"],
+              "path": ["wallet", "balance", "BTC"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /wallet/balance/INVALID (Invalid Currency)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wallet/balance/INVALID",
+              "host": ["{{base_url}}"],
+              "path": ["wallet", "balance", "INVALID"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /wallet/balance/TRY (No JWT - expect 401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/wallet/balance/TRY",
+              "host": ["{{base_url}}"],
+              "path": ["wallet", "balance", "TRY"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "BUG-003: Deposit Requests List",
+      "item": [
+        {
+          "name": "GET /api/v1/wallet/deposit/requests (With JWT)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallet/deposit/requests",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallet", "deposit", "requests"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/v1/wallet/deposit/requests (No JWT - expect 401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallet/deposit/requests",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallet", "deposit", "requests"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "BUG-004: Rate Limiting on Withdrawals",
+      "item": [
+        {
+          "name": "POST /api/v1/wallet/withdraw/try (Request 1 of 6)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 100.00,\n  \"bankAccountId\": \"test-account-id\",\n  \"twoFaCode\": \"000000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallet/withdraw/try",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallet", "withdraw", "try"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/v1/wallet/withdraw/try (Request 2 of 6)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 100.00,\n  \"bankAccountId\": \"test-account-id\",\n  \"twoFaCode\": \"000000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallet/withdraw/try",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallet", "withdraw", "try"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/v1/wallet/withdraw/try (Request 3 of 6)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 100.00,\n  \"bankAccountId\": \"test-account-id\",\n  \"twoFaCode\": \"000000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallet/withdraw/try",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallet", "withdraw", "try"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/v1/wallet/withdraw/try (Request 4 of 6)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 100.00,\n  \"bankAccountId\": \"test-account-id\",\n  \"twoFaCode\": \"000000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallet/withdraw/try",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallet", "withdraw", "try"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/v1/wallet/withdraw/try (Request 5 of 6)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 100.00,\n  \"bankAccountId\": \"test-account-id\",\n  \"twoFaCode\": \"000000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallet/withdraw/try",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallet", "withdraw", "try"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/v1/wallet/withdraw/try (Request 6 of 6 - expect 429)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 100.00,\n  \"bankAccountId\": \"test-account-id\",\n  \"twoFaCode\": \"000000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallet/withdraw/try",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallet", "withdraw", "try"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "BUG-002: Security (Cross-User Access)",
+      "item": [
+        {
+          "name": "GET /wallet/balances (UserA)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token_userA}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wallet/balances",
+              "host": ["{{base_url}}"],
+              "path": ["wallet", "balances"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /wallet/balances (UserB)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token_userB}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wallet/balances",
+              "host": ["{{base_url}}"],
+              "path": ["wallet", "balances"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Regression: All Endpoints",
+      "item": [
+        {
+          "name": "1. GET /wallet/balances",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wallet/balances",
+              "host": ["{{base_url}}"],
+              "path": ["wallet", "balances"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2. GET /wallet/balance/:currency",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wallet/balance/TRY",
+              "host": ["{{base_url}}"],
+              "path": ["wallet", "balance", "TRY"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3. POST /api/v1/wallet/bank-accounts",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountHolderName\": \"Test User\",\n  \"iban\": \"TR330006100519786457841326\",\n  \"bankName\": \"Test Bank\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallet/bank-accounts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallet", "bank-accounts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. GET /api/v1/wallet/bank-accounts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallet/bank-accounts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallet", "bank-accounts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. DELETE /api/v1/wallet/bank-accounts/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallet/bank-accounts/test-id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallet", "bank-accounts", "test-id"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6. POST /api/v1/wallet/deposit/try",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 1000.00,\n  \"bankAccountId\": \"test-account-id\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallet/deposit/try",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallet", "deposit", "try"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7. GET /api/v1/wallet/deposit/:id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallet/deposit/test-id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallet", "deposit", "test-id"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8. GET /api/v1/wallet/deposit/requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallet/deposit/requests",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallet", "deposit", "requests"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "9. POST /api/v1/wallet/withdraw/try",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 100.00,\n  \"bankAccountId\": \"test-account-id\",\n  \"twoFaCode\": \"000000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallet/withdraw/try",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallet", "withdraw", "try"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10. GET /api/v1/wallet/withdraw/:id",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallet/withdraw/test-id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallet", "withdraw", "test-id"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "11. POST /api/v1/wallet/withdraw/:id/cancel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallet/withdraw/test-id/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallet", "withdraw", "test-id", "cancel"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "12. GET /api/v1/wallet/transactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallet/transactions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "wallet", "transactions"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3002",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "{{REPLACE_WITH_VALID_JWT}}",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token_userA",
+      "value": "{{REPLACE_WITH_USERA_JWT}}",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token_userB",
+      "value": "{{REPLACE_WITH_USERB_JWT}}",
+      "type": "string"
+    }
+  ]
+}

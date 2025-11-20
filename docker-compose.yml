@@ -1,0 +1,334 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: exchange_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: exchange_dev
+      POSTGRES_INITDB_ARGS: '-c shared_preload_libraries=pg_stat_statements'
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d exchange_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - exchange_network
+    labels:
+      - "app=exchange"
+      - "component=database"
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: exchange_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --requirepass redis_dev_password
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    networks:
+      - exchange_network
+    labels:
+      - "app=exchange"
+      - "component=cache"
+
+  # RabbitMQ Message Broker
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: exchange_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmq
+      RABBITMQ_DEFAULT_PASS: rabbitmq_dev_password
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "5672:5672"      # AMQP port
+      - "15672:15672"    # Management UI port
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./scripts/rabbitmq-init.sh:/docker-entrypoint-initdb.d/init.sh
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - exchange_network
+    labels:
+      - "app=exchange"
+      - "component=message-queue"
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    container_name: exchange_auth_service
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/exchange_dev
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: redis_dev_password
+      RABBITMQ_URL: amqp://rabbitmq:rabbitmq_dev_password@rabbitmq:5672
+      # JWT Configuration - RSA Keys (RS256)
+      JWT_ALGORITHM: RS256
+      JWT_PRIVATE_KEY_PATH: /app/keys/private.pem
+      JWT_PUBLIC_KEY_PATH: /app/keys/public.pem
+      JWT_ACCESS_TOKEN_EXPIRY: 15m
+      JWT_REFRESH_TOKEN_EXPIRY: 30d
+      JWT_EMAIL_VERIFICATION_EXPIRY: 24h
+      # Deprecated - kept for backwards compatibility
+      JWT_SECRET: dev-jwt-secret-change-in-production-min-32-chars
+      JWT_EXPIRY: 15m
+      JWT_REFRESH_EXPIRY: 30d
+      BCRYPT_ROUNDS: 10
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      MAIL_USER: ""
+      MAIL_PASSWORD: ""
+      MAIL_FROM: noreply@exchange.local
+      MAIL_TEMPLATES_PATH: ./templates/emails
+      EMAIL_VERIFICATION_ENABLED: "true"
+      RECAPTCHA_SITE_KEY: 6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI
+      RECAPTCHA_SECRET_KEY: 6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe
+      RECAPTCHA_SCORE_THRESHOLD: "0.5"
+      # Two-Factor Authentication Configuration
+      TWO_FACTOR_ENCRYPTION_KEY: sMF1I3Ol5Z2ZAybh9gnIIZMLb/VyZ2an+IzY7Y3y+ec=
+      TWO_FACTOR_ISSUER: MyCrypto Exchange
+      TWO_FACTOR_SETUP_EXPIRY: 15m
+      TWO_FACTOR_CHALLENGE_EXPIRY: 5m
+      TWO_FACTOR_MAX_ATTEMPTS: "5"
+      TWO_FACTOR_LOCKOUT_DURATION: 15m
+    ports:
+      - "3001:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+    volumes:
+      - ./services/auth-service:/app
+      - ./services/auth-service/keys:/app/keys:ro
+      - /app/node_modules
+    networks:
+      - exchange_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    labels:
+      - "app=exchange"
+      - "component=auth-service"
+      - "version=1.0.0"
+
+  # Prometheus (optional, for local monitoring)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: exchange_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - exchange_network
+    labels:
+      - "app=exchange"
+      - "component=monitoring"
+    profiles:
+      - monitoring
+
+  # Grafana (optional, for local dashboards)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: exchange_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+    networks:
+      - exchange_network
+    labels:
+      - "app=exchange"
+      - "component=monitoring"
+    profiles:
+      - monitoring
+
+  # Mailpit - Local email testing in development (ARM64 compatible)
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: exchange_mailpit
+    ports:
+      - "1025:1025"   # SMTP server port
+      - "8025:8025"   # Web UI port
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    networks:
+      - exchange_network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8025/api/v1/info"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    labels:
+      - "app=exchange"
+      - "component=email-service"
+
+  # MinIO - Object Storage for KYC Documents
+  minio:
+    image: minio/minio:latest
+    container_name: exchange_minio
+    ports:
+      - "9000:9000"   # MinIO API port
+      - "9001:9001"   # MinIO Console port
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin_password
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - exchange_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "app=exchange"
+      - "component=object-storage"
+
+  # ClamAV - Virus Scanning for KYC Documents
+  clamav:
+    image: clamav/clamav:latest
+    container_name: exchange_clamav
+    ports:
+      - "3310:3310"   # ClamAV daemon port
+    volumes:
+      - clamav_data:/var/lib/clamav
+    networks:
+      - exchange_network
+    healthcheck:
+      test: ["CMD", "clamdscan", "--version"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "app=exchange"
+      - "component=security-scanning"
+
+  # Wallet Service
+  wallet-service:
+    build:
+      context: ./services/wallet-service
+      dockerfile: Dockerfile
+    container_name: exchange_wallet_service
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/exchange_dev
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: redis_dev_password
+      RABBITMQ_URL: amqp://rabbitmq:rabbitmq_dev_password@rabbitmq:5672
+      AUTH_SERVICE_URL: http://auth-service:3000
+      # JWT Configuration - must match auth-service for token validation
+      JWT_ALGORITHM: RS256
+      JWT_PUBLIC_KEY_PATH: /app/keys/public.pem
+      # Rate limiting
+      RATE_LIMIT_TTL: 60
+      RATE_LIMIT_LIMIT: 100
+      # Wallet-specific configuration
+      BALANCE_CACHE_TTL: 5
+      WITHDRAWAL_LOCK_TTL: 300
+      # TRY Limits (in TRY)
+      TRY_MIN_DEPOSIT: 100
+      TRY_MAX_DEPOSIT: 50000
+      TRY_MIN_WITHDRAWAL: 100
+      TRY_MAX_WITHDRAWAL: 50000
+      TRY_WITHDRAWAL_FEE: 5
+    ports:
+      - "3002:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+    volumes:
+      - ./services/wallet-service:/app
+      - ./services/auth-service/keys:/app/keys:ro
+      - /app/node_modules
+    networks:
+      - exchange_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    labels:
+      - "app=exchange"
+      - "component=wallet-service"
+      - "version=1.0.0"
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  minio_data:
+    driver: local
+  clamav_data:
+    driver: local
+
+networks:
+  exchange_network:
+    driver: bridge
+    name: exchange_network

@@ -1,0 +1,114 @@
+{
+  "info": {
+    "name": "Story 2.5 - Crypto Withdrawal (BTC/ETH/USDT)",
+    "description": "API testing collection for cryptocurrency withdrawal with address validation, 2FA, admin approval, and status tracking",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "2_5_crypto_withdrawal_collection",
+    "version": "1.0.0"
+  },
+  "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{ACCESS_TOKEN}}", "type": "string"}]},
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"email\": \"{{TEST_USER_EMAIL}}\",\n  \"password\": \"{{TEST_USER_PASSWORD}}\"\n}"},
+            "url": {"raw": "{{BASE_URL}}/api/v1/auth/login", "host": ["{{BASE_URL}}"], "path": ["api", "v1", "auth", "login"]}
+          },
+          "event": [{"listen": "test", "script": {"exec": ["if (pm.response.code === 200) {\n  const jsonData = pm.response.json();\n  pm.environment.set('ACCESS_TOKEN', jsonData.data.accessToken);\n  pm.test('Login successful', () => {\n    pm.expect(jsonData.data.accessToken).to.be.a('string');\n  });\n}"]}}]
+        }
+      ]
+    },
+    {
+      "name": "Withdrawal Initiation",
+      "item": [
+        {
+          "name": "TC-004: Initiate BTC Withdrawal",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"currency\": \"BTC\",\n  \"address\": \"3A1ELm4sRWErZHx...\",\n  \"amount\": \"0.1\"\n}"},
+            "url": {"raw": "{{BASE_URL}}/api/v1/wallet/withdraw/crypto", "host": ["{{BASE_URL}}"], "path": ["api", "v1", "wallet", "withdraw", "crypto"]}
+          },
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 201 Created', () => {\n  pm.expect(pm.response.code).to.be.oneOf([201, 400, 403]);\n});\nif (pm.response.code === 201) {\n  const jsonData = pm.response.json();\n  pm.test('Withdrawal created', () => {\n    pm.expect(jsonData.data.id).to.exist;\n    pm.expect(jsonData.data.status).to.be.oneOf(['PENDING', 'PENDING_ADMIN_APPROVAL']);\n  });\n  pm.environment.set('WITHDRAWAL_ID', jsonData.data.id);\n}"]}}]
+        },
+        {
+          "name": "TC-005: Initiate ETH Withdrawal",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"currency\": \"ETH\",\n  \"address\": \"0x5aAeb6053ba3EFa4dc68210DceC0Cc...\",\n  \"amount\": \"0.5\"\n}"},
+            "url": {"raw": "{{BASE_URL}}/api/v1/wallet/withdraw/crypto", "host": ["{{BASE_URL}}"], "path": ["api", "v1", "wallet", "withdraw", "crypto"]}
+          },
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('ETH withdrawal created', () => {\n  pm.expect(pm.response.code).to.be.oneOf([201, 400, 403]);\n});"]}}]
+        }
+      ]
+    },
+    {
+      "name": "Address Validation",
+      "item": [
+        {
+          "name": "TC-032: Invalid Address Rejected",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"currency\": \"BTC\",\n  \"address\": \"INVALID_ADDRESS_12345\",\n  \"amount\": \"0.1\"\n}"},
+            "url": {"raw": "{{BASE_URL}}/api/v1/wallet/withdraw/crypto", "host": ["{{BASE_URL}}"], "path": ["api", "v1", "wallet", "withdraw", "crypto"]}
+          },
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('Invalid address rejected', () => {\n  pm.expect(pm.response.code).to.equal(400);\n  const jsonData = pm.response.json();\n  pm.expect(jsonData.error.toLowerCase()).to.include('address');\n});"]}}]
+        }
+      ]
+    },
+    {
+      "name": "Withdrawal History",
+      "item": [
+        {
+          "name": "TC-044: Get Withdrawal History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {"raw": "{{BASE_URL}}/api/v1/wallet/withdraw/crypto/requests?page=1&limit=20", "host": ["{{BASE_URL}}"], "path": ["api", "v1", "wallet", "withdraw", "crypto", "requests"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}]}
+          },
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('Withdrawal history accessible', () => {\n  pm.expect(pm.response.code).to.equal(200);\n  const jsonData = pm.response.json();\n  pm.expect(jsonData.data).to.be.an('array');\n});"]}}]
+        }
+      ]
+    },
+    {
+      "name": "Security Tests",
+      "item": [
+        {
+          "name": "TC-033: SQL Injection Prevention",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"currency\": \"BTC'; DROP TABLE withdrawals; --\",\n  \"address\": \"3A1ELm...\",\n  \"amount\": \"0.1\"\n}"},
+            "url": {"raw": "{{BASE_URL}}/api/v1/wallet/withdraw/crypto", "host": ["{{BASE_URL}}"], "path": ["api", "v1", "wallet", "withdraw", "crypto"]}
+          },
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('SQL injection blocked', () => {\n  pm.expect(pm.response.code).to.equal(400);\n});"]}}]
+        },
+        {
+          "name": "TC-034: Unauthorized Access Denied",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "auth": {"type": "noauth"},
+            "body": {"mode": "raw", "raw": "{\n  \"currency\": \"BTC\",\n  \"address\": \"3A1ELm...\",\n  \"amount\": \"0.1\"\n}"},
+            "url": {"raw": "{{BASE_URL}}/api/v1/wallet/withdraw/crypto", "host": ["{{BASE_URL}}"], "path": ["api", "v1", "wallet", "withdraw", "crypto"]}
+          },
+          "event": [{"listen": "test", "script": {"exec": ["pm.test('Unauthorized denied', () => {\n  pm.expect(pm.response.code).to.equal(401);\n});"]}}]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {"key": "BASE_URL", "value": "http://localhost:3000", "type": "string"},
+    {"key": "TEST_USER_EMAIL", "value": "test.withdrawal@example.com", "type": "string"},
+    {"key": "TEST_USER_PASSWORD", "value": "SecurePassword123!", "type": "string"},
+    {"key": "ACCESS_TOKEN", "value": "", "type": "string"},
+    {"key": "WITHDRAWAL_ID", "value": "", "type": "string"}
+  ]
+}

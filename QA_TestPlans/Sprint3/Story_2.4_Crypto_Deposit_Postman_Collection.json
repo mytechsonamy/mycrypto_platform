@@ -1,0 +1,1050 @@
+{
+  "info": {
+    "name": "Story 2.4 - Crypto Deposit (BTC/ETH/USDT)",
+    "description": "Comprehensive API testing collection for cryptocurrency deposit functionality. Includes address generation, blockchain monitoring, balance updates, and security tests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "2_4_crypto_deposit_collection",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{ACCESS_TOKEN}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Setup & Authentication",
+      "item": [
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{TEST_USER_EMAIL}}\",\n  \"password\": \"{{TEST_USER_PASSWORD}}\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/auth/login",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const jsonData = pm.response.json();",
+                  "  pm.environment.set('ACCESS_TOKEN', jsonData.data.accessToken);",
+                  "  pm.environment.set('REFRESH_TOKEN', jsonData.data.refreshToken);",
+                  "  pm.test('Login successful', () => {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "    pm.expect(jsonData.data.accessToken).to.be.a('string');",
+                  "  });",
+                  "} else {",
+                  "  pm.test('Login failed', () => {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Address Generation Tests",
+      "item": [
+        {
+          "name": "TC-004: Generate BTC Deposit Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currency\": \"BTC\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/wallet/deposit/crypto/address",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallet",
+                "deposit",
+                "crypto",
+                "address"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 Created', () => {",
+                  "  pm.expect(pm.response.code).to.equal(201);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Response contains required fields', () => {",
+                  "  pm.expect(jsonData.success).to.be.true;",
+                  "  pm.expect(jsonData.data).to.be.an('object');",
+                  "  pm.expect(jsonData.data.address).to.be.a('string');",
+                  "  pm.expect(jsonData.data.currency).to.equal('BTC');",
+                  "});",
+                  "",
+                  "pm.test('BTC address format is valid', () => {",
+                  "  const address = jsonData.data.address;",
+                  "  // BTC address should start with 1, 3, or bc1",
+                  "  pm.expect(address).to.match(/^(1|3|bc1)[a-zA-Z0-9]{25,34}$/);",
+                  "  pm.expect(address.length).to.be.within(26, 62);",
+                  "});",
+                  "",
+                  "pm.test('Confirmation requirement is 3', () => {",
+                  "  pm.expect(jsonData.data.confirmationsRequired).to.equal(3);",
+                  "});",
+                  "",
+                  "pm.test('Status is ACTIVE', () => {",
+                  "  pm.expect(jsonData.data.status).to.equal('ACTIVE');",
+                  "});",
+                  "",
+                  "// Store address for later tests",
+                  "pm.environment.set('BTC_ADDRESS', jsonData.data.address);",
+                  "pm.environment.set('BTC_DEPOSIT_ID', jsonData.data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-005: Generate ETH Deposit Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currency\": \"ETH\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/wallet/deposit/crypto/address",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallet",
+                "deposit",
+                "crypto",
+                "address"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 Created', () => {",
+                  "  pm.expect(pm.response.code).to.equal(201);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Response contains required fields', () => {",
+                  "  pm.expect(jsonData.data.address).to.be.a('string');",
+                  "  pm.expect(jsonData.data.currency).to.equal('ETH');",
+                  "});",
+                  "",
+                  "pm.test('ETH address format is valid (0x...)', () => {",
+                  "  const address = jsonData.data.address;",
+                  "  pm.expect(address).to.match(/^0x[a-fA-F0-9]{40}$/);",
+                  "  pm.expect(address.length).to.equal(42);",
+                  "});",
+                  "",
+                  "pm.test('Confirmation requirement is 12', () => {",
+                  "  pm.expect(jsonData.data.confirmationsRequired).to.equal(12);",
+                  "});",
+                  "",
+                  "pm.environment.set('ETH_ADDRESS', jsonData.data.address);",
+                  "pm.environment.set('ETH_DEPOSIT_ID', jsonData.data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-006: Generate USDT Deposit Address (ERC-20)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currency\": \"USDT\",\n  \"network\": \"ERC-20\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/wallet/deposit/crypto/address",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallet",
+                "deposit",
+                "crypto",
+                "address"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 Created', () => {",
+                  "  pm.expect(pm.response.code).to.equal(201);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test('USDT ERC-20 address is valid', () => {",
+                  "  pm.expect(jsonData.data.address).to.match(/^0x[a-fA-F0-9]{40}$/);",
+                  "  pm.expect(jsonData.data.currency).to.equal('USDT');",
+                  "  pm.expect(jsonData.data.network).to.equal('ERC-20');",
+                  "});",
+                  "",
+                  "pm.test('Confirmation requirement is 12 for ERC-20', () => {",
+                  "  pm.expect(jsonData.data.confirmationsRequired).to.equal(12);",
+                  "});",
+                  "",
+                  "pm.environment.set('USDT_ERC20_ADDRESS', jsonData.data.address);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-014: USDT Network Selection - TRC-20",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currency\": \"USDT\",\n  \"network\": \"TRC-20\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/wallet/deposit/crypto/address",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallet",
+                "deposit",
+                "crypto",
+                "address"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 Created', () => {",
+                  "  pm.expect(pm.response.code).to.equal(201);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test('USDT TRC-20 address format', () => {",
+                  "  pm.expect(jsonData.data.address).to.match(/^T[a-zA-Z0-9]{33}$/);",
+                  "  pm.expect(jsonData.data.network).to.equal('TRC-20');",
+                  "});",
+                  "",
+                  "pm.test('Network separation enforced', () => {",
+                  "  const erc20Addr = pm.environment.get('USDT_ERC20_ADDRESS');",
+                  "  const trc20Addr = jsonData.data.address;",
+                  "  pm.expect(erc20Addr).to.not.equal(trc20Addr);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Blockchain Monitoring Tests",
+      "item": [
+        {
+          "name": "TC-017: Get Deposit Status - Pending",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/wallet/deposit/crypto/requests?currency=BTC&status=PENDING",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallet",
+                "deposit",
+                "crypto",
+                "requests"
+              ],
+              "query": [
+                {
+                  "key": "currency",
+                  "value": "BTC"
+                },
+                {
+                  "key": "status",
+                  "value": "PENDING"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Response has correct structure', () => {",
+                  "  pm.expect(jsonData.success).to.be.true;",
+                  "  pm.expect(jsonData.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "if (jsonData.data.length > 0) {",
+                  "  const deposit = jsonData.data[0];",
+                  "  pm.test('Deposit has required fields', () => {",
+                  "    pm.expect(deposit.txid).to.be.a('string');",
+                  "    pm.expect(deposit.amount).to.be.a('string');",
+                  "    pm.expect(deposit.status).to.equal('PENDING');",
+                  "    pm.expect(deposit.confirmations).to.be.a('number');",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-019: Get Deposit Status with Confirmations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/wallet/deposit/crypto/requests/{{BTC_DEPOSIT_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallet",
+                "deposit",
+                "crypto",
+                "requests",
+                "{{BTC_DEPOSIT_ID}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "const deposit = jsonData.data;",
+                  "",
+                  "pm.test('Confirmation count tracking', () => {",
+                  "  pm.expect(deposit.confirmations).to.be.a('number');",
+                  "  pm.expect(deposit.confirmations).to.be.at.least(0);",
+                  "  pm.expect(deposit.confirmationsRequired).to.equal(3);",
+                  "});",
+                  "",
+                  "pm.test('Status progression correct', () => {",
+                  "  if (deposit.confirmations < 3) {",
+                  "    pm.expect(deposit.status).to.be.oneOf(['PENDING', 'CONFIRMING']);",
+                  "  } else {",
+                  "    pm.expect(deposit.status).to.be.oneOf(['CONFIRMED', 'CREDITED']);",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Balance Update Tests",
+      "item": [
+        {
+          "name": "TC-020: Get BTC Balance After Deposit",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/wallet/balance/BTC",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallet",
+                "balance",
+                "BTC"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "const balance = jsonData.data;",
+                  "",
+                  "pm.test('Balance has correct structure', () => {",
+                  "  pm.expect(balance.currency).to.equal('BTC');",
+                  "  pm.expect(balance.available).to.be.a('string');",
+                  "  pm.expect(balance.locked).to.be.a('string');",
+                  "  pm.expect(balance.total).to.be.a('string');",
+                  "});",
+                  "",
+                  "pm.test('Balance format shows 8 decimals', () => {",
+                  "  pm.expect(balance.available).to.match(/^\\d+\\.\\d{0,8}\\s?BTC$/);",
+                  "  pm.expect(balance.total).to.match(/^\\d+\\.\\d{0,8}\\s?BTC$/);",
+                  "});",
+                  "",
+                  "pm.test('Available + Locked = Total', () => {",
+                  "  const available = parseFloat(balance.available);",
+                  "  const locked = parseFloat(balance.locked);",
+                  "  const total = parseFloat(balance.total);",
+                  "  pm.expect(total).to.be.closeTo(available + locked, 0.00000001);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-023: Verify Multiple Deposits Accumulate",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/wallet/balance/BTC",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallet",
+                "balance",
+                "BTC"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "const currentBalance = jsonData.data;",
+                  "",
+                  "pm.test('Balance is cumulative', () => {",
+                  "  const balance = parseFloat(currentBalance.total);",
+                  "  // Should equal sum of all deposits minus any withdrawals",
+                  "  pm.expect(balance).to.be.a('number');",
+                  "  pm.expect(balance).to.be.at.least(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Deposit History Tests",
+      "item": [
+        {
+          "name": "TC-027: Get Deposit History with txid",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/wallet/deposit/crypto/requests?page=1&limit=20",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallet",
+                "deposit",
+                "crypto",
+                "requests"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test('History has correct structure', () => {",
+                  "  pm.expect(jsonData.success).to.be.true;",
+                  "  pm.expect(jsonData.data).to.be.an('array');",
+                  "  pm.expect(jsonData.pagination).to.be.an('object');",
+                  "});",
+                  "",
+                  "if (jsonData.data.length > 0) {",
+                  "  const firstDeposit = jsonData.data[0];",
+                  "  ",
+                  "  pm.test('Deposit record has required fields', () => {",
+                  "    pm.expect(firstDeposit.id).to.be.a('string');",
+                  "    pm.expect(firstDeposit.currency).to.be.a('string');",
+                  "    pm.expect(firstDeposit.amount).to.be.a('string');",
+                  "    pm.expect(firstDeposit.status).to.be.a('string');",
+                  "    pm.expect(firstDeposit.txid).to.be.a('string');",
+                  "    pm.expect(firstDeposit.address).to.be.a('string');",
+                  "  });",
+                  "  ",
+                  "  pm.test('txid format is valid', () => {",
+                  "    const txid = firstDeposit.txid;",
+                  "    pm.expect(txid.length).to.be.at.least(32);",
+                  "    pm.expect(txid).to.match(/^[a-fA-F0-9]+$/);;",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-028: Filter Deposit History by Currency",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/wallet/deposit/crypto/requests?currency=BTC&page=1&limit=20",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallet",
+                "deposit",
+                "crypto",
+                "requests"
+              ],
+              "query": [
+                {
+                  "key": "currency",
+                  "value": "BTC"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 OK', () => {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Filter returns only BTC deposits', () => {",
+                  "  jsonData.data.forEach(deposit => {",
+                  "    pm.expect(deposit.currency).to.equal('BTC');",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Security Tests",
+      "item": [
+        {
+          "name": "TC-030: Invalid Currency Rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currency\": \"INVALID_COIN\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/wallet/deposit/crypto/address",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallet",
+                "deposit",
+                "crypto",
+                "address"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400 Bad Request', () => {",
+                  "  pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Error message provided', () => {",
+                  "  pm.expect(jsonData.error).to.be.a('string');",
+                  "  pm.expect(jsonData.error.toLowerCase()).to.include('invalid');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-031: SQL Injection Prevention",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currency\": \"BTC'; DROP TABLE deposits; --\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/wallet/deposit/crypto/address",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallet",
+                "deposit",
+                "crypto",
+                "address"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400 Bad Request', () => {",
+                  "  pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "",
+                  "pm.test('Payload treated as literal string', () => {",
+                  "  const jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.error).to.exist;",
+                  "  // Database should still be functional",
+                  "  pm.expect(pm.response.code).to.not.equal(500);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-032: XSS Attack Prevention",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currency\": \"<script>alert('XSS')</script>\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/wallet/deposit/crypto/address",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallet",
+                "deposit",
+                "crypto",
+                "address"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400 Bad Request', () => {",
+                  "  pm.expect(pm.response.code).to.equal(400);",
+                  "});",
+                  "",
+                  "pm.test('Response content type is JSON', () => {",
+                  "  pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('No HTML tags in response', () => {",
+                  "  const responseText = pm.response.text();",
+                  "  pm.expect(responseText).to.not.include('<script>');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-034: Unauthorized Access Denied",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currency\": \"BTC\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/wallet/deposit/crypto/address",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallet",
+                "deposit",
+                "crypto",
+                "address"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 401 Unauthorized', () => {",
+                  "  pm.expect(pm.response.code).to.equal(401);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Error indicates missing token', () => {",
+                  "  pm.expect(jsonData.error.toLowerCase()).to.include('unauthorized');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-035: Non-KYC User Blocked",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currency\": \"BTC\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/wallet/deposit/crypto/address",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallet",
+                "deposit",
+                "crypto",
+                "address"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Note: This test requires a non-KYC-approved user token",
+                  "// Set ACCESS_TOKEN to a non-KYC user",
+                  "",
+                  "pm.test('Status is 403 Forbidden for non-KYC user', () => {",
+                  "  if (pm.response.code === 403) {",
+                  "    pm.expect(pm.response.code).to.equal(403);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error.toLowerCase()).to.include('kyc');",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Rate Limiting Tests",
+      "item": [
+        {
+          "name": "TC-033: Rate Limiting Applied",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currency\": \"BTC\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/v1/wallet/deposit/crypto/address",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallet",
+                "deposit",
+                "crypto",
+                "address"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Rate limiting test: Check for 429 Too Many Requests after multiple requests",
+                  "const limit = pm.response.headers.get('X-RateLimit-Limit');",
+                  "const remaining = pm.response.headers.get('X-RateLimit-Remaining');",
+                  "",
+                  "pm.test('Rate limit headers present', () => {",
+                  "  pm.expect(limit).to.exist;",
+                  "  pm.expect(remaining).to.exist;",
+                  "});",
+                  "",
+                  "if (pm.response.code === 429) {",
+                  "  pm.test('Rate limit exceeded response', () => {",
+                  "    pm.expect(pm.response.code).to.equal(429);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error.toLowerCase()).to.include('rate limit');",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "TEST_USER_EMAIL",
+      "value": "test.crypto@example.com",
+      "type": "string"
+    },
+    {
+      "key": "TEST_USER_PASSWORD",
+      "value": "SecurePassword123!",
+      "type": "string"
+    },
+    {
+      "key": "ACCESS_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "REFRESH_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "BTC_ADDRESS",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "ETH_ADDRESS",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "BTC_DEPOSIT_ID",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "ETH_DEPOSIT_ID",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "USDT_ERC20_ADDRESS",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

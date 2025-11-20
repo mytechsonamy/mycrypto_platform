@@ -1,0 +1,1013 @@
+{
+  "info": {
+    "_postman_id": "auth-service-collection-001",
+    "name": "Auth Service - User Registration",
+    "description": "Comprehensive API test collection for User Registration (Story 1.1)\n\nEndpoint: POST /api/v1/auth/register\n\nTests cover:\n- Valid registration scenarios\n- Input validation (email, password)\n- Duplicate email handling\n- reCAPTCHA validation\n- Rate limiting\n- Error responses",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Valid Registration Tests",
+      "item": [
+        {
+          "name": "TC-040: Register with valid data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has success: true', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});",
+                  "",
+                  "pm.test('Response includes userId', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.userId).to.exist;",
+                  "    pm.expect(jsonData.data.userId).to.match(/^usr_/);",
+                  "});",
+                  "",
+                  "pm.test('Response includes email', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.email).to.eql(pm.globals.get('test_email'));",
+                  "});",
+                  "",
+                  "pm.test('Account status is PENDING_VERIFICATION', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.status).to.eql('PENDING_VERIFICATION');",
+                  "});",
+                  "",
+                  "pm.test('Response includes metadata', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.meta.timestamp).to.exist;",
+                  "    pm.expect(jsonData.meta.request_id).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.globals.set('test_email', 'valid.register.' + Date.now() + '@example.com');",
+                  "pm.globals.set('test_password', 'TestPass123!');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "req_{{$randomUUID}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"acceptTerms\": true,\n  \"acceptKVKK\": true,\n  \"recaptchaToken\": \"valid_test_token_from_frontend\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-041: Missing email field",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Response has success: false', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(false);",
+                  "});",
+                  "",
+                  "pm.test('Error code is VALIDATION_ERROR', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error.code).to.eql('VALIDATION_ERROR');",
+                  "});",
+                  "",
+                  "pm.test('Error details include email field', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var emailError = jsonData.error.details.find(d => d.field === 'email');",
+                  "    pm.expect(emailError).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"TestPass123!\",\n  \"acceptTerms\": true,\n  \"acceptKVKK\": true,\n  \"recaptchaToken\": \"valid_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-042: Missing password field",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error includes password field error', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var passwordError = jsonData.error.details.find(d => d.field === 'password');",
+                  "    pm.expect(passwordError).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"acceptTerms\": true,\n  \"acceptKVKK\": true,\n  \"recaptchaToken\": \"valid_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Email Validation Tests",
+      "item": [
+        {
+          "name": "TC-012A: Invalid email - no @",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error includes email validation', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var emailError = jsonData.error.details.find(d => d.field === 'email');",
+                  "    pm.expect(emailError).to.exist;",
+                  "    pm.expect(emailError.message).to.include('valid');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"notanemail\",\n  \"password\": \"TestPass123!\",\n  \"acceptTerms\": true,\n  \"acceptKVKK\": true,\n  \"recaptchaToken\": \"valid_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-012B: Invalid email - missing domain",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@\",\n  \"password\": \"TestPass123!\",\n  \"acceptTerms\": true,\n  \"acceptKVKK\": true,\n  \"recaptchaToken\": \"valid_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-012C: Invalid email - double @",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@@example.com\",\n  \"password\": \"TestPass123!\",\n  \"acceptTerms\": true,\n  \"acceptKVKK\": true,\n  \"recaptchaToken\": \"valid_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Password Validation Tests",
+      "item": [
+        {
+          "name": "TC-004: Password too short",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error includes password field', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var passwordError = jsonData.error.details.find(d => d.field === 'password');",
+                  "    pm.expect(passwordError).to.exist;",
+                  "    pm.expect(passwordError.message).to.include('8');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"shortpass@example.com\",\n  \"password\": \"Pass1!\",\n  \"acceptTerms\": true,\n  \"acceptKVKK\": true,\n  \"recaptchaToken\": \"valid_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-005: Password missing uppercase",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error mentions uppercase requirement', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var passwordError = jsonData.error.details.find(d => d.field === 'password');",
+                  "    pm.expect(passwordError.message.toLowerCase()).to.include('upper');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"noupper@example.com\",\n  \"password\": \"password123!\",\n  \"acceptTerms\": true,\n  \"acceptKVKK\": true,\n  \"recaptchaToken\": \"valid_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-006: Password missing number",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error mentions number requirement', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var passwordError = jsonData.error.details.find(d => d.field === 'password');",
+                  "    pm.expect(passwordError.message.toLowerCase()).to.include('number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nonumber@example.com\",\n  \"password\": \"ValidPass!\",\n  \"acceptTerms\": true,\n  \"acceptKVKK\": true,\n  \"recaptchaToken\": \"valid_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-007: Password missing special character",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error mentions special character requirement', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var passwordError = jsonData.error.details.find(d => d.field === 'password');",
+                  "    pm.expect(passwordError.message.toLowerCase()).to.include('special');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nospchar@example.com\",\n  \"password\": \"ValidPass123\",\n  \"acceptTerms\": true,\n  \"acceptKVKK\": true,\n  \"recaptchaToken\": \"valid_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Duplicate Email Tests",
+      "item": [
+        {
+          "name": "Setup: Register first user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.globals.set('existing_user_email', pm.globals.get('duplicate_email'));",
+                  "    pm.globals.set('first_user_id', jsonData.data.userId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.globals.set('duplicate_email', 'duplicate.test.' + Date.now() + '@example.com');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{duplicate_email}}\",\n  \"password\": \"TestPass123!\",\n  \"acceptTerms\": true,\n  \"acceptKVKK\": true,\n  \"recaptchaToken\": \"valid_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-016: Duplicate email (case-insensitive)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 409 (Conflict)', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "",
+                  "pm.test('Error code is DUPLICATE_EMAIL', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error.code).to.eql('DUPLICATE_EMAIL');",
+                  "});",
+                  "",
+                  "pm.test('Error message in Turkish', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error.message).to.include('email');",
+                  "    pm.expect(jsonData.error.message).to.include('zaten');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{existing_user_email}}\",\n  \"password\": \"DifferentPass456!\",\n  \"acceptTerms\": true,\n  \"acceptKVKK\": true,\n  \"recaptchaToken\": \"valid_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Checkbox Validation Tests",
+      "item": [
+        {
+          "name": "TC-023: Missing acceptTerms",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error includes acceptTerms field', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var termsError = jsonData.error.details.find(d => d.field === 'acceptTerms');",
+                  "    pm.expect(termsError).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"checkbox.test@example.com\",\n  \"password\": \"TestPass123!\",\n  \"acceptTerms\": false,\n  \"acceptKVKK\": true,\n  \"recaptchaToken\": \"valid_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-024: Missing acceptKVKK",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error includes acceptKVKK field', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var kvkkError = jsonData.error.details.find(d => d.field === 'acceptKVKK');",
+                  "    pm.expect(kvkkError).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"kvkk.test@example.com\",\n  \"password\": \"TestPass123!\",\n  \"acceptTerms\": true,\n  \"acceptKVKK\": false,\n  \"recaptchaToken\": \"valid_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security Tests",
+      "item": [
+        {
+          "name": "TC-031: SQL Injection in email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 (rejected)', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('No SQL error in response', function () {",
+                  "    var responseText = pm.response.text();",
+                  "    pm.expect(responseText).to.not.include('SQL');",
+                  "    pm.expect(responseText).to.not.include('syntax');",
+                  "    pm.expect(responseText).to.not.include('database');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"' OR '1'='1\",\n  \"password\": \"TestPass123!\",\n  \"acceptTerms\": true,\n  \"acceptKVKK\": true,\n  \"recaptchaToken\": \"valid_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-032: SQL Injection in password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 (invalid password)', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('No SQL error in response', function () {",
+                  "    var responseText = pm.response.text();",
+                  "    pm.expect(responseText).to.not.include('SQL');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sqlinjection@example.com\",\n  \"password\": \"Pass123!\\\" DROP TABLE users\",\n  \"acceptTerms\": true,\n  \"acceptKVKK\": true,\n  \"recaptchaToken\": \"valid_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-034: XSS in email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('No script tags in response', function () {",
+                  "    var responseText = pm.response.text();",
+                  "    pm.expect(responseText).to.not.include('<script>');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"<script>alert('XSS')</script>@test.com\",\n  \"password\": \"TestPass123!\",\n  \"acceptTerms\": true,\n  \"acceptKVKK\": true,\n  \"recaptchaToken\": \"valid_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "reCAPTCHA Tests",
+      "item": [
+        {
+          "name": "TC-043: Missing reCAPTCHA token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 or 403', function () {",
+                  "    pm.expect([400, 403]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "pm.test('Error mentions reCAPTCHA', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var errorMsg = jsonData.error.message.toLowerCase();",
+                  "    pm.expect(errorMsg).to.include('recaptcha');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"recaptcha@example.com\",\n  \"password\": \"TestPass123!\",\n  \"acceptTerms\": true,\n  \"acceptKVKK\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-027: Invalid reCAPTCHA token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 or 403', function () {",
+                  "    pm.expect([400, 403]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "pm.test('Error code indicates reCAPTCHA failure', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error.code).to.include('RECAPTCHA');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"recaptcha.invalid@example.com\",\n  \"password\": \"TestPass123!\",\n  \"acceptTerms\": true,\n  \"acceptKVKK\": true,\n  \"recaptchaToken\": \"invalid_or_expired_token\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "test_email",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "test_password",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "duplicate_email",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "existing_user_email",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "first_user_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

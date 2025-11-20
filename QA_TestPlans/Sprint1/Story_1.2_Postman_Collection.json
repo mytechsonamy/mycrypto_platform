@@ -1,0 +1,1086 @@
+{
+  "info": {
+    "name": "Story 1.2 - User Login with JWT",
+    "description": "Comprehensive API test collection for user login functionality",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "Authentication Tests",
+      "description": "Login endpoint and token management tests",
+      "item": [
+        {
+          "name": "TC-001: Login Success - Valid Credentials",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Verify response status",
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "// Verify response structure",
+                  "pm.test('Response has correct structure', function() {",
+                  "  pm.expect(jsonData).to.have.property('success', true);",
+                  "  pm.expect(jsonData).to.have.property('data');",
+                  "  pm.expect(jsonData.data).to.have.property('accessToken');",
+                  "  pm.expect(jsonData.data).to.have.property('refreshToken');",
+                  "  pm.expect(jsonData.data).to.have.property('expiresIn', 1800);",
+                  "  pm.expect(jsonData.data).to.have.property('tokenType', 'Bearer');",
+                  "});",
+                  "",
+                  "// Verify user object",
+                  "pm.test('User object contains required fields', function() {",
+                  "  pm.expect(jsonData.data.user).to.have.property('userId');",
+                  "  pm.expect(jsonData.data.user).to.have.property('email', 'test.user@example.com');",
+                  "  pm.expect(jsonData.data.user).to.have.property('kycLevel');",
+                  "  pm.expect(jsonData.data.user).to.have.property('roles');",
+                  "  pm.expect(jsonData.data.user.roles).to.include('USER');",
+                  "});",
+                  "",
+                  "// Verify JWT token format",
+                  "pm.test('Access token is valid JWT format', function() {",
+                  "  var token = jsonData.data.accessToken;",
+                  "  var parts = token.split('.');",
+                  "  pm.expect(parts.length).to.equal(3);",
+                  "});",
+                  "",
+                  "// Store token for subsequent requests",
+                  "pm.environment.set('accessToken', jsonData.data.accessToken);",
+                  "pm.environment.set('refreshToken', jsonData.data.refreshToken);",
+                  "pm.environment.set('userId', jsonData.data.user.userId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test.user@example.com\",\n  \"password\": \"ValidPassword123!\",\n  \"deviceId\": \"device-uuid-123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-002: Login Unverified Email - Should Fail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function() {",
+                  "  pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Error response structure correct', function() {",
+                  "  pm.expect(jsonData).to.have.property('success', false);",
+                  "  pm.expect(jsonData).to.have.property('error');",
+                  "  pm.expect(jsonData.error).to.have.property('code', 'UNAUTHORIZED');",
+                  "});",
+                  "",
+                  "pm.test('No token issued', function() {",
+                  "  pm.expect(jsonData.data).to.be.undefined;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"unverified.user@example.com\",\n  \"password\": \"ValidPassword123!\",\n  \"deviceId\": \"device-uuid-123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-003: Login Case Insensitive Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 - Case insensitive email works', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Access token issued', function() {",
+                  "  pm.expect(jsonData.data).to.have.property('accessToken');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"TEST.USER@EXAMPLE.COM\",\n  \"password\": \"ValidPassword123!\",\n  \"deviceId\": \"device-uuid-456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-010: Invalid Email Format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function() {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Invalid email error', function() {",
+                  "  pm.expect(jsonData.error.code).to.equal('INVALID_REQUEST');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"notanemail\",\n  \"password\": \"ValidPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-011: Wrong Password - Generic Error",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function() {",
+                  "  pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Generic error message (no enumeration)', function() {",
+                  "  var message = jsonData.error.message;",
+                  "  pm.expect(message).to.include('Email veya şifre hatalı');",
+                  "  pm.expect(message).to.not.include('password');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test.user@example.com\",\n  \"password\": \"WrongPassword456!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-012: Non-existent Email - Generic Error",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401 (not 404)', function() {",
+                  "  pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Same error as wrong password (no user enumeration)', function() {",
+                  "  pm.expect(jsonData.error.message).to.include('Email veya şifre hatalı');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nonexistent@example.com\",\n  \"password\": \"SomePassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Token Management Tests",
+      "description": "JWT token expiry and refresh tests",
+      "item": [
+        {
+          "name": "TC-004: Access Token Expires in 15 Minutes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Access token expiry is 1800 seconds (15 minutes)', function() {",
+                  "  pm.expect(jsonData.data.expiresIn).to.equal(1800);",
+                  "});",
+                  "",
+                  "pm.test('Can decode JWT and verify exp claim', function() {",
+                  "  var token = jsonData.data.accessToken;",
+                  "  var payload = JSON.parse(atob(token.split('.')[1]));",
+                  "  var now = Math.floor(Date.now() / 1000);",
+                  "  var expiresIn = payload.exp - now;",
+                  "  // Should be approximately 1800 seconds (allow 10 second variance)",
+                  "  pm.expect(expiresIn).to.be.within(1790, 1810);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test.user@example.com\",\n  \"password\": \"ValidPassword123!\",\n  \"deviceId\": \"device-uuid-token-test\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-005: Refresh Token Expires in 30 Days",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('Refresh token can be decoded', function() {",
+                  "  var token = jsonData.data.refreshToken;",
+                  "  var payload = JSON.parse(atob(token.split('.')[1]));",
+                  "  var now = Math.floor(Date.now() / 1000);",
+                  "  var expiresIn = payload.exp - now;",
+                  "  // 30 days = 2,592,000 seconds (allow 1 minute variance)",
+                  "  pm.expect(expiresIn).to.be.within(2591940, 2592060);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test.user@example.com\",\n  \"password\": \"ValidPassword123!\",\n  \"deviceId\": \"device-uuid-refresh-test\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-006: Token Refresh - Generate New Access Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "",
+                  "pm.test('New access token issued', function() {",
+                  "  pm.expect(jsonData.data).to.have.property('accessToken');",
+                  "  pm.expect(jsonData.data.expiresIn).to.equal(1800);",
+                  "  pm.expect(jsonData.data.tokenType).to.equal('Bearer');",
+                  "});",
+                  "",
+                  "// Store new token",
+                  "pm.environment.set('accessToken', jsonData.data.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "refresh"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-007: Refresh Token Expired - Should Fail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function() {",
+                  "  pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Invalid refresh token error', function() {",
+                  "  pm.expect(jsonData.error.code).to.equal('INVALID_REFRESH_TOKEN');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"expired_refresh_token_xyz\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "refresh"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Account Lockout Tests",
+      "description": "Account lockout and failed attempt counter tests",
+      "item": [
+        {
+          "name": "TC-013: 5th Failed Attempt - Account Locked",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 429 or 403', function() {",
+                  "  var status = pm.response.code;",
+                  "  pm.expect([429, 403]).to.include(status);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Account locked error', function() {",
+                  "  pm.expect(jsonData.error.code).to.equal('ACCOUNT_LOCKED');",
+                  "  pm.expect(jsonData.error.message).to.include('30 dakika');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"locked.user@example.com\",\n  \"password\": \"WrongPassword\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-014: Login with Locked Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 403 Forbidden', function() {",
+                  "  pm.response.to.have.status(403);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Account locked message includes remaining time', function() {",
+                  "  pm.expect(jsonData.error.message).to.include('kilitlenmiştir');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"locked.user@example.com\",\n  \"password\": \"CorrectPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rate Limiting Tests",
+      "description": "Rate limiting enforcement tests",
+      "item": [
+        {
+          "name": "TC-028: Rate Limit - 10 Requests per 15 Minutes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var remainingHeader = postman.getResponseHeader('X-RateLimit-Remaining');",
+                  "var limitHeader = postman.getResponseHeader('X-RateLimit-Limit');",
+                  "var resetHeader = postman.getResponseHeader('X-RateLimit-Reset');",
+                  "",
+                  "pm.test('Rate limit headers present', function() {",
+                  "  pm.expect(limitHeader).to.exist;",
+                  "  pm.expect(remainingHeader).to.exist;",
+                  "  pm.expect(resetHeader).to.exist;",
+                  "});",
+                  "",
+                  "pm.test('Rate limit counter decrements', function() {",
+                  "  var remaining = parseInt(remainingHeader);",
+                  "  pm.expect(remaining).to.be.within(0, 20);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test.user@example.com\",\n  \"password\": \"ValidPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-029: Rate Limit Exceeded - 429 Response",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 429 Too Many Requests', function() {",
+                  "  pm.response.to.have.status(429);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Rate limit error message', function() {",
+                  "  pm.expect(jsonData.error.code).to.equal('RATE_LIMIT_EXCEEDED');",
+                  "});",
+                  "",
+                  "var retryAfter = postman.getResponseHeader('Retry-After');",
+                  "pm.test('Retry-After header present', function() {",
+                  "  pm.expect(retryAfter).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test.user@example.com\",\n  \"password\": \"ValidPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security Tests",
+      "description": "SQL injection, XSS, and other security vulnerability tests",
+      "item": [
+        {
+          "name": "TC-024: SQL Injection - Email Field",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 (invalid format)', function() {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test('No database error exposed', function() {",
+                  "  pm.expect(jsonData.error.message).to.not.include('SQL');",
+                  "  pm.expect(jsonData.error.message).to.not.include('database');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"' OR '1'='1\",\n  \"password\": \"anything\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-025: SQL Injection - Password Field",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401 (authentication failed)', function() {",
+                  "  pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Generic error - no SQL exposed', function() {",
+                  "  pm.expect(jsonData.error.message).to.include('Email veya şifre hatalı');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"\\\" OR \\\"1\\\"=\\\"1\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-026: XSS - Email Field",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 (invalid format)', function() {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "var responseBody = pm.response.text();",
+                  "pm.test('XSS payload not reflected in response', function() {",
+                  "  pm.expect(responseBody).to.not.include('<script>');",
+                  "});",
+                  "",
+                  "var contentType = postman.getResponseHeader('Content-Type');",
+                  "pm.test('Content-Type is JSON (not HTML)', function() {",
+                  "  pm.expect(contentType).to.include('application/json');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"<script>alert('XSS')</script>@example.com\",\n  \"password\": \"ValidPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-027: XSS - Password Field",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401 (auth failed)', function() {",
+                  "  pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "var responseBody = pm.response.text();",
+                  "pm.test('XSS payload not in response', function() {",
+                  "  pm.expect(responseBody).to.not.include('onerror');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"<img src=x onerror=\\\"alert('XSS')\\\">\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-033: JWT Signature Verification",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401 (invalid token)', function() {",
+                  "  pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Token signature error', function() {",
+                  "  pm.expect(jsonData.error.code).to.equal('INVALID_TOKEN');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c3JfOTk5OTkifQ.invalid_signature_xyz"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/profile",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "profile"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Edge Case Tests",
+      "description": "Input validation and edge case tests",
+      "item": [
+        {
+          "name": "TC-038: Very Long Email Address",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 (too long)', function() {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Length validation error', function() {",
+                  "  pm.expect(jsonData.error.message).to.include('çok uzun');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{ long_email }}\",\n  \"password\": \"ValidPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-039: Special Characters in Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401 (valid format)', function() {",
+                  "  var status = pm.response.code;",
+                  "  pm.expect([200, 401]).to.include(status);",
+                  "});",
+                  "",
+                  "pm.test('No format error (special chars allowed)', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.error?.code).to.not.equal('INVALID_REQUEST');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user+test@example.com\",\n  \"password\": \"ValidPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://api.example.com",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "long_email",
+      "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.com",
+      "type": "string"
+    }
+  ]
+}

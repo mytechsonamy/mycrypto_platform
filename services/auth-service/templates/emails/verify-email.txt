@@ -1,0 +1,62 @@
+MyCrypto Exchange - Email Verification / E-mail Doğrulaması
+
+===========================================
+ENGLISH VERSION
+===========================================
+
+Verify Your Email Address
+
+Hello {{userName}},
+
+Thank you for signing up with MyCrypto Exchange. To complete your account registration and start trading, please verify your email address.
+
+VERIFICATION CODE
+{{verificationCode}}
+
+You can also verify your email by clicking the link below:
+{{verificationLink}}
+
+SECURITY NOTE
+This verification code will expire in 24 hours. If you did not create this account, please ignore this email and do not share this code with anyone.
+
+For security reasons:
+- Never share your verification code with anyone
+- MyCrypto staff will never ask you for your verification code via email or chat
+- Always verify emails come from @exchange addresses
+
+===========================================
+TÜRKÇE VERSİYON
+===========================================
+
+E-mail Adresinizi Doğrulayın
+
+Merhaba {{userName}},
+
+MyCrypto Exchange'e kaydolduğunuz için teşekkür ederiz. Hesap kaydınızı tamamlamak ve ticaret yapmaya başlamak için, lütfen e-mail adresinizi doğrulayın.
+
+DOĞRULAMA KODU
+{{verificationCode}}
+
+E-mail adresinizi aşağıdaki bağlantıya tıklayarak da doğrulayabilirsiniz:
+{{verificationLink}}
+
+GÜVENLİK UYARISI
+Bu doğrulama kodu 24 saat içinde sona erecektir. Bu hesabı siz oluşturmadıysanız, lütfen bu e-maili göz ardı edin ve bu kodu kimseyle paylaşmayın.
+
+Güvenlik nedenleriyle:
+- Doğrulama kodunuzu hiç kimseyle paylaşmayın
+- MyCrypto personeli asla e-posta veya sohbet yoluyla doğrulama kodu istemeyecek
+- Her zaman e-postaların @exchange adreslerinden geldiğini doğrulayın
+
+===========================================
+CONTACT US / BİZE ULAŞIN
+===========================================
+
+Website: https://mycrypto.exchange
+Support: support@mycrypto.exchange
+Privacy: https://mycrypto.exchange/privacy
+Terms: https://mycrypto.exchange/terms
+
+© {{currentYear}} MyCrypto Exchange. All rights reserved. / Tüm hakları saklıdır.
+
+This is an automated email. Please do not reply directly. / Bu otomatik bir e-maildir. Lütfen doğrudan yanıt vermeyin.

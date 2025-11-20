@@ -1,0 +1,866 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1763608462225" clover="3.2.0">
+  <project timestamp="1763608462225" name="All files">
+    <metrics statements="767" coveredstatements="0" conditionals="267" coveredconditionals="0" methods="98" coveredmethods="0" elements="1132" coveredelements="0" complexity="0" loc="767" ncloc="767" packages="12" files="19" classes="19"/>
+    <package name="auth">
+      <metrics statements="320" coveredstatements="0" conditionals="92" coveredconditionals="0" methods="29" coveredmethods="0"/>
+      <file name="auth.controller.ts" path="/Users/musti/Documents/Projects/MyCrypto_Platform/services/auth-service/src/auth/auth.controller.ts">
+        <metrics statements="36" coveredstatements="0" conditionals="2" coveredconditionals="0" methods="9" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="207" count="0" type="stmt"/>
+        <line num="211" count="0" type="stmt"/>
+        <line num="293" count="0" type="stmt"/>
+        <line num="294" count="0" type="stmt"/>
+        <line num="393" count="0" type="stmt"/>
+        <line num="394" count="0" type="stmt"/>
+        <line num="562" count="0" type="stmt"/>
+        <line num="567" count="0" type="stmt"/>
+        <line num="726" count="0" type="stmt"/>
+        <line num="727" count="0" type="stmt"/>
+        <line num="765" count="0" type="stmt"/>
+        <line num="776" count="0" type="stmt"/>
+        <line num="777" count="0" type="stmt"/>
+        <line num="779" count="0" type="stmt"/>
+        <line num="823" count="0" type="stmt"/>
+        <line num="835" count="0" type="stmt"/>
+        <line num="875" count="0" type="stmt"/>
+        <line num="885" count="0" type="stmt"/>
+      </file>
+      <file name="auth.service.ts" path="/Users/musti/Documents/Projects/MyCrypto_Platform/services/auth-service/src/auth/auth.service.ts">
+        <metrics statements="284" coveredstatements="0" conditionals="90" coveredconditionals="0" methods="20" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="13" count="0" type="stmt"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="17" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="51" count="0" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="54" count="0" type="stmt"/>
+        <line num="68" count="0" type="stmt"/>
+        <line num="69" count="0" type="stmt"/>
+        <line num="71" count="0" type="stmt"/>
+        <line num="76" count="0" type="stmt"/>
+        <line num="78" count="0" type="stmt"/>
+        <line num="82" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="83" count="0" type="stmt"/>
+        <line num="87" count="0" type="stmt"/>
+        <line num="91" count="0" type="stmt"/>
+        <line num="94" count="0" type="stmt"/>
+        <line num="95" count="0" type="stmt"/>
+        <line num="96" count="0" type="stmt"/>
+        <line num="99" count="0" type="stmt"/>
+        <line num="109" count="0" type="stmt"/>
+        <line num="112" count="0" type="stmt"/>
+        <line num="114" count="0" type="stmt"/>
+        <line num="121" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="122" count="0" type="stmt"/>
+        <line num="129" count="0" type="stmt"/>
+        <line num="136" count="0" type="stmt"/>
+        <line num="138" count="0" type="stmt"/>
+        <line num="155" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="156" count="0" type="stmt"/>
+        <line num="159" count="0" type="stmt"/>
+        <line num="164" count="0" type="stmt"/>
+        <line num="169" count="0" type="stmt"/>
+        <line num="170" count="0" type="stmt"/>
+        <line num="171" count="0" type="stmt"/>
+        <line num="173" count="0" type="stmt"/>
+        <line num="186" count="0" type="stmt"/>
+        <line num="195" count="0" type="stmt"/>
+        <line num="199" count="0" type="stmt"/>
+        <line num="219" count="0" type="stmt"/>
+        <line num="220" count="0" type="stmt"/>
+        <line num="222" count="0" type="stmt"/>
+        <line num="226" count="0" type="stmt"/>
+        <line num="228" count="0" type="stmt"/>
+        <line num="231" count="0" type="stmt"/>
+        <line num="235" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="236" count="0" type="stmt"/>
+        <line num="239" count="0" type="stmt"/>
+        <line num="243" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="244" count="0" type="stmt"/>
+        <line num="248" count="0" type="stmt"/>
+        <line num="252" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="253" count="0" type="stmt"/>
+        <line num="258" count="0" type="stmt"/>
+        <line num="273" count="0" type="stmt"/>
+        <line num="274" count="0" type="stmt"/>
+        <line num="275" count="0" type="stmt"/>
+        <line num="277" count="0" type="stmt"/>
+        <line num="279" count="0" type="stmt"/>
+        <line num="285" count="0" type="stmt"/>
+        <line num="298" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="299" count="0" type="stmt"/>
+        <line num="302" count="0" type="stmt"/>
+        <line num="307" count="0" type="stmt"/>
+        <line num="324" count="0" type="stmt"/>
+        <line num="325" count="0" type="stmt"/>
+        <line num="327" count="0" type="stmt"/>
+        <line num="332" count="0" type="stmt"/>
+        <line num="334" count="0" type="stmt"/>
+        <line num="338" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="339" count="0" type="stmt"/>
+        <line num="343" count="0" type="stmt"/>
+        <line num="347" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="348" count="0" type="stmt"/>
+        <line num="353" count="0" type="stmt"/>
+        <line num="357" count="0" type="stmt"/>
+        <line num="358" count="0" type="stmt"/>
+        <line num="359" count="0" type="stmt"/>
+        <line num="362" count="0" type="stmt"/>
+        <line num="363" count="0" type="stmt"/>
+        <line num="365" count="0" type="stmt"/>
+        <line num="368" count="0" type="stmt"/>
+        <line num="370" count="0" type="stmt"/>
+        <line num="377" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="378" count="0" type="stmt"/>
+        <line num="382" count="0" type="stmt"/>
+        <line num="385" count="0" type="stmt"/>
+        <line num="391" count="0" type="stmt"/>
+        <line num="400" count="0" type="cond" truecount="0" falsecount="5"/>
+        <line num="403" count="0" type="stmt"/>
+        <line num="406" count="0" type="stmt"/>
+        <line num="411" count="0" type="stmt"/>
+        <line num="434" count="0" type="stmt"/>
+        <line num="435" count="0" type="stmt"/>
+        <line num="437" count="0" type="stmt"/>
+        <line num="443" count="0" type="stmt"/>
+        <line num="445" count="0" type="stmt"/>
+        <line num="450" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="452" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="453" count="0" type="stmt"/>
+        <line num="456" count="0" type="stmt"/>
+        <line num="462" count="0" type="stmt"/>
+        <line num="466" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="467" count="0" type="stmt"/>
+        <line num="471" count="0" type="stmt"/>
+        <line num="479" count="0" type="stmt"/>
+        <line num="485" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="486" count="0" type="stmt"/>
+        <line num="494" count="0" type="stmt"/>
+        <line num="498" count="0" type="stmt"/>
+        <line num="500" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="502" count="0" type="stmt"/>
+        <line num="504" count="0" type="stmt"/>
+        <line num="512" count="0" type="stmt"/>
+        <line num="527" count="0" type="stmt"/>
+        <line num="528" count="0" type="stmt"/>
+        <line num="531" count="0" type="stmt"/>
+        <line num="534" count="0" type="stmt"/>
+        <line num="537" count="0" type="stmt"/>
+        <line num="539" count="0" type="stmt"/>
+        <line num="546" count="0" type="stmt"/>
+        <line num="565" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="566" count="0" type="stmt"/>
+        <line num="569" count="0" type="stmt"/>
+        <line num="576" count="0" type="stmt"/>
+        <line num="589" count="0" type="stmt"/>
+        <line num="590" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="591" count="0" type="stmt"/>
+        <line num="594" count="0" type="stmt"/>
+        <line num="595" count="0" type="stmt"/>
+        <line num="598" count="0" type="stmt"/>
+        <line num="601" count="0" type="stmt"/>
+        <line num="603" count="0" type="stmt"/>
+        <line num="615" count="0" type="stmt"/>
+        <line num="616" count="0" type="stmt"/>
+        <line num="624" count="0" type="stmt"/>
+        <line num="636" count="0" type="stmt"/>
+        <line num="637" count="0" type="stmt"/>
+        <line num="645" count="0" type="stmt"/>
+        <line num="665" count="0" type="stmt"/>
+        <line num="671" count="0" type="stmt"/>
+        <line num="675" count="0" type="stmt"/>
+        <line num="677" count="0" type="stmt"/>
+        <line num="686" count="0" type="stmt"/>
+        <line num="694" count="0" type="stmt"/>
+        <line num="695" count="0" type="stmt"/>
+        <line num="697" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="700" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="701" count="0" type="stmt"/>
+        <line num="703" count="0" type="stmt"/>
+        <line num="711" count="0" type="stmt"/>
+        <line num="719" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="720" count="0" type="stmt"/>
+        <line num="721" count="0" type="stmt"/>
+        <line num="722" count="0" type="stmt"/>
+        <line num="732" count="0" type="stmt"/>
+        <line num="733" count="0" type="stmt"/>
+        <line num="734" count="0" type="stmt"/>
+        <line num="750" count="0" type="stmt"/>
+        <line num="751" count="0" type="stmt"/>
+        <line num="753" count="0" type="stmt"/>
+        <line num="757" count="0" type="stmt"/>
+        <line num="760" count="0" type="stmt"/>
+        <line num="761" count="0" type="stmt"/>
+        <line num="765" count="0" type="stmt"/>
+        <line num="769" count="0" type="stmt"/>
+        <line num="773" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="774" count="0" type="stmt"/>
+        <line num="778" count="0" type="stmt"/>
+        <line num="782" count="0" type="stmt"/>
+        <line num="788" count="0" type="stmt"/>
+        <line num="793" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="794" count="0" type="stmt"/>
+        <line num="797" count="0" type="stmt"/>
+        <line num="801" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="802" count="0" type="stmt"/>
+        <line num="807" count="0" type="stmt"/>
+        <line num="811" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="812" count="0" type="stmt"/>
+        <line num="818" count="0" type="stmt"/>
+        <line num="822" count="0" type="cond" truecount="0" falsecount="5"/>
+        <line num="825" count="0" type="stmt"/>
+        <line num="830" count="0" type="stmt"/>
+        <line num="834" count="0" type="stmt"/>
+        <line num="836" count="0" type="stmt"/>
+        <line num="842" count="0" type="stmt"/>
+        <line num="855" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="856" count="0" type="stmt"/>
+        <line num="859" count="0" type="stmt"/>
+        <line num="864" count="0" type="stmt"/>
+        <line num="887" count="0" type="stmt"/>
+        <line num="889" count="0" type="stmt"/>
+        <line num="895" count="0" type="stmt"/>
+        <line num="897" count="0" type="stmt"/>
+        <line num="900" count="0" type="stmt"/>
+        <line num="904" count="0" type="stmt"/>
+        <line num="905" count="0" type="stmt"/>
+        <line num="906" count="0" type="stmt"/>
+        <line num="907" count="0" type="stmt"/>
+        <line num="910" count="0" type="stmt"/>
+        <line num="916" count="0" type="stmt"/>
+        <line num="928" count="0" type="stmt"/>
+        <line num="934" count="0" type="stmt"/>
+        <line num="957" count="0" type="stmt"/>
+        <line num="958" count="0" type="stmt"/>
+        <line num="960" count="0" type="stmt"/>
+        <line num="966" count="0" type="stmt"/>
+        <line num="968" count="0" type="stmt"/>
+        <line num="969" count="0" type="stmt"/>
+        <line num="975" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="976" count="0" type="stmt"/>
+        <line num="984" count="0" type="stmt"/>
+        <line num="998" count="0" type="stmt"/>
+        <line num="1002" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="1004" count="0" type="stmt"/>
+        <line num="1005" count="0" type="stmt"/>
+        <line num="1006" count="0" type="stmt"/>
+        <line num="1009" count="0" type="stmt"/>
+        <line num="1015" count="0" type="stmt"/>
+        <line num="1023" count="0" type="stmt"/>
+        <line num="1026" count="0" type="stmt"/>
+        <line num="1028" count="0" type="stmt"/>
+        <line num="1034" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="1035" count="0" type="stmt"/>
+        <line num="1041" count="0" type="stmt"/>
+        <line num="1047" count="0" type="stmt"/>
+        <line num="1055" count="0" type="stmt"/>
+        <line num="1067" count="0" type="stmt"/>
+        <line num="1074" count="0" type="stmt"/>
+        <line num="1103" count="0" type="stmt"/>
+        <line num="1104" count="0" type="stmt"/>
+        <line num="1106" count="0" type="stmt"/>
+        <line num="1110" count="0" type="stmt"/>
+        <line num="1112" count="0" type="stmt"/>
+        <line num="1115" count="0" type="stmt"/>
+        <line num="1120" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="1121" count="0" type="stmt"/>
+        <line num="1124" count="0" type="stmt"/>
+        <line num="1128" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="1129" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="1130" count="0" type="stmt"/>
+        <line num="1135" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="1136" count="0" type="stmt"/>
+        <line num="1142" count="0" type="stmt"/>
+        <line num="1146" count="0" type="stmt"/>
+        <line num="1149" count="0" type="stmt"/>
+        <line num="1150" count="0" type="stmt"/>
+        <line num="1153" count="0" type="stmt"/>
+        <line num="1154" count="0" type="stmt"/>
+        <line num="1156" count="0" type="stmt"/>
+        <line num="1159" count="0" type="stmt"/>
+        <line num="1160" count="0" type="stmt"/>
+        <line num="1163" count="0" type="stmt"/>
+        <line num="1169" count="0" type="stmt"/>
+        <line num="1172" count="0" type="stmt"/>
+        <line num="1177" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="1178" count="0" type="stmt"/>
+        <line num="1184" count="0" type="stmt"/>
+        <line num="1190" count="0" type="stmt"/>
+        <line num="1202" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="1203" count="0" type="stmt"/>
+        <line num="1206" count="0" type="stmt"/>
+        <line num="1211" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="auth.entities">
+      <metrics statements="6" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="9" coveredmethods="0"/>
+      <file name="index.ts" path="/Users/musti/Documents/Projects/MyCrypto_Platform/services/auth-service/src/auth/entities/index.ts">
+        <metrics statements="6" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="9" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="2" count="0" type="stmt"/>
+        <line num="3" count="0" type="stmt"/>
+        <line num="4" count="0" type="stmt"/>
+        <line num="5" count="0" type="stmt"/>
+        <line num="6" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="auth.guards">
+      <metrics statements="9" coveredstatements="0" conditionals="6" coveredconditionals="0" methods="2" coveredmethods="0"/>
+      <file name="jwt-auth.guard.ts" path="/Users/musti/Documents/Projects/MyCrypto_Platform/services/auth-service/src/auth/guards/jwt-auth.guard.ts">
+        <metrics statements="9" coveredstatements="0" conditionals="6" coveredconditionals="0" methods="2" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="2" count="0" type="stmt"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="16" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="17" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="auth.services">
+      <metrics statements="76" coveredstatements="0" conditionals="14" coveredconditionals="0" methods="8" coveredmethods="0"/>
+      <file name="token-blacklist.service.ts" path="/Users/musti/Documents/Projects/MyCrypto_Platform/services/auth-service/src/auth/services/token-blacklist.service.ts">
+        <metrics statements="76" coveredstatements="0" conditionals="14" coveredconditionals="0" methods="8" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="5" count="0" type="stmt"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="7" count="0" type="stmt"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="17" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="51" count="0" type="stmt"/>
+        <line num="61" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="65" count="0" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="68" count="0" type="stmt"/>
+        <line num="69" count="0" type="stmt"/>
+        <line num="71" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="72" count="0" type="stmt"/>
+        <line num="75" count="0" type="stmt"/>
+        <line num="77" count="0" type="stmt"/>
+        <line num="84" count="0" type="stmt"/>
+        <line num="88" count="0" type="stmt"/>
+        <line num="101" count="0" type="stmt"/>
+        <line num="102" count="0" type="stmt"/>
+        <line num="103" count="0" type="stmt"/>
+        <line num="105" count="0" type="stmt"/>
+        <line num="106" count="0" type="stmt"/>
+        <line num="109" count="0" type="stmt"/>
+        <line num="115" count="0" type="stmt"/>
+        <line num="120" count="0" type="stmt"/>
+        <line num="124" count="0" type="stmt"/>
+        <line num="138" count="0" type="stmt"/>
+        <line num="140" count="0" type="stmt"/>
+        <line num="141" count="0" type="stmt"/>
+        <line num="142" count="0" type="stmt"/>
+        <line num="144" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="145" count="0" type="stmt"/>
+        <line num="149" count="0" type="stmt"/>
+        <line num="150" count="0" type="stmt"/>
+        <line num="152" count="0" type="stmt"/>
+        <line num="158" count="0" type="stmt"/>
+        <line num="168" count="0" type="stmt"/>
+        <line num="170" count="0" type="stmt"/>
+        <line num="172" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="173" count="0" type="stmt"/>
+        <line num="176" count="0" type="stmt"/>
+        <line num="179" count="0" type="stmt"/>
+        <line num="180" count="0" type="stmt"/>
+        <line num="182" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="184" count="0" type="stmt"/>
+        <line num="187" count="0" type="stmt"/>
+        <line num="190" count="0" type="stmt"/>
+        <line num="192" count="0" type="stmt"/>
+        <line num="196" count="0" type="stmt"/>
+        <line num="205" count="0" type="stmt"/>
+        <line num="207" count="0" type="stmt"/>
+        <line num="208" count="0" type="stmt"/>
+        <line num="209" count="0" type="stmt"/>
+        <line num="211" count="0" type="stmt"/>
+        <line num="215" count="0" type="stmt"/>
+        <line num="219" count="0" type="stmt"/>
+        <line num="230" count="0" type="stmt"/>
+        <line num="231" count="0" type="stmt"/>
+        <line num="234" count="0" type="stmt"/>
+        <line num="235" count="0" type="stmt"/>
+        <line num="237" count="0" type="stmt"/>
+        <line num="242" count="0" type="stmt"/>
+        <line num="246" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="auth.strategies">
+      <metrics statements="34" coveredstatements="0" conditionals="18" coveredconditionals="0" methods="2" coveredmethods="0"/>
+      <file name="jwt.strategy.ts" path="/Users/musti/Documents/Projects/MyCrypto_Platform/services/auth-service/src/auth/strategies/jwt.strategy.ts">
+        <metrics statements="34" coveredstatements="0" conditionals="18" coveredconditionals="0" methods="2" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="2" count="0" type="stmt"/>
+        <line num="3" count="0" type="stmt"/>
+        <line num="4" count="0" type="stmt"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="7" count="0" type="stmt"/>
+        <line num="8" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="17" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="21" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="36" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="41" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="43" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="54" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="59" count="0" type="stmt"/>
+        <line num="63" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="64" count="0" type="stmt"/>
+        <line num="67" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="68" count="0" type="stmt"/>
+        <line num="72" count="0" type="stmt"/>
+        <line num="73" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="74" count="0" type="stmt"/>
+        <line num="77" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="auth.two-factor.dto">
+      <metrics statements="8" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <file name="index.ts" path="/Users/musti/Documents/Projects/MyCrypto_Platform/services/auth-service/src/auth/two-factor/dto/index.ts">
+        <metrics statements="8" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="5" count="0" type="stmt"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="7" count="0" type="stmt"/>
+        <line num="8" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="auth.two-factor.interfaces">
+      <metrics statements="23" coveredstatements="0" conditionals="5" coveredconditionals="0" methods="3" coveredmethods="0"/>
+      <file name="two-factor.interface.ts" path="/Users/musti/Documents/Projects/MyCrypto_Platform/services/auth-service/src/auth/two-factor/interfaces/two-factor.interface.ts">
+        <metrics statements="23" coveredstatements="0" conditionals="5" coveredconditionals="0" methods="3" coveredmethods="0"/>
+        <line num="129" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="130" count="0" type="stmt"/>
+        <line num="131" count="0" type="stmt"/>
+        <line num="132" count="0" type="stmt"/>
+        <line num="133" count="0" type="stmt"/>
+        <line num="134" count="0" type="stmt"/>
+        <line num="135" count="0" type="stmt"/>
+        <line num="136" count="0" type="stmt"/>
+        <line num="137" count="0" type="stmt"/>
+        <line num="238" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="239" count="0" type="stmt"/>
+        <line num="240" count="0" type="stmt"/>
+        <line num="241" count="0" type="stmt"/>
+        <line num="242" count="0" type="stmt"/>
+        <line num="243" count="0" type="stmt"/>
+        <line num="244" count="0" type="stmt"/>
+        <line num="245" count="0" type="stmt"/>
+        <line num="246" count="0" type="stmt"/>
+        <line num="252" count="0" type="stmt"/>
+        <line num="254" count="0" type="stmt"/>
+        <line num="256" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="258" count="0" type="stmt"/>
+        <line num="259" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="auth.two-factor.utils">
+      <metrics statements="128" coveredstatements="0" conditionals="20" coveredconditionals="0" methods="28" coveredmethods="0"/>
+      <file name="backup-codes.service.ts" path="/Users/musti/Documents/Projects/MyCrypto_Platform/services/auth-service/src/auth/two-factor/utils/backup-codes.service.ts">
+        <metrics statements="18" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="6" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="2" count="0" type="stmt"/>
+        <line num="3" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+      </file>
+      <file name="encryption.service.ts" path="/Users/musti/Documents/Projects/MyCrypto_Platform/services/auth-service/src/auth/two-factor/utils/encryption.service.ts">
+        <metrics statements="32" coveredstatements="0" conditionals="4" coveredconditionals="0" methods="4" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="2" count="0" type="stmt"/>
+        <line num="8" count="0" type="stmt"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="13" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="16" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="52" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="54" count="0" type="stmt"/>
+        <line num="56" count="0" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="59" count="0" type="stmt"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="64" count="0" type="stmt"/>
+        <line num="75" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="76" count="0" type="stmt"/>
+        <line num="79" count="0" type="stmt"/>
+        <line num="80" count="0" type="stmt"/>
+        <line num="82" count="0" type="stmt"/>
+      </file>
+      <file name="redis-2fa.service.ts" path="/Users/musti/Documents/Projects/MyCrypto_Platform/services/auth-service/src/auth/two-factor/utils/redis-2fa.service.ts">
+        <metrics statements="66" coveredstatements="0" conditionals="16" coveredconditionals="0" methods="14" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="2" count="0" type="stmt"/>
+        <line num="3" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="47" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="51" count="0" type="stmt"/>
+        <line num="54" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="66" count="0" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="76" count="0" type="stmt"/>
+        <line num="77" count="0" type="stmt"/>
+        <line num="78" count="0" type="stmt"/>
+        <line num="84" count="0" type="stmt"/>
+        <line num="85" count="0" type="stmt"/>
+        <line num="95" count="0" type="stmt"/>
+        <line num="96" count="0" type="stmt"/>
+        <line num="98" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="99" count="0" type="stmt"/>
+        <line num="103" count="0" type="stmt"/>
+        <line num="104" count="0" type="stmt"/>
+        <line num="106" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="107" count="0" type="stmt"/>
+        <line num="110" count="0" type="stmt"/>
+        <line num="111" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="112" count="0" type="stmt"/>
+        <line num="115" count="0" type="stmt"/>
+        <line num="124" count="0" type="stmt"/>
+        <line num="125" count="0" type="stmt"/>
+        <line num="126" count="0" type="stmt"/>
+        <line num="128" count="0" type="stmt"/>
+        <line num="135" count="0" type="stmt"/>
+        <line num="136" count="0" type="stmt"/>
+        <line num="138" count="0" type="stmt"/>
+        <line num="147" count="0" type="stmt"/>
+        <line num="148" count="0" type="stmt"/>
+        <line num="149" count="0" type="stmt"/>
+        <line num="150" count="0" type="stmt"/>
+        <line num="159" count="0" type="stmt"/>
+        <line num="160" count="0" type="stmt"/>
+        <line num="161" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="170" count="0" type="stmt"/>
+        <line num="171" count="0" type="stmt"/>
+        <line num="174" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="175" count="0" type="stmt"/>
+        <line num="178" count="0" type="stmt"/>
+        <line num="187" count="0" type="stmt"/>
+        <line num="188" count="0" type="stmt"/>
+        <line num="196" count="0" type="stmt"/>
+        <line num="197" count="0" type="stmt"/>
+        <line num="208" count="0" type="stmt"/>
+        <line num="209" count="0" type="stmt"/>
+        <line num="211" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="212" count="0" type="stmt"/>
+        <line num="215" count="0" type="stmt"/>
+        <line num="226" count="0" type="stmt"/>
+      </file>
+      <file name="totp.service.ts" path="/Users/musti/Documents/Projects/MyCrypto_Platform/services/auth-service/src/auth/two-factor/utils/totp.service.ts">
+        <metrics statements="12" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="4" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="2" count="0" type="stmt"/>
+        <line num="3" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="81" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="common.config">
+      <metrics statements="52" coveredstatements="0" conditionals="56" coveredconditionals="0" methods="4" coveredmethods="0"/>
+      <file name="email.config.ts" path="/Users/musti/Documents/Projects/MyCrypto_Platform/services/auth-service/src/common/config/email.config.ts">
+        <metrics statements="2" coveredstatements="0" conditionals="18" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="3" count="0" type="stmt"/>
+      </file>
+      <file name="jwt.config.ts" path="/Users/musti/Documents/Projects/MyCrypto_Platform/services/auth-service/src/common/config/jwt.config.ts">
+        <metrics statements="50" coveredstatements="0" conditionals="38" coveredconditionals="0" methods="3" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="2" count="0" type="stmt"/>
+        <line num="3" count="0" type="stmt"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="11" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="12" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="13" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="15" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="21" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="24" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="26" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="54" count="0" type="stmt"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="58" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="59" count="0" type="stmt"/>
+        <line num="63" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="64" count="0" type="stmt"/>
+        <line num="65" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="69" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="70" count="0" type="stmt"/>
+        <line num="76" count="0" type="stmt"/>
+        <line num="78" count="0" type="stmt"/>
+        <line num="85" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="86" count="0" type="stmt"/>
+        <line num="87" count="0" type="stmt"/>
+        <line num="88" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="89" count="0" type="stmt"/>
+        <line num="96" count="0" type="stmt"/>
+        <line num="108" count="0" type="stmt"/>
+        <line num="109" count="0" type="stmt"/>
+        <line num="112" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="113" count="0" type="stmt"/>
+        <line num="117" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="118" count="0" type="stmt"/>
+        <line num="119" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="123" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="124" count="0" type="stmt"/>
+        <line num="130" count="0" type="stmt"/>
+        <line num="132" count="0" type="stmt"/>
+        <line num="139" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="140" count="0" type="stmt"/>
+        <line num="141" count="0" type="stmt"/>
+        <line num="142" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="143" count="0" type="stmt"/>
+        <line num="150" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="common.decorators">
+      <metrics statements="9" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="0"/>
+      <file name="configurable-rate-limit.decorator.ts" path="/Users/musti/Documents/Projects/MyCrypto_Platform/services/auth-service/src/common/decorators/configurable-rate-limit.decorator.ts">
+        <metrics statements="4" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="17" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
+      </file>
+      <file name="rate-limit.decorator.ts" path="/Users/musti/Documents/Projects/MyCrypto_Platform/services/auth-service/src/common/decorators/rate-limit.decorator.ts">
+        <metrics statements="5" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="2" count="0" type="stmt"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="16" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="common.guards">
+      <metrics statements="87" coveredstatements="0" conditionals="52" coveredconditionals="0" methods="8" coveredmethods="0"/>
+      <file name="rate-limiter.guard.ts" path="/Users/musti/Documents/Projects/MyCrypto_Platform/services/auth-service/src/common/guards/rate-limiter.guard.ts">
+        <metrics statements="43" coveredstatements="0" conditionals="29" coveredconditionals="0" methods="4" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="8" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="41" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="47" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="66" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="68" count="0" type="stmt"/>
+        <line num="72" count="0" type="stmt"/>
+        <line num="75" count="0" type="stmt"/>
+        <line num="76" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="77" count="0" type="stmt"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="84" count="0" type="stmt"/>
+        <line num="91" count="0" type="stmt"/>
+        <line num="92" count="0" type="stmt"/>
+        <line num="93" count="0" type="stmt"/>
+        <line num="95" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="97" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="100" count="0" type="stmt"/>
+        <line num="117" count="0" type="stmt"/>
+        <line num="125" count="0" type="stmt"/>
+        <line num="126" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="127" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="128" count="0" type="stmt"/>
+        <line num="132" count="0" type="stmt"/>
+        <line num="133" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="134" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="138" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="145" count="0" type="stmt"/>
+      </file>
+      <file name="recaptcha.guard.ts" path="/Users/musti/Documents/Projects/MyCrypto_Platform/services/auth-service/src/common/guards/recaptcha.guard.ts">
+        <metrics statements="44" coveredstatements="0" conditionals="23" coveredconditionals="0" methods="4" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+        <line num="8" count="0" type="stmt"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="13" count="0" type="stmt"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="26" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="27" count="0" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="35" count="0" type="cond" truecount="0" falsecount="3"/>
+        <line num="36" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="38" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="58" count="0" type="stmt"/>
+        <line num="59" count="0" type="stmt"/>
+        <line num="62" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="70" count="0" type="stmt"/>
+        <line num="84" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="85" count="0" type="stmt"/>
+        <line num="87" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="88" count="0" type="stmt"/>
+        <line num="98" count="0" type="stmt"/>
+        <line num="112" count="0" type="stmt"/>
+        <line num="122" count="0" type="stmt"/>
+        <line num="131" count="0" type="stmt"/>
+        <line num="133" count="0" type="stmt"/>
+        <line num="136" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="137" count="0" type="stmt"/>
+        <line num="141" count="0" type="stmt"/>
+        <line num="149" count="0" type="stmt"/>
+        <line num="170" count="0" type="stmt"/>
+        <line num="171" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="172" count="0" type="stmt"/>
+        <line num="176" count="0" type="stmt"/>
+        <line num="177" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="178" count="0" type="stmt"/>
+        <line num="181" count="0" type="stmt"/>
+        <line num="189" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="migrations">
+      <metrics statements="15" coveredstatements="0" conditionals="4" coveredconditionals="0" methods="3" coveredmethods="0"/>
+      <file name="1731999999999-UpdateEmailVerificationTokenFields.ts" path="/Users/musti/Documents/Projects/MyCrypto_Platform/services/auth-service/src/migrations/1731999999999-UpdateEmailVerificationTokenFields.ts">
+        <metrics statements="15" coveredstatements="0" conditionals="4" coveredconditionals="0" methods="3" coveredmethods="0"/>
+        <line num="3" count="0" type="stmt"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="19" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="26" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="51" count="0" type="stmt"/>
+        <line num="54" count="0" type="stmt"/>
+        <line num="59" count="0" type="stmt"/>
+        <line num="64" count="0" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>

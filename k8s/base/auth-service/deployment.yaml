@@ -1,0 +1,233 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: default
+  labels:
+    app: auth-service
+    version: v1
+    component: backend
+    platform: exchange
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: auth-service
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+        - name: auth-service
+          image: 123456789012.dkr.ecr.eu-west-1.amazonaws.com/auth-service:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+          env:
+            # Application Settings
+            - name: NODE_ENV
+              value: "production"
+            - name: LOG_LEVEL
+              value: "info"
+            - name: PORT
+              value: "3000"
+
+            # Database Configuration
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: database-secret
+                  key: url
+            - name: DATABASE_POOL_MIN
+              value: "5"
+            - name: DATABASE_POOL_MAX
+              value: "20"
+            - name: DATABASE_POOL_IDLE_TIMEOUT_MS
+              value: "30000"
+            - name: DATABASE_LOGGING
+              value: "false"
+
+            # Redis Configuration
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: redis-config
+                  key: host
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: redis-config
+                  key: port
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: password
+            - name: REDIS_DB
+              value: "0"
+            - name: SESSION_TTL
+              value: "86400"
+
+            # RabbitMQ Configuration
+            - name: RABBITMQ_URL
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-secret
+                  key: url
+            - name: RABBITMQ_VHOST
+              value: "/"
+            - name: RABBITMQ_QUEUE_EMAIL_NOTIFICATIONS
+              value: "email.notifications"
+            - name: RABBITMQ_QUEUE_AUDIT_LOGS
+              value: "audit.logs"
+
+            # JWT Configuration
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: secret
+            - name: JWT_EXPIRY
+              value: "15m"
+            - name: JWT_REFRESH_EXPIRY
+              value: "30d"
+            - name: JWT_ALGORITHM
+              value: "HS256"
+
+            # Password Hashing
+            - name: BCRYPT_ROUNDS
+              value: "12"
+
+            # API Configuration
+            - name: API_BASE_URL
+              value: "https://api.exchange.com"
+            - name: CORS_ORIGIN
+              value: "https://exchange.com,https://admin.exchange.com"
+            - name: RATE_LIMIT_WINDOW_MS
+              value: "60000"
+            - name: RATE_LIMIT_MAX_REQUESTS
+              value: "100"
+            - name: REQUEST_TIMEOUT_MS
+              value: "30000"
+
+            # Security
+            - name: FORCE_HTTPS
+              value: "true"
+            - name: HSTS_MAX_AGE
+              value: "31536000"
+            - name: CSRF_ENABLED
+              value: "true"
+
+            # Monitoring
+            - name: PROMETHEUS_ENABLED
+              value: "true"
+            - name: JAEGER_ENABLED
+              value: "true"
+            - name: JAEGER_ENDPOINT
+              value: "http://jaeger-collector:14268/api/traces"
+            - name: APM_SERVICE_NAME
+              value: "auth-service"
+
+            # Feature Flags
+            - name: FEATURE_2FA_ENABLED
+              value: "true"
+            - name: FEATURE_KYC_ENABLED
+              value: "true"
+            - name: FEATURE_EMAIL_VERIFICATION
+              value: "true"
+
+            # Health Check Configuration
+            - name: HEALTH_CHECK_DATABASE
+              value: "true"
+            - name: HEALTH_CHECK_REDIS
+              value: "true"
+            - name: HEALTH_CHECK_RABBITMQ
+              value: "true"
+
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+            successThreshold: 1
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: cache
+              mountPath: /app/.cache
+
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: cache
+          emptyDir: {}
+
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - auth-service
+                topologyKey: kubernetes.io/hostname
+
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always

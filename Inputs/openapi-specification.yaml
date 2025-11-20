@@ -1,0 +1,1151 @@
+openapi: 3.0.3
+info:
+  title: Kurumsal Kripto Varlık Borsası API
+  description: |
+    **Techsonamy Kripto Exchange Platform API**
+    
+    Bu API, kurumsal kripto varlık borsası platformunun temel fonksiyonlarını sağlar:
+    - Kullanıcı kimlik doğrulama ve yetkilendirme
+    - Kripto varlık alım-satım işlemleri
+    - Cüzdan yönetimi (yatırma/çekme)
+    - Admin ve uyum fonksiyonları
+    
+    ## Önemli Notlar
+    - Tüm decimal değerler **string** formatında gönderilmelidir (floating point hataları önlemek için)
+    - Timestamp'ler **ISO 8601** formatında (UTC)
+    - Rate limiting aktif: Header'larda `X-RateLimit-*` bilgileri döner
+    - Hassas işlemler için 2FA gereklidir
+    
+    ## Güvenlik
+    - OAuth 2.0 / JWT token bazlı kimlik doğrulama
+    - HTTPS zorunlu (TLS 1.2+)
+    - Request signing kritik endpoint'lerde gerekli
+    
+  version: 1.0.0
+  contact:
+    name: Techsonamy API Support
+    email: api-support@techsonamy.com
+    url: https://docs.techsonamy.com
+  license:
+    name: Proprietary
+    url: https://techsonamy.com/license
+
+servers:
+  - url: https://api.example.com
+    description: Production server (banka domain'i)
+  - url: https://sandbox-api.example.com
+    description: Sandbox environment (test)
+
+tags:
+  - name: auth
+    description: Authentication and authorization
+  - name: users
+    description: User management and KYC
+  - name: trading
+    description: Trading operations (orders, markets)
+  - name: wallet
+    description: Wallet operations (balances, deposits, withdrawals)
+  - name: admin
+    description: Admin operations (requires admin role)
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from /auth/login endpoint
+    
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for server-to-server communication
+
+  schemas:
+    Error:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        requestId:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: INSUFFICIENT_BALANCE
+            message:
+              type: string
+              example: Insufficient balance for this order
+            details:
+              type: object
+            traceId:
+              type: string
+
+    SuccessResponse:
+      type: object
+      required:
+        - success
+        - data
+      properties:
+        success:
+          type: boolean
+          example: true
+        requestId:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+        meta:
+          type: object
+          properties:
+            page:
+              type: integer
+            pageSize:
+              type: integer
+            totalCount:
+              type: integer
+
+    User:
+      type: object
+      properties:
+        userId:
+          type: string
+          example: usr_abc123
+        email:
+          type: string
+          format: email
+        phoneNumber:
+          type: string
+          example: "+905551234567"
+        kycLevel:
+          type: string
+          enum: [LEVEL_0, LEVEL_1, LEVEL_2, LEVEL_3]
+          description: |
+            - LEVEL_0: No KYC
+            - LEVEL_1: Basic (email + phone)
+            - LEVEL_2: Full (ID + address + selfie)
+            - LEVEL_3: Enhanced (video call)
+        kycStatus:
+          type: string
+          enum: [NOT_STARTED, PENDING_SUBMISSION, PENDING_REVIEW, APPROVED, REJECTED]
+        status:
+          type: string
+          enum: [ACTIVE, SUSPENDED, BLOCKED, PENDING_VERIFICATION]
+        createdAt:
+          type: string
+          format: date-time
+
+    Order:
+      type: object
+      properties:
+        orderId:
+          type: string
+          example: ord_abc123
+        clientOrderId:
+          type: string
+          example: client_ref_123
+        symbol:
+          type: string
+          example: BTCTRY
+        side:
+          type: string
+          enum: [BUY, SELL]
+        type:
+          type: string
+          enum: [MARKET, LIMIT]
+        price:
+          type: string
+          example: "1850000.00"
+          description: For limit orders. String format to avoid precision loss.
+        quantity:
+          type: string
+          example: "0.01000000"
+          description: Crypto amount. String format with 8 decimals.
+        status:
+          type: string
+          enum: [NEW, PARTIALLY_FILLED, FILLED, CANCELED, REJECTED, EXPIRED]
+        timeInForce:
+          type: string
+          enum: [GTC, IOC, FOK]
+          description: |
+            - GTC: Good Till Cancel
+            - IOC: Immediate or Cancel
+            - FOK: Fill or Kill
+        executedQuantity:
+          type: string
+          example: "0.00500000"
+        remainingQuantity:
+          type: string
+          example: "0.00500000"
+        averagePrice:
+          type: string
+          example: "1849800.00"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Balance:
+      type: object
+      properties:
+        asset:
+          type: string
+          example: BTC
+        available:
+          type: string
+          example: "0.15000000"
+          description: Available balance for trading/withdrawal
+        locked:
+          type: string
+          example: "0.02000000"
+          description: Locked in open orders
+        total:
+          type: string
+          example: "0.17000000"
+          description: Total = available + locked
+        valueInTRY:
+          type: string
+          example: "314500.00"
+
+    Withdrawal:
+      type: object
+      properties:
+        withdrawalId:
+          type: string
+          example: wdr_xyz789
+        asset:
+          type: string
+          example: BTC
+        amount:
+          type: string
+          example: "0.05000000"
+        fee:
+          type: string
+          example: "0.0005"
+        address:
+          type: string
+          example: bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh
+        network:
+          type: string
+          example: BTC
+        txHash:
+          type: string
+          example: "0xabc...123"
+        status:
+          type: string
+          enum: [PENDING_APPROVAL, PENDING_SIGNATURE, PROCESSING, COMPLETED, REJECTED, FAILED]
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+
+paths:
+  # ==================== AUTH ENDPOINTS ====================
+  /api/v1/auth/register:
+    post:
+      tags:
+        - auth
+      summary: Register new user
+      description: Create a new user account (pre-KYC registration)
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - phoneNumber
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  description: Must contain uppercase, lowercase, number, and special char
+                phoneNumber:
+                  type: string
+                  pattern: '^\+90[0-9]{10}$'
+                referralCode:
+                  type: string
+      responses:
+        '200':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          userId:
+                            type: string
+                          email:
+                            type: string
+                          status:
+                            type: string
+                            enum: [PENDING_VERIFICATION]
+                          verificationRequired:
+                            type: array
+                            items:
+                              type: string
+                              enum: [EMAIL, PHONE]
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/auth/login:
+    post:
+      tags:
+        - auth
+      summary: User login
+      description: Authenticate user and get JWT tokens
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+                deviceId:
+                  type: string
+                  format: uuid
+                  description: Unique device identifier for security tracking
+                twoFactorCode:
+                  type: string
+                  pattern: '^[0-9]{6}$'
+                  description: Required if 2FA is enabled
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          accessToken:
+                            type: string
+                            description: JWT access token (short-lived, 15-30 min)
+                          refreshToken:
+                            type: string
+                            description: JWT refresh token (long-lived, 30 days)
+                          expiresIn:
+                            type: integer
+                            example: 1800
+                            description: Access token expiry in seconds
+                          tokenType:
+                            type: string
+                            example: Bearer
+                          user:
+                            $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials or 2FA code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/auth/refresh:
+    post:
+      tags:
+        - auth
+      summary: Refresh access token
+      description: Get new access token using refresh token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          accessToken:
+                            type: string
+                          expiresIn:
+                            type: integer
+
+  # ==================== USER & KYC ENDPOINTS ====================
+  /api/v1/users/profile:
+    get:
+      tags:
+        - users
+      summary: Get user profile
+      description: Retrieve current user's profile information
+      operationId: getUserProfile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profile retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/User'
+                          - type: object
+                            properties:
+                              limits:
+                                type: object
+                                properties:
+                                  dailyWithdrawal:
+                                    type: object
+                                    properties:
+                                      limit:
+                                        type: string
+                                      used:
+                                        type: string
+                                      currency:
+                                        type: string
+
+  /api/v1/kyc/submit:
+    post:
+      tags:
+        - users
+      summary: Submit KYC documents
+      description: Upload identity documents for KYC verification
+      operationId: submitKYC
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - identityDocument
+                - addressProof
+                - selfiePhoto
+              properties:
+                identityDocument:
+                  type: string
+                  format: binary
+                  description: ID card or passport image
+                addressProof:
+                  type: string
+                  format: binary
+                  description: Utility bill or bank statement
+                selfiePhoto:
+                  type: string
+                  format: binary
+                nationality:
+                  type: string
+                  example: TR
+                taxId:
+                  type: string
+                  example: "12345678901"
+      responses:
+        '200':
+          description: KYC submitted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          kycId:
+                            type: string
+                          status:
+                            type: string
+                            enum: [PENDING_REVIEW]
+                          submittedAt:
+                            type: string
+                            format: date-time
+                          estimatedReviewTime:
+                            type: string
+                            example: "24-48 hours"
+
+  # ==================== TRADING ENDPOINTS ====================
+  /api/v1/markets:
+    get:
+      tags:
+        - trading
+      summary: Get all markets
+      description: Retrieve list of all active trading markets
+      operationId: getMarkets
+      responses:
+        '200':
+          description: Markets list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            symbol:
+                              type: string
+                              example: BTCTRY
+                            baseAsset:
+                              type: string
+                              example: BTC
+                            quoteAsset:
+                              type: string
+                              example: TRY
+                            status:
+                              type: string
+                              enum: [TRADING, HALTED, SUSPENDED]
+                            minOrderAmount:
+                              type: string
+                              example: "100.00"
+                            maxOrderAmount:
+                              type: string
+                              example: "1000000.00"
+                            pricePrecision:
+                              type: integer
+                              example: 2
+                            quantityPrecision:
+                              type: integer
+                              example: 8
+                            fees:
+                              type: object
+                              properties:
+                                maker:
+                                  type: string
+                                  example: "0.001"
+                                taker:
+                                  type: string
+                                  example: "0.002"
+
+  /api/v1/markets/{symbol}/ticker:
+    get:
+      tags:
+        - trading
+      summary: Get market ticker
+      description: Get 24h ticker statistics for a symbol
+      operationId: getTicker
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+            example: BTCTRY
+      responses:
+        '200':
+          description: Ticker data
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          symbol:
+                            type: string
+                          lastPrice:
+                            type: string
+                          bidPrice:
+                            type: string
+                          askPrice:
+                            type: string
+                          high24h:
+                            type: string
+                          low24h:
+                            type: string
+                          volume24h:
+                            type: string
+                          priceChange24h:
+                            type: string
+                          timestamp:
+                            type: string
+                            format: date-time
+
+  /api/v1/orders:
+    post:
+      tags:
+        - trading
+      summary: Create new order
+      description: |
+        Place a new order (market or limit).
+        
+        **Balance Check:** System automatically checks available balance before placing order.
+        
+        **Order Types:**
+        - MARKET: Executed immediately at best available price
+        - LIMIT: Placed in order book at specified price
+      operationId: createOrder
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - symbol
+                - side
+                - type
+                - quantity
+              properties:
+                symbol:
+                  type: string
+                  example: BTCTRY
+                side:
+                  type: string
+                  enum: [BUY, SELL]
+                type:
+                  type: string
+                  enum: [MARKET, LIMIT]
+                price:
+                  type: string
+                  example: "1850000.00"
+                  description: Required for LIMIT orders
+                quantity:
+                  type: string
+                  example: "0.01000000"
+                timeInForce:
+                  type: string
+                  enum: [GTC, IOC, FOK]
+                  default: GTC
+                  description: Only for LIMIT orders
+                clientOrderId:
+                  type: string
+                  description: Optional client reference
+      responses:
+        '200':
+          description: Order created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Order'
+        '400':
+          description: Invalid order or insufficient balance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                insufficient_balance:
+                  value:
+                    success: false
+                    error:
+                      code: TRADE_001
+                      message: Insufficient balance for this order
+                      details:
+                        required: "1000.00"
+                        available: "750.50"
+                        currency: TRY
+
+    get:
+      tags:
+        - trading
+      summary: Get user orders
+      description: Retrieve user's order history with pagination
+      operationId: getUserOrders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: symbol
+          in: query
+          schema:
+            type: string
+            example: BTCTRY
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [NEW, PARTIALLY_FILLED, FILLED, CANCELED]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+      responses:
+        '200':
+          description: Orders list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Order'
+
+  /api/v1/orders/{orderId}:
+    get:
+      tags:
+        - trading
+      summary: Get order details
+      description: Retrieve details of a specific order
+      operationId: getOrderDetails
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: ord_abc123
+      responses:
+        '200':
+          description: Order details
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Order'
+
+    delete:
+      tags:
+        - trading
+      summary: Cancel order
+      description: Cancel an open or partially filled order
+      operationId: cancelOrder
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order canceled
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          orderId:
+                            type: string
+                          status:
+                            type: string
+                            enum: [CANCELED]
+                          canceledAt:
+                            type: string
+                            format: date-time
+
+  # ==================== WALLET ENDPOINTS ====================
+  /api/v1/wallets/balances:
+    get:
+      tags:
+        - wallet
+      summary: Get all balances
+      description: Retrieve all asset balances for the user
+      operationId: getBalances
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Balances
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Balance'
+
+  /api/v1/wallets/{asset}/balance:
+    get:
+      tags:
+        - wallet
+      summary: Get specific asset balance
+      description: Retrieve balance for a specific asset
+      operationId: getAssetBalance
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: asset
+          in: path
+          required: true
+          schema:
+            type: string
+            example: BTC
+      responses:
+        '200':
+          description: Asset balance
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        allOf:
+                          - $ref: '#/components/schemas/Balance'
+                          - type: object
+                            properties:
+                              depositAddress:
+                                type: string
+                                example: bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh
+
+  /api/v1/wallets/{asset}/withdraw:
+    post:
+      tags:
+        - wallet
+      summary: Request withdrawal
+      description: |
+        Create a withdrawal request. 
+        
+        **Important:**
+        - 2FA code required
+        - Daily/monthly limits apply
+        - Large withdrawals may require admin approval
+        - Suspicious addresses will be blocked
+      operationId: requestWithdrawal
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: asset
+          in: path
+          required: true
+          schema:
+            type: string
+            example: BTC
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+                - address
+                - network
+                - twoFactorCode
+              properties:
+                amount:
+                  type: string
+                  example: "0.05000000"
+                address:
+                  type: string
+                  example: bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh
+                network:
+                  type: string
+                  example: BTC
+                  description: Blockchain network (BTC, ETH, TRC20 for USDT)
+                memo:
+                  type: string
+                  description: Required for some assets (e.g., XRP destination tag)
+                twoFactorCode:
+                  type: string
+                  pattern: '^[0-9]{6}$'
+      responses:
+        '200':
+          description: Withdrawal requested
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Withdrawal'
+        '400':
+          description: Invalid request or limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                limit_exceeded:
+                  value:
+                    success: false
+                    error:
+                      code: WALLET_002
+                      message: Withdrawal limit exceeded
+                      details:
+                        dailyLimit: "100000.00"
+                        dailyUsed: "95000.00"
+                        requested: "10000.00"
+
+  /api/v1/wallets/withdrawals:
+    get:
+      tags:
+        - wallet
+      summary: Get withdrawal history
+      description: Retrieve user's withdrawal history
+      operationId: getWithdrawals
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: asset
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [PENDING_APPROVAL, PROCESSING, COMPLETED, REJECTED]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          description: Withdrawal history
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Withdrawal'
+
+  # ==================== ADMIN ENDPOINTS ====================
+  /api/v1/admin/users:
+    get:
+      tags:
+        - admin
+      summary: Get users list
+      description: Admin endpoint to retrieve users (requires admin role)
+      operationId: getUsers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by email, phone, or user ID
+        - name: kycStatus
+          in: query
+          schema:
+            type: string
+            enum: [PENDING_REVIEW, APPROVED, REJECTED]
+        - name: page
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Users list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+
+  /api/v1/admin/kyc/{kycId}/approve:
+    post:
+      tags:
+        - admin
+      summary: Approve KYC
+      description: Approve a pending KYC application
+      operationId: approveKYC
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: kycId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - level
+              properties:
+                level:
+                  type: string
+                  enum: [LEVEL_1, LEVEL_2, LEVEL_3]
+                note:
+                  type: string
+      responses:
+        '200':
+          description: KYC approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /api/v1/admin/withdrawals/pending:
+    get:
+      tags:
+        - admin
+      summary: Get pending withdrawals
+      description: Retrieve withdrawals awaiting admin approval
+      operationId: getPendingWithdrawals
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Pending withdrawals
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Withdrawal'
+
+  /api/v1/admin/withdrawals/{withdrawalId}/approve:
+    post:
+      tags:
+        - admin
+      summary: Approve withdrawal
+      description: Approve a pending withdrawal request
+      operationId: approveWithdrawal
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: withdrawalId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note:
+                  type: string
+      responses:
+        '200':
+          description: Withdrawal approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+# Rate limiting headers (returned in all responses)
+x-rate-limit-headers:
+  X-RateLimit-Limit:
+    description: Maximum requests allowed in the window
+    schema:
+      type: integer
+      example: 1000
+  X-RateLimit-Remaining:
+    description: Requests remaining in current window
+    schema:
+      type: integer
+      example: 950
+  X-RateLimit-Reset:
+    description: Unix timestamp when the rate limit resets
+    schema:
+      type: integer
+      example: 1700392800

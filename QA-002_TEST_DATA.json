@@ -1,0 +1,407 @@
+{
+  "description": "Test data for QA-002: User Registration & Email Verification Flow",
+  "version": "1.0",
+  "lastUpdated": "2025-11-19",
+  "testData": {
+    "validEmails": [
+      "testuser001@example.com",
+      "verify013@example.com",
+      "valid_user_test@gmail.com",
+      "test.user+tag@example.co.uk",
+      "user123@subdomain.example.com",
+      "test_user-2025@example.com",
+      "user@example.museum",
+      "test.multiple.dots@example.com"
+    ],
+    "invalidEmails": [
+      {
+        "email": "notanemail",
+        "reason": "Missing @ symbol"
+      },
+      {
+        "email": "user@",
+        "reason": "Missing domain"
+      },
+      {
+        "email": "@example.com",
+        "reason": "Missing local part"
+      },
+      {
+        "email": "user@.com",
+        "reason": "Missing domain name"
+      },
+      {
+        "email": "user@example",
+        "reason": "Missing TLD"
+      },
+      {
+        "email": "user name@example.com",
+        "reason": "Space in local part"
+      },
+      {
+        "email": "user@example .com",
+        "reason": "Space in domain"
+      },
+      {
+        "email": "user@@example.com",
+        "reason": "Double @ symbol"
+      },
+      {
+        "email": "user@example..com",
+        "reason": "Double dot in domain"
+      },
+      {
+        "email": ".user@example.com",
+        "reason": "Starts with dot"
+      }
+    ],
+    "strongPasswords": [
+      "SecurePass123!@#",
+      "MyP@ssw0rd2025",
+      "ComplexP@ss123",
+      "Tr0ngP@ssw0rd!",
+      "Secure#P@ss2025",
+      "Strong!P@ss123",
+      "ValidP@ssw0rd$",
+      "TestP@ssw0rd123"
+    ],
+    "weakPasswords": [
+      {
+        "password": "securepass123!@#",
+        "reason": "No uppercase letter",
+        "expectedError": "büyük harf"
+      },
+      {
+        "password": "SecurePass12345",
+        "reason": "No special character",
+        "expectedError": "özel karakter"
+      },
+      {
+        "password": "SecurePass!@#",
+        "reason": "No number",
+        "expectedError": "rakam"
+      },
+      {
+        "password": "Pass1!",
+        "reason": "Too short (< 8 chars)",
+        "expectedError": "minimum 8"
+      },
+      {
+        "password": "password",
+        "reason": "No uppercase, number, or special char",
+        "expectedError": "karmaşık"
+      },
+      {
+        "password": "Pass1",
+        "reason": "No special character and too short",
+        "expectedError": "özel karakter"
+      },
+      {
+        "password": "12345678",
+        "reason": "No letters or special chars",
+        "expectedError": "büyük harf"
+      },
+      {
+        "password": "ABCDEFGH",
+        "reason": "No lowercase, number, or special char",
+        "expectedError": "rakam"
+      },
+      {
+        "password": "Pass",
+        "reason": "Way too short",
+        "expectedError": "minimum 8"
+      }
+    ],
+    "edgeCasePasswords": [
+      {
+        "password": "Pass1!aaa",
+        "description": "Minimum length (8) with all requirements"
+      },
+      {
+        "password": "P@ss1" + "a".repeat(100),
+        "description": "Maximum length test"
+      },
+      {
+        "password": "ÜstürmeP@ss123",
+        "description": "Turkish characters in password"
+      },
+      {
+        "password": "Pass123!~`@#$%^&*()",
+        "description": "All special characters"
+      },
+      {
+        "password": "Pass123!         ",
+        "description": "With trailing spaces"
+      },
+      {
+        "password": "         Pass123!",
+        "description": "With leading spaces"
+      }
+    ],
+    "specialCharactersAllowed": [
+      "!",
+      "@",
+      "#",
+      "$",
+      "%",
+      "^",
+      "&",
+      "*",
+      "(",
+      ")",
+      "-",
+      "_",
+      "=",
+      "+",
+      "[",
+      "]",
+      "{",
+      "}",
+      "|",
+      ";",
+      ":",
+      "'",
+      "\"",
+      "<",
+      ">",
+      ",",
+      ".",
+      "?",
+      "/",
+      "~",
+      "`"
+    ],
+    "sqlInjectionAttempts": [
+      "'; DROP TABLE users; --",
+      "admin' --",
+      "' OR '1'='1",
+      "1' UNION SELECT * FROM users --",
+      "'; DELETE FROM users WHERE '1'='1",
+      "' OR 1=1 --",
+      "admin' OR 'x'='x"
+    ],
+    "xssAttempts": [
+      "<script>alert('XSS')</script>",
+      "<img src=x onerror='alert(1)'>",
+      "javascript:alert('XSS')",
+      "<svg onload=alert('XSS')>",
+      "<iframe src='javascript:alert(1)'>",
+      "<body onload=alert('XSS')>",
+      "<input onfocus=alert('XSS') autofocus>",
+      "<marquee onstart=alert('XSS')></marquee>",
+      "<video src=x onerror='alert(1)'>",
+      "<audio src=x onerror='alert(1)'>",
+      "<details open ontoggle='alert(1)'>"
+    ],
+    "turkishCharacters": {
+      "emails": [
+        "çalışan@example.com",
+        "gözlemci@example.com",
+        "şirket@example.com",
+        "ürün@example.com",
+        "insan@example.com",
+        "öncü@example.com"
+      ],
+      "passwordsWith": [
+        "Çalış1!@#",
+        "Gözlem1!@#",
+        "Şifre1!@#",
+        "Ürün123!@",
+        "İnsan1!@#",
+        "Ömür1!@#"
+      ]
+    },
+    "duplicateEmailTests": [
+      {
+        "email": "duplicate001@example.com",
+        "registeredFirst": true,
+        "scenario": "User already exists in system"
+      },
+      {
+        "email": "duplicate002@example.com",
+        "registeredFirst": true,
+        "scenario": "Case sensitivity test (lowercase then uppercase)"
+      },
+      {
+        "email": "duplicate003@example.com",
+        "registeredFirst": true,
+        "scenario": "Race condition test (simultaneous registration)"
+      }
+    ],
+    "tokenTests": {
+      "validTokenFormat": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2",
+      "validTokenDescription": "64 hexadecimal characters",
+      "invalidTokenFormats": [
+        {
+          "token": "short",
+          "reason": "Too short"
+        },
+        {
+          "token": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2extra",
+          "reason": "Too long"
+        },
+        {
+          "token": "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg",
+          "reason": "Invalid hex characters (g is not hex)"
+        },
+        {
+          "token": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f ",
+          "reason": "Contains space"
+        }
+      ],
+      "tokenExpiry": "24 hours",
+      "tokenExpiryMs": 86400000
+    },
+    "rateLimitingTests": {
+      "registration": {
+        "limit": 5,
+        "period": "per IP per hour",
+        "description": "5 registration attempts per IP per hour"
+      },
+      "verificationResend": {
+        "limit": 3,
+        "period": "per IP per hour",
+        "description": "3 resend attempts per IP per hour"
+      },
+      "emailVerification": {
+        "limit": 10,
+        "period": "per IP per hour",
+        "description": "10 verification attempts per IP per hour"
+      }
+    },
+    "apiPayloads": {
+      "validRegistration": {
+        "email": "testuser001@example.com",
+        "password": "SecurePass123!@#",
+        "termsAccepted": true,
+        "kvkkAccepted": true,
+        "recaptchaToken": "mock-token-with-score-0.8"
+      },
+      "missingEmail": {
+        "password": "SecurePass123!@#",
+        "termsAccepted": true,
+        "kvkkAccepted": true,
+        "recaptchaToken": "mock-token"
+      },
+      "missingPassword": {
+        "email": "testuser@example.com",
+        "termsAccepted": true,
+        "kvkkAccepted": true,
+        "recaptchaToken": "mock-token"
+      },
+      "missingTermsAccepted": {
+        "email": "testuser@example.com",
+        "password": "SecurePass123!@#",
+        "kvkkAccepted": true,
+        "recaptchaToken": "mock-token"
+      },
+      "missingKvkkAccepted": {
+        "email": "testuser@example.com",
+        "password": "SecurePass123!@#",
+        "termsAccepted": true,
+        "recaptchaToken": "mock-token"
+      },
+      "weakPassword": {
+        "email": "testuser@example.com",
+        "password": "weak123",
+        "termsAccepted": true,
+        "kvkkAccepted": true,
+        "recaptchaToken": "mock-token"
+      },
+      "invalidEmail": {
+        "email": "not-an-email",
+        "password": "SecurePass123!@#",
+        "termsAccepted": true,
+        "kvkkAccepted": true,
+        "recaptchaToken": "mock-token"
+      },
+      "lowRecaptchaScore": {
+        "email": "testuser@example.com",
+        "password": "SecurePass123!@#",
+        "termsAccepted": true,
+        "kvkkAccepted": true,
+        "recaptchaToken": "mock-token-with-score-0.3"
+      }
+    },
+    "expectedErrorMessages": {
+      "turkish": {
+        "invalidEmail": "Geçerli bir email adresi girin",
+        "passwordMinLength": "Şifre minimum 8 karakterden oluşmalıdır",
+        "passwordNoUppercase": "Şifre en az bir büyük harf içermelidir",
+        "passwordNoNumber": "Şifre en az bir rakam içermelidir",
+        "passwordNoSpecialChar": "Şifre en az bir özel karakter (!@#$%^&*) içermelidir",
+        "duplicateEmail": "Bu email zaten kayıtlı",
+        "termsNotAccepted": "Kullanım Şartlarını kabul etmelisiniz",
+        "kvkkNotAccepted": "KVKK'yı kabul etmelisiniz",
+        "emailRequired": "Bu alan gereklidir",
+        "invalidToken": "Geçersiz doğrulama linki",
+        "expiredToken": "Doğrulama linki süresi geçti",
+        "emailVerificationSuccess": "Email adresi başarıyla doğrulandı",
+        "resendSuccess": "Doğrulama emaili tekrar gönderildi",
+        "alreadyVerified": "Bu email zaten doğrulanmış",
+        "userNotFound": "Kullanıcı bulunamadı",
+        "rateLimitExceeded": "Çok fazla başarısız deneme. Lütfen 1 saat sonra tekrar deneyin"
+      }
+    },
+    "expectedHttpStatuses": {
+      "201": "Created - Successful registration",
+      "200": "OK - Successful verification or resend",
+      "400": "Bad Request - Validation errors or invalid token",
+      "404": "Not Found - User not found for resend",
+      "409": "Conflict - Email already exists",
+      "429": "Too Many Requests - Rate limiting exceeded",
+      "500": "Internal Server Error - Server-side issues"
+    },
+    "passwordStrengthIndicators": {
+      "weak": {
+        "class": "strength-weak",
+        "color": "red",
+        "display": "Weak",
+        "criteria": "Missing 1+ of: uppercase, number, special char"
+      },
+      "medium": {
+        "class": "strength-medium",
+        "color": "yellow",
+        "display": "Medium",
+        "criteria": "Has 2 of 3: uppercase, number, special char"
+      },
+      "strong": {
+        "class": "strength-strong",
+        "color": "green",
+        "display": "Strong",
+        "criteria": "Has all 3: uppercase, number, special char"
+      }
+    },
+    "emailVerificationEmailTemplate": {
+      "from": "noreply@exchange.local",
+      "subject": "Email Doğrulama",
+      "bodyContains": [
+        "Email adresinizi doğrulamak",
+        "verify-email?token=",
+        "24 saat",
+        "Lütfen aşağıdaki linke tıklayınız"
+      ]
+    },
+    "databaseValidations": {
+      "userTable": {
+        "email": "Must be unique, not null",
+        "email_verified": "Default false after registration",
+        "email_verification_token": "Null after successful verification",
+        "email_verification_token_expires_at": "Set to current time + 24 hours",
+        "password": "Hashed with bcrypt, never plain text",
+        "created_at": "Set to registration timestamp",
+        "updated_at": "Updated on verification"
+      }
+    },
+    "securityConsiderations": {
+      "passwordHashing": "bcrypt with 10 rounds (dev), 12+ rounds (prod)",
+      "tokenHashing": "SHA256 for storage, random 256-bit generation",
+      "tokenComparison": "Constant-time comparison to prevent timing attacks",
+      "sqlInjectionPrevention": "Parameterized queries via ORM",
+      "xssPrevention": "Input sanitization and output encoding",
+      "rateLimitingStorage": "Redis for atomic counter operations",
+      "corsConfiguration": "Whitelist approved origins",
+      "tlsRequirement": "HTTPS in production"
+    }
+  }
+}

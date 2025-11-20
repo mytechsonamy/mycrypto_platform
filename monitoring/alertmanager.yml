@@ -1,0 +1,121 @@
+global:
+  resolve_timeout: 5m
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+  pagerduty_url: 'https://events.pagerduty.com/v2/enqueue'
+
+# The root route with all parameters, which are inherited by the child
+# routes if they are not overwritten.
+route:
+  # The labels by which incoming alerts are grouped together. For example,
+  # multiple alerts coming in for cluster=A and alertname=LatencyHigh would
+  # be batched into a single group.
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+
+  # A default receiver for all alerts.
+  receiver: 'default'
+
+  # The child route trees.
+  routes:
+    # Critical alerts - immediate notification
+    - match:
+        severity: critical
+      receiver: 'critical'
+      group_wait: 0s
+      repeat_interval: 4h
+      continue: true
+
+    # Warning alerts - slack notification
+    - match:
+        severity: warning
+      receiver: 'warning'
+      group_wait: 30s
+      repeat_interval: 24h
+
+    # Info alerts - slack only
+    - match:
+        severity: info
+      receiver: 'info'
+      group_wait: 1m
+      repeat_interval: 48h
+
+    # Auth service specific alerts
+    - match:
+        service: auth-service
+      receiver: 'auth-team'
+      group_wait: 30s
+      repeat_interval: 24h
+
+# Inhibition rules allow to mute a set of alerts given that another alert is
+# firing.
+# We use this to mute any warning-level notifications if the same alert is
+# already critical.
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'cluster', 'service']
+
+  - source_match:
+      severity: 'warning'
+    target_match:
+      severity: 'info'
+    equal: ['alertname', 'cluster', 'service']
+
+# Receivers configure notification channels
+receivers:
+  - name: 'default'
+    slack_configs:
+      - channel: '#monitoring'
+        title: 'Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+        color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+
+  - name: 'critical'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_SERVICE_KEY}'
+        description: '{{ .GroupLabels.alertname }} - {{ .GroupLabels.instance }}'
+        details:
+          firing: '{{ range .Alerts.Firing }}{{ .Labels.alertname }} {{ .Annotations.summary }}{{ end }}'
+    slack_configs:
+      - channel: '#critical-alerts'
+        title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}\nRunbook: {{ .Annotations.runbook }}{{ end }}'
+        send_resolved: true
+        color: 'danger'
+
+  - name: 'warning'
+    slack_configs:
+      - channel: '#warnings'
+        title: '⚠️  WARNING: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+        color: 'warning'
+
+  - name: 'info'
+    slack_configs:
+      - channel: '#monitoring'
+        title: 'ℹ️ INFO: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: false
+        color: 'good'
+
+  - name: 'auth-team'
+    slack_configs:
+      - channel: '#auth-team-alerts'
+        title: '{{ .GroupLabels.alertname }} ({{ .Status }})'
+        text: |
+          Service: {{ .GroupLabels.service }}
+          Severity: {{ .GroupLabels.severity }}
+          {{ range .Alerts }}
+          {{ .Annotations.summary }}
+          {{ .Annotations.description }}
+          Dashboard: {{ .Annotations.dashboard }}
+          Runbook: {{ .Annotations.runbook }}
+          {{ end }}
+        send_resolved: true
+        color: '{{ if eq .Status "firing" }}{{ if eq .GroupLabels.severity "critical" }}danger{{ else }}warning{{ end }}{{ else }}good{{ end }}'

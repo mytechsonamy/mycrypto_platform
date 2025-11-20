@@ -1,0 +1,77 @@
+sequenceDiagram
+    participant User
+    participant WebApp
+    participant WalletService
+    participant ComplianceService
+    participant AdminPanel
+    participant NotificationService
+    participant AuditService
+    participant Blockchain
+
+    User->>WebApp: 1 BTC çekim talebi + 2FA
+    WebApp->>WalletService: POST /wallets/BTC/withdraw
+    WalletService->>WalletService: Verify 2FA
+    WalletService->>WalletService: Check limits (Daily: 0.5 BTC < Request: 1 BTC)
+    WalletService->>WalletService: Lock 1 BTC in user balance
+    
+    WalletService->>ComplianceService: Evaluate withdrawal risk
+    ComplianceService->>ComplianceService: Calculate risk score
+    ComplianceService->>ComplianceService: Check: User history, destination, amount
+    ComplianceService-->>WalletService: Risk: HIGH, Requires approval
+    
+    WalletService->>WalletService: Set status: PENDING_APPROVAL
+    WalletService->>ComplianceService: Create compliance alert
+    ComplianceService->>AuditService: Log: Withdrawal requires approval
+    
+    ComplianceService->>NotificationService: Notify admins
+    NotificationService->>AdminPanel: Email + Dashboard alert
+    WalletService-->>WebApp: withdrawalId, status: PENDING_APPROVAL
+    WebApp->>User: Çekim inceleniyor, 24 saat içinde sonuçlanır
+
+    Note over AdminPanel: Admin Reviews Request
+    AdminPanel->>WalletService: GET /admin/withdrawals/pending
+    WalletService-->>AdminPanel: List: [{withdrawalId, userId, amount, ...}]
+    
+    AdminPanel->>ComplianceService: GET /admin/compliance/alerts?userId=xxx
+    ComplianceService-->>AdminPanel: User risk score, history, flags
+    
+    AdminPanel->>WalletService: GET user transaction history
+    WalletService-->>AdminPanel: Recent deposits, trades, withdrawals
+    
+    alt Admin Approves
+        AdminPanel->>WalletService: POST /admin/withdrawals/{id}/approve
+        WalletService->>ComplianceService: Log approval decision
+        ComplianceService->>AuditService: Audit: Admin approved (reason, timestamp)
+        
+        WalletService->>Blockchain: Broadcast transaction (1 BTC)
+        Blockchain-->>WalletService: TxHash
+        WalletService->>NotificationService: Notify user: Approved
+        NotificationService->>User: Çekim onaylandı! TxHash: 0x...
+        
+        WalletService->>WalletService: Update status: PROCESSING
+        
+        loop Blockchain Confirmations
+            Blockchain->>WalletService: Confirmation +1
+        end
+        
+        WalletService->>WalletService: Update status: COMPLETED
+        WalletService->>User: Çekim tamamlandı
+        
+    else Admin Rejects
+        AdminPanel->>WalletService: POST /admin/withdrawals/{id}/reject
+        WalletService->>WalletService: Unlock 1 BTC
+        WalletService->>ComplianceService: Log rejection (reason)
+        ComplianceService->>AuditService: Audit: Admin rejected
+        
+        WalletService->>NotificationService: Notify user: Rejected
+        NotificationService->>User: Çekim reddedildi (reason: Suspicious activity)
+        
+        alt Suspicious Activity Detected
+            AdminPanel->>ComplianceService: Flag user for investigation
+            ComplianceService->>WalletService: Suspend account
+            WalletService->>User: Hesap askıya alındı, destek ile iletişime geçin
+        end
+    end
+    
+    AuditService->>AuditService: Store immutable audit log
+    Note over AuditService: All admin actions logged for MASAK compliance

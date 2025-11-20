@@ -1,0 +1,340 @@
+groups:
+  - name: auth-service
+    interval: 15s
+    rules:
+      # Registration Error Rate Alert
+      - alert: HighRegistrationErrorRate
+        expr: |
+          (rate(auth_registration_total{status="failure"}[5m]) /
+           rate(auth_registration_total[5m])) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          team: auth
+          service: auth-service
+          alert_type: registration_errors
+        annotations:
+          summary: "High registration error rate detected"
+          description: |
+            Registration error rate is {{ $value | humanizePercentage }} (threshold: 10%)
+            This indicates potential issues with the registration process.
+            - Check auth-service logs for validation errors
+            - Verify database connectivity
+            - Review rate limit configuration
+          runbook: "https://runbook.exchange.com/alerts/high-registration-error-rate"
+          dashboard: "http://localhost:3000/d/auth-registration"
+
+      # High Response Time Alert (P95)
+      - alert: HighRegistrationLatency
+        expr: |
+          histogram_quantile(0.95,
+            rate(auth_registration_duration_seconds_bucket[5m])
+          ) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          team: auth
+          service: auth-service
+          alert_type: latency
+        annotations:
+          summary: "High registration latency detected"
+          description: |
+            P95 registration response time is {{ $value | humanizeDuration }} (threshold: 500ms)
+            This may indicate database or email service performance issues.
+            - Check database query performance
+            - Review email service latency
+            - Verify Redis cache hit rates
+          runbook: "https://runbook.exchange.com/alerts/high-latency"
+          dashboard: "http://localhost:3000/d/auth-registration"
+
+      # Rate Limit Spike Alert
+      - alert: RegistrationRateLimitSpike
+        expr: |
+          increase(auth_rate_limit_hits_total[5m]) > 50
+        for: 3m
+        labels:
+          severity: warning
+          team: auth
+          service: auth-service
+          alert_type: rate_limiting
+        annotations:
+          summary: "Registration rate limit hits spike detected"
+          description: |
+            {{ $value }} rate limit hits detected in the last 5 minutes (threshold: 50)
+            This may indicate bot activity or user confusion about rate limits.
+            - Check IP distribution of requests
+            - Review authentication failure patterns
+            - Consider increasing rate limits temporarily if expected traffic spike
+          runbook: "https://runbook.exchange.com/alerts/rate-limit-spike"
+          dashboard: "http://localhost:3000/d/auth-registration"
+
+      # Email Verification Failure Alert
+      - alert: HighEmailVerificationFailureRate
+        expr: |
+          (rate(auth_email_verification_total{status="failed"}[5m]) /
+           rate(auth_email_verification_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          team: auth
+          service: auth-service
+          alert_type: email_delivery
+        annotations:
+          summary: "High email verification failure rate"
+          description: |
+            Email verification failure rate is {{ $value | humanizePercentage }} (threshold: 5%)
+            This suggests issues with the email delivery service.
+            - Check email service provider status
+            - Verify SMTP credentials
+            - Review bounce/invalid email patterns
+            - Check spam folder for test emails
+          runbook: "https://runbook.exchange.com/alerts/email-failures"
+          dashboard: "http://localhost:3000/d/auth-registration"
+
+      # 2FA Setup Failure Rate Alert
+      - alert: High2FASetupFailureRate
+        expr: |
+          (rate(auth_2fa_setup_total{status="failed"}[5m]) /
+           rate(auth_2fa_setup_total[5m])) > 0.2
+        for: 3m
+        labels:
+          severity: warning
+          team: auth
+          service: auth-service
+          alert_type: two_factor_security
+        annotations:
+          summary: "High 2FA setup failure rate detected"
+          description: |
+            2FA setup failure rate is {{ $value | humanizePercentage }} (threshold: 20%)
+            This may indicate issues with secret generation or database storage.
+            - Check auth-service logs for encryption/storage errors
+            - Verify encryption key is correctly configured
+            - Check Redis connectivity for temporary secret storage
+            - Verify database availability
+          runbook: "https://runbook.exchange.com/alerts/2fa-setup-failures"
+          dashboard: "http://localhost:3000/d/auth-2fa"
+
+      # High 2FA Verification Failure Rate (Possible Brute Force)
+      - alert: High2FAVerificationFailureRate
+        expr: |
+          (rate(auth_2fa_verify_total{status="failed"}[5m]) /
+           rate(auth_2fa_verify_total[5m])) > 0.3
+        for: 2m
+        labels:
+          severity: warning
+          team: auth
+          service: auth-service
+          alert_type: two_factor_security
+        annotations:
+          summary: "High 2FA verification failure rate detected"
+          description: |
+            2FA verification failure rate is {{ $value | humanizePercentage }} (threshold: 30%)
+            This may indicate user confusion or invalid setup.
+            - Review QR code generation correctness
+            - Verify server time synchronization (NTP)
+            - Check for time zone related issues
+            - Review user feedback on setup process
+          runbook: "https://runbook.exchange.com/alerts/2fa-verify-failures"
+          dashboard: "http://localhost:3000/d/auth-2fa"
+
+      # High 2FA Validation Failure Rate (Possible Brute Force During Login)
+      - alert: High2FAValidationFailureRate
+        expr: |
+          (rate(auth_2fa_validate_total{status="failed"}[5m]) /
+           rate(auth_2fa_validate_total[5m])) > 0.4
+        for: 5m
+        labels:
+          severity: critical
+          team: auth
+          service: auth-service
+          alert_type: two_factor_security
+        annotations:
+          summary: "High 2FA validation failure rate - possible brute force attack"
+          description: |
+            2FA validation failure rate is {{ $value | humanizePercentage }} (threshold: 40%)
+            This indicates a possible brute force attack on 2FA codes.
+            - Check failed attempt patterns in audit logs
+            - Identify attacker IPs and implement blocking
+            - Review rate limiting effectiveness
+            - Verify lockout mechanism is working
+          runbook: "https://runbook.exchange.com/alerts/2fa-brute-force"
+          dashboard: "http://localhost:3000/d/auth-2fa"
+
+      # Excessive 2FA Lockouts (Rate Limit Triggered)
+      - alert: Excessive2FALockouts
+        expr: |
+          increase(auth_2fa_lockout_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          team: auth
+          service: auth-service
+          alert_type: two_factor_security
+        annotations:
+          summary: "Excessive 2FA lockouts detected"
+          description: |
+            {{ $value }} 2FA lockouts triggered in the last 5 minutes (threshold: 10)
+            Multiple users may be experiencing brute force attempts or legitimate failed attempts.
+            - Review IP addresses of locked out attempts
+            - Consider temporarily increasing lockout threshold
+            - Send email notifications to affected users
+            - Review and improve user 2FA documentation
+          runbook: "https://runbook.exchange.com/alerts/2fa-lockouts"
+          dashboard: "http://localhost:3000/d/auth-2fa"
+
+      # Unusual Backup Code Usage
+      - alert: UnusualBackupCodeUsage
+        expr: |
+          rate(auth_2fa_backup_used_total[1h]) > 2
+        for: 5m
+        labels:
+          severity: warning
+          team: auth
+          service: auth-service
+          alert_type: two_factor_anomaly
+        annotations:
+          summary: "Unusual backup code usage detected"
+          description: |
+            User is using more than 2 backup codes per hour ({{ $value | humanizePercentage }})
+            This may indicate:
+            - User lost access to authenticator app
+            - Compromised account with attacker trying different codes
+            - User testing backup codes
+            - System time synchronization issues causing TOTP failures
+            - Check user's 2FA audit log for patterns
+            - Contact user to verify account security
+            - Review if backup code regeneration is needed
+          runbook: "https://runbook.exchange.com/alerts/unusual-backup-usage"
+          dashboard: "http://localhost:3000/d/auth-2fa"
+
+      # 2FA Disabled Alert (Security Concern)
+      - alert: AccountsWithDisabledSecond Factor
+        expr: |
+          increase(auth_2fa_disabled_total[1h]) > 5
+        for: 10m
+        labels:
+          severity: info
+          team: auth
+          service: auth-service
+          alert_type: two_factor_audit
+        annotations:
+          summary: "Multiple 2FA disablements detected"
+          description: |
+            {{ $value }} users have disabled 2FA in the last hour
+            This is an informational alert for audit purposes.
+            - May indicate legitimate user support requests
+            - Could indicate account compromise
+            - Review audit logs for disable reasons
+            - Contact users if disablements seem suspicious
+          dashboard: "http://localhost:3000/d/auth-2fa"
+
+      # Service Unavailability
+      - alert: AuthServiceDown
+        expr: up{job="auth-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: auth
+          service: auth-service
+          alert_type: service_availability
+        annotations:
+          summary: "Auth service is down"
+          description: |
+            Auth service ({{ $labels.instance }}) is not responding to health checks.
+            Users will not be able to register or login.
+            - Check service pod status: kubectl get pods -l app=auth-service
+            - Check service logs: kubectl logs -l app=auth-service --tail=100
+            - Check if database is reachable
+            - Check if Redis cache is available
+          runbook: "https://runbook.exchange.com/alerts/service-down"
+          dashboard: "http://localhost:3000/d/auth-registration"
+
+      # Database Connection Issues
+      - alert: AuthServiceDatabaseErrors
+        expr: |
+          increase(auth_database_errors_total[5m]) > 10
+        for: 3m
+        labels:
+          severity: critical
+          team: auth
+          service: auth-service
+          alert_type: database
+        annotations:
+          summary: "Auth service experiencing database errors"
+          description: |
+            {{ $value }} database errors detected in the last 5 minutes.
+            This indicates connectivity or query issues with PostgreSQL.
+            - Check PostgreSQL service status
+            - Verify database connection pool (current: {{ $labels.pool }})
+            - Check for slow queries in pg_stat_statements
+            - Review database logs for errors
+          runbook: "https://runbook.exchange.com/alerts/database-errors"
+          dashboard: "http://localhost:3000/d/database-cache"
+
+      # Registration Success Rate Monitor (informational)
+      - alert: LowRegistrationSuccessRate
+        expr: |
+          (rate(auth_registration_total{status="success"}[15m]) /
+           rate(auth_registration_total[15m])) < 0.85
+        for: 10m
+        labels:
+          severity: info
+          team: auth
+          service: auth-service
+          alert_type: business_metric
+        annotations:
+          summary: "Registration success rate below normal"
+          description: |
+            Success rate is {{ $value | humanizePercentage }} (normal: ~90%)
+            This is an informational alert for business metric tracking.
+            - Monitor for patterns in failed registrations
+            - Review recent code changes affecting validation
+          dashboard: "http://localhost:3000/d/auth-registration"
+
+  # General HTTP Service Alerts
+  - name: auth-service-http
+    interval: 15s
+    rules:
+      # High Overall Error Rate
+      - alert: AuthServiceHighErrorRate
+        expr: |
+          (rate(http_requests_total{job="auth-service", status=~"5.."}[5m]) /
+           rate(http_requests_total{job="auth-service"}[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          team: auth
+          service: auth-service
+          alert_type: http_errors
+        annotations:
+          summary: "Auth service high HTTP error rate"
+          description: |
+            HTTP 5xx error rate is {{ $value | humanizePercentage }} (threshold: 5%)
+            This indicates server-side issues affecting all endpoints.
+            - Check auth-service error logs
+            - Review recent deployments
+            - Check downstream service dependencies (database, cache)
+          runbook: "https://runbook.exchange.com/alerts/high-error-rate"
+          dashboard: "http://localhost:3000/d/auth-registration"
+
+      # High Overall Latency
+      - alert: AuthServiceHighLatency
+        expr: |
+          histogram_quantile(0.99,
+            rate(http_request_duration_seconds_bucket{job="auth-service"}[5m])
+          ) > 1.0
+        for: 10m
+        labels:
+          severity: warning
+          team: auth
+          service: auth-service
+          alert_type: latency
+        annotations:
+          summary: "Auth service high P99 latency"
+          description: |
+            P99 request latency is {{ $value | humanizeDuration }} (threshold: 1s)
+            - Check database query performance
+            - Review cache hit rates
+            - Check for resource contention (CPU/memory)
+          runbook: "https://runbook.exchange.com/alerts/high-latency"
+          dashboard: "http://localhost:3000/d/auth-registration"

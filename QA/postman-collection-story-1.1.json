@@ -1,0 +1,618 @@
+{
+  "info": {
+    "name": "Story 1.1 - User Registration Tests",
+    "description": "Complete test suite for user registration with rate limiting and reCAPTCHA",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Registration Tests",
+      "item": [
+        {
+          "name": "TC-001: Valid Registration",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function() {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains user data\", function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.equal(true);",
+                  "    pm.expect(jsonData.data.user.email).to.exist;",
+                  "    pm.expect(jsonData.data.user.id).to.exist;",
+                  "    pm.expect(jsonData.data.user.email_verified).to.equal(false);",
+                  "});",
+                  "",
+                  "pm.test(\"Password not in response\", function() {",
+                  "    var responseText = pm.response.text();",
+                  "    pm.expect(responseText).to.not.include(\"TestPass123!\");",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is less than 200ms\", function() {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(200);",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var timestamp = Date.now();",
+                  "pm.environment.set(\"test_email\", \"qa-test-001-\" + timestamp + \"@example.com\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Recaptcha-Token",
+                "value": "test-token"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{test_email}}\",\"password\":\"TestPass123!\",\"terms_accepted\":true,\"kvkk_consent_accepted\":true}"
+            },
+            "url": {
+              "raw": "http://localhost:3001/api/v1/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3001",
+              "path": ["api", "v1", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "TC-003: Invalid Email Format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function() {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Error message about email format\", function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.equal(false);",
+                  "    var messages = jsonData.message.join(' ').toLowerCase();",
+                  "    pm.expect(messages).to.include(\"email\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Recaptcha-Token",
+                "value": "test-token"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"invalid-email\",\"password\":\"TestPass123!\",\"terms_accepted\":true,\"kvkk_consent_accepted\":true}"
+            },
+            "url": {
+              "raw": "http://localhost:3001/api/v1/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3001",
+              "path": ["api", "v1", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "TC-004: Weak Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function() {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Error message about password strength\", function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.equal(false);",
+                  "    var messages = jsonData.message.join(' ').toLowerCase();",
+                  "    pm.expect(messages).to.include(\"şifre\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Recaptcha-Token",
+                "value": "test-token"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"qa-test-004@example.com\",\"password\":\"weak\",\"terms_accepted\":true,\"kvkk_consent_accepted\":true}"
+            },
+            "url": {
+              "raw": "http://localhost:3001/api/v1/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3001",
+              "path": ["api", "v1", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "TC-007: Terms Acceptance Required",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function() {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Error message about terms acceptance\", function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.equal(false);",
+                  "    var messages = jsonData.message.join(' ').toLowerCase();",
+                  "    pm.expect(messages).to.include(\"şart\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Recaptcha-Token",
+                "value": "test-token"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"qa-test-007@example.com\",\"password\":\"TestPass123!\",\"terms_accepted\":false,\"kvkk_consent_accepted\":true}"
+            },
+            "url": {
+              "raw": "http://localhost:3001/api/v1/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3001",
+              "path": ["api", "v1", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "TC-008: KVKK Consent Required",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function() {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Error message about KVKK consent\", function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.equal(false);",
+                  "    var messages = jsonData.message.join(' ').toLowerCase();",
+                  "    pm.expect(messages).to.include(\"kvkk\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Recaptcha-Token",
+                "value": "test-token"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"qa-test-008@example.com\",\"password\":\"TestPass123!\",\"terms_accepted\":true,\"kvkk_consent_accepted\":false}"
+            },
+            "url": {
+              "raw": "http://localhost:3001/api/v1/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3001",
+              "path": ["api", "v1", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "TC-032: Missing reCAPTCHA Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 403\", function() {",
+                  "    pm.response.to.have.status(403);",
+                  "});",
+                  "",
+                  "pm.test(\"Error code is RECAPTCHA_FAILED\", function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.equal(false);",
+                  "    pm.expect(jsonData.error.code).to.equal(\"RECAPTCHA_FAILED\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"qa-test-032@example.com\",\"password\":\"TestPass123!\",\"terms_accepted\":true,\"kvkk_consent_accepted\":true}"
+            },
+            "url": {
+              "raw": "http://localhost:3001/api/v1/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3001",
+              "path": ["api", "v1", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "TC-036: SQL Injection Protection",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function() {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Payload rejected - no SQL error exposed\", function() {",
+                  "    var responseText = pm.response.text();",
+                  "    pm.expect(responseText).to.not.include(\"syntax\");",
+                  "    pm.expect(responseText).to.not.include(\"SQL\");",
+                  "    pm.expect(responseText).to.not.include(\"database\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Recaptcha-Token",
+                "value": "test-token"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"\\\" OR \\\"1\\\"=\\\"1\",\"password\":\"TestPass123!\",\"terms_accepted\":true,\"kvkk_consent_accepted\":true}"
+            },
+            "url": {
+              "raw": "http://localhost:3001/api/v1/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3001",
+              "path": ["api", "v1", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "TC-037: XSS Protection",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function() {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"XSS payload rejected\", function() {",
+                  "    var responseText = pm.response.text();",
+                  "    pm.expect(responseText).to.not.include(\"<script>\");",
+                  "    pm.expect(responseText).to.not.include(\"alert\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Recaptcha-Token",
+                "value": "test-token"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"<script>alert(1)</script>@example.com\",\"password\":\"TestPass123!\",\"terms_accepted\":true,\"kvkk_consent_accepted\":true}"
+            },
+            "url": {
+              "raw": "http://localhost:3001/api/v1/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3001",
+              "path": ["api", "v1", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "TC-039: Password Not in Response",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function() {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Password not in response body\", function() {",
+                  "    var responseText = pm.response.text();",
+                  "    pm.expect(responseText).to.not.include(\"TestPass123!\");",
+                  "    pm.expect(responseText).to.not.include(\"password\");",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var timestamp = Date.now();",
+                  "pm.environment.set(\"test_email\", \"qa-test-039-\" + timestamp + \"@example.com\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Recaptcha-Token",
+                "value": "test-token"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{test_email}}\",\"password\":\"TestPass123!\",\"terms_accepted\":true,\"kvkk_consent_accepted\":true}"
+            },
+            "url": {
+              "raw": "http://localhost:3001/api/v1/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3001",
+              "path": ["api", "v1", "auth", "register"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rate Limiting Tests",
+      "item": [
+        {
+          "name": "TC-026: First 5 Registrations Succeed",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function() {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"User registered successfully\", function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.equal(true);",
+                  "});",
+                  "",
+                  "pm.test(\"X-RateLimit-Remaining header present\", function() {",
+                  "    pm.expect(pm.response.headers.get('X-RateLimit-Remaining')).to.exist;",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var timestamp = Date.now();",
+                  "var counter = pm.environment.get(\"rate_limit_counter\") || 0;",
+                  "counter += 1;",
+                  "pm.environment.set(\"rate_limit_counter\", counter);",
+                  "pm.environment.set(\"test_email\", \"qa-rl-\" + counter + \"-\" + timestamp + \"@example.com\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Recaptcha-Token",
+                "value": "test-token"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{test_email}}\",\"password\":\"TestPass123!\",\"terms_accepted\":true,\"kvkk_consent_accepted\":true}"
+            },
+            "url": {
+              "raw": "http://localhost:3001/api/v1/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3001",
+              "path": ["api", "v1", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "TC-027: 6th Registration Returns 429",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 429 Too Many Requests\", function() {",
+                  "    pm.response.to.have.status(429);",
+                  "});",
+                  "",
+                  "pm.test(\"Error code is RATE_LIMIT_EXCEEDED\", function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.equal(false);",
+                  "    if (jsonData.error) {",
+                  "        pm.expect(jsonData.error.code).to.equal(\"RATE_LIMIT_EXCEEDED\");",
+                  "    }",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var timestamp = Date.now();",
+                  "pm.environment.set(\"test_email\", \"qa-rl-6-\" + timestamp + \"@example.com\");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Recaptcha-Token",
+                "value": "test-token"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{test_email}}\",\"password\":\"TestPass123!\",\"terms_accepted\":true,\"kvkk_consent_accepted\":true}"
+            },
+            "url": {
+              "raw": "http://localhost:3001/api/v1/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3001",
+              "path": ["api", "v1", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "TC-028: Retry-After Header Present",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 429\", function() {",
+                  "    pm.response.to.have.status(429);",
+                  "});",
+                  "",
+                  "pm.test(\"Retry-After header present\", function() {",
+                  "    pm.expect(pm.response.headers.get('Retry-After')).to.exist;",
+                  "});",
+                  "",
+                  "pm.test(\"Retry-After header has numeric value\", function() {",
+                  "    var retryAfter = pm.response.headers.get('Retry-After');",
+                  "    pm.expect(parseInt(retryAfter)).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Recaptcha-Token",
+                "value": "test-token"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"qa-test-028@example.com\",\"password\":\"TestPass123!\",\"terms_accepted\":true,\"kvkk_consent_accepted\":true}"
+            },
+            "url": {
+              "raw": "http://localhost:3001/api/v1/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3001",
+              "path": ["api", "v1", "auth", "register"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

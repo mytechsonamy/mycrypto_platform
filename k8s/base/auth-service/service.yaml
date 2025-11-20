@@ -1,0 +1,192 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: default
+  labels:
+    app: auth-service
+    version: v1
+  annotations:
+    description: "Authentication Service API"
+spec:
+  type: ClusterIP
+  selector:
+    app: auth-service
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+      protocol: TCP
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+  sessionAffinity: None
+  publishNotReadyAddresses: false
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: auth-service
+  namespace: default
+  labels:
+    app: auth-service
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: auth-service
+  namespace: default
+spec:
+  rules:
+    - apiGroups: [""]
+      resources: ["configmaps"]
+      verbs: ["get", "list", "watch"]
+    - apiGroups: [""]
+      resources: ["secrets"]
+      verbs: ["get"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: auth-service
+  namespace: default
+spec:
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: auth-service
+  subjects:
+    - kind: ServiceAccount
+      name: auth-service
+      namespace: default
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: auth-service
+  namespace: default
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: auth-service
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: auth-service
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: auth-service
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 30
+        - type: Pods
+          value: 2
+          periodSeconds: 30
+      selectPolicy: Max
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: auth-service
+  namespace: default
+  labels:
+    app: auth-service
+spec:
+  selector:
+    matchLabels:
+      app: auth-service
+  endpoints:
+    - port: metrics
+      interval: 30s
+      path: /metrics
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  namespace: default
+data:
+  host: "redis-master"
+  port: "6379"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: database-secret
+  namespace: default
+  type: Opaque
+data:
+  # Base64 encoded: postgresql://postgres:password@postgres:5432/exchange_prod
+  url: cG9zdGdyZXN1bDovL3Bvc3RncmVzOnBhc3N3b3JkQHBvc3RncmVzOjU0MzIvZXhjaGFuZ2VfcHJvZA==
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: redis-secret
+  namespace: default
+  type: Opaque
+data:
+  # Base64 encoded: your-redis-password
+  password: eW91ci1yZWRpcy1wYXNzd29yZA==
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rabbitmq-secret
+  namespace: default
+  type: Opaque
+data:
+  # Base64 encoded: amqp://user:password@rabbitmq:5672
+  url: YW1xcDovL3VzZXI6cGFzc3dvcmRAcmFiYml0bXE6NTY3Mg==
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: jwt-secret
+  namespace: default
+  type: Opaque
+data:
+  # Base64 encoded: your-jwt-secret-min-32-characters-long
+  secret: eW91ci1qd3Qtc2VjcmV0LW1pbi0zMi1jaGFyYWN0ZXJzLWxvbmc=

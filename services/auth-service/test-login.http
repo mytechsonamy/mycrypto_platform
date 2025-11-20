@@ -1,0 +1,76 @@
+### Test Login Endpoint
+
+# First, register a user
+POST http://localhost:3001/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "password": "SecurePass123!",
+  "terms_accepted": true,
+  "kvkk_consent_accepted": true
+}
+
+###
+
+# Login with valid credentials
+POST http://localhost:3001/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "password": "SecurePass123!"
+}
+
+###
+
+# Login with invalid email
+POST http://localhost:3001/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "nonexistent@example.com",
+  "password": "SecurePass123!"
+}
+
+###
+
+# Login with invalid password
+POST http://localhost:3001/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "password": "WrongPassword123!"
+}
+
+###
+
+# Login with invalid email format
+POST http://localhost:3001/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "invalid-email",
+  "password": "SecurePass123!"
+}
+
+###
+
+# Login with missing password
+POST http://localhost:3001/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com"
+}
+
+###
+
+# Login with missing email
+POST http://localhost:3001/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "password": "SecurePass123!"
+}

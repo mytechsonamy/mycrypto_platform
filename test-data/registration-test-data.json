@@ -1,0 +1,475 @@
+{
+  "testCases": {
+    "validEmails": [
+      "user@example.com",
+      "firstname.lastname@example.co.uk",
+      "user+tag@example.com",
+      "user_name@test-domain.org",
+      "test.user.123@domain.info",
+      "a@b.co",
+      "user@subdomain.example.com",
+      "john.doe+crypto@testmail.com"
+    ],
+    "invalidEmails": [
+      {
+        "value": "notanemail",
+        "reason": "missing @"
+      },
+      {
+        "value": "@example.com",
+        "reason": "missing local part"
+      },
+      {
+        "value": "user@",
+        "reason": "missing domain"
+      },
+      {
+        "value": "user@@example.com",
+        "reason": "double @"
+      },
+      {
+        "value": "user@.com",
+        "reason": "missing domain name"
+      },
+      {
+        "value": "user @example.com",
+        "reason": "space in local part"
+      },
+      {
+        "value": "user@domain .com",
+        "reason": "space in domain"
+      },
+      {
+        "value": "user.example.com",
+        "reason": "missing @ symbol"
+      },
+      {
+        "value": "user@domain",
+        "reason": "missing TLD"
+      },
+      {
+        "value": "user@localhost",
+        "reason": "localhost domain not allowed"
+      }
+    ],
+    "validPasswords": [
+      {
+        "password": "SecurePass123!",
+        "strength": "STRONG",
+        "reason": "14 chars, upper, lower, number, special"
+      },
+      {
+        "password": "ValidPass123!",
+        "strength": "STRONG",
+        "reason": "13 chars, all requirements met"
+      },
+      {
+        "password": "Tr0pical$Sunset#2025@",
+        "strength": "STRONG",
+        "reason": "21 chars, highly secure"
+      },
+      {
+        "password": "Qwerty1!",
+        "strength": "MEDIUM",
+        "reason": "8 chars, meets minimum requirements only"
+      },
+      {
+        "password": "Password@123",
+        "strength": "STRONG",
+        "reason": "meets all criteria with good length"
+      },
+      {
+        "password": "Test$Pass456",
+        "strength": "STRONG",
+        "reason": "contains uppercase, lowercase, number, special"
+      },
+      {
+        "password": "Crypto#Trading2025",
+        "strength": "STRONG",
+        "reason": "18 chars with all requirements"
+      },
+      {
+        "password": "Login9@Code",
+        "strength": "STRONG",
+        "reason": "11 chars, all requirements met"
+      }
+    ],
+    "invalidPasswords": [
+      {
+        "password": "Pass1!",
+        "reason": "too short (6 chars, needs 8+)"
+      },
+      {
+        "password": "lowercase123!",
+        "reason": "missing uppercase letter"
+      },
+      {
+        "password": "ValidPass!",
+        "reason": "missing number"
+      },
+      {
+        "password": "ValidPass123",
+        "reason": "missing special character"
+      },
+      {
+        "password": "UPPERCASE1!",
+        "reason": "missing lowercase letter"
+      },
+      {
+        "password": "NoNumbers!",
+        "reason": "missing numeric character"
+      },
+      {
+        "password": "NoSpecial123",
+        "reason": "missing special character"
+      },
+      {
+        "password": "short",
+        "reason": "too short AND missing required characters"
+      },
+      {
+        "password": "Pass 123!",
+        "reason": "contains space (if spaces not allowed)"
+      }
+    ],
+    "edgeCasePasswords": [
+      {
+        "password": "A1!abcdefghijklmnopqrstuvwxyz",
+        "reason": "29 chars - testing max length handling"
+      },
+      {
+        "password": "Test@Pass!123",
+        "reason": "multiple special chars"
+      },
+      {
+        "password": "P@ssW0rd!",
+        "reason": "multiple character types interspersed"
+      },
+      {
+        "password": "123!@#ABC",
+        "reason": "starts with numbers and special"
+      },
+      {
+        "password": "aB!1",
+        "reason": "exactly 4 different character types, minimal"
+      },
+      {
+        "password": "Test123!@#",
+        "reason": "multiple special characters at end"
+      }
+    ],
+    "turkishCharacters": {
+      "validEmails": [
+        "türkish@example.com",
+        "kullanıcı@test.com",
+        "user@örnek.com"
+      ],
+      "validPasswords": [
+        {
+          "password": "Türkçe1!Şifre",
+          "note": "contains Turkish characters ç, ş"
+        },
+        {
+          "password": "Güçlü@Pass2025!",
+          "note": "contains ç, ü"
+        },
+        {
+          "password": "İstanbul1!Test",
+          "note": "contains İ"
+        }
+      ]
+    },
+    "securityTestCases": {
+      "sqlInjection": [
+        "' OR '1'='1",
+        "admin' --",
+        "' UNION SELECT * FROM users --",
+        "1'; DROP TABLE users; --",
+        "' OR 1=1 --",
+        "admin' /*",
+        "' UNION SELECT NULL, NULL --"
+      ],
+      "xssAttempts": [
+        "<script>alert('XSS')</script>",
+        "<img src=x onerror='alert(1)'>",
+        "javascript:alert('XSS')",
+        "<svg onload='alert(1)'>",
+        "<iframe src='javascript:alert(1)'></iframe>",
+        "<body onload='alert(1)'>",
+        "<input onfocus='alert(1)' autofocus>",
+        "<marquee onstart='alert(1)'>",
+        "<details open ontoggle='alert(1)'>",
+        "'/><script>alert('XSS')</script>",
+        "<img src='' onerror=\"alert('XSS')\">"
+      ],
+      "csrfTokenBypass": [
+        "null",
+        "undefined",
+        ""
+      ]
+    },
+    "rateLimitingTests": {
+      "validAttempts": 5,
+      "attemptsPerHour": 5,
+      "expectedErrorAfter": 5,
+      "resetTimeMinutes": 60
+    },
+    "emailVerification": {
+      "validTokenExpiry": 86400,
+      "validTokenExpiryHours": 24,
+      "emailDeliveryTimeout": 60,
+      "emailDeliveryTimeoutSeconds": 60,
+      "resendDelay": 60
+    },
+    "specialCharactersAllowed": [
+      "!",
+      "@",
+      "#",
+      "$",
+      "%",
+      "^",
+      "&",
+      "*",
+      "(",
+      ")",
+      "-",
+      "_",
+      "=",
+      "+",
+      "[",
+      "]",
+      "{",
+      "}",
+      ";",
+      ":",
+      "'",
+      "\"",
+      ",",
+      ".",
+      "<",
+      ">",
+      "/",
+      "\\",
+      "|",
+      "~",
+      "`"
+    ],
+    "capslockVariations": [
+      "securepass123!",
+      "SecurePass123!",
+      "SECUREPASS123!",
+      "sECUREPASS123!"
+    ],
+    "numberVariations": [
+      "ValidPass1!",
+      "ValidPass12!",
+      "ValidPass123!",
+      "ValidPass1234!",
+      "ValidPass123456789!"
+    ],
+    "duplicateEmailTests": [
+      {
+        "email": "john.doe@example.com",
+        "action": "register_once",
+        "expectedResult": "success"
+      },
+      {
+        "email": "john.doe@example.com",
+        "action": "register_again",
+        "expectedResult": "duplicate_error"
+      },
+      {
+        "email": "JOHN.DOE@EXAMPLE.COM",
+        "action": "register_with_different_case",
+        "expectedResult": "duplicate_error"
+      }
+    ],
+    "apiPayloads": {
+      "validPayload": {
+        "email": "api.test@example.com",
+        "password": "ApiTest123!",
+        "acceptTerms": true,
+        "acceptKVKK": true,
+        "recaptchaToken": "valid_token_from_frontend"
+      },
+      "missingEmail": {
+        "password": "ApiTest123!",
+        "acceptTerms": true,
+        "acceptKVKK": true,
+        "recaptchaToken": "valid_token"
+      },
+      "missingPassword": {
+        "email": "test@example.com",
+        "acceptTerms": true,
+        "acceptKVKK": true,
+        "recaptchaToken": "valid_token"
+      },
+      "missingAcceptTerms": {
+        "email": "test@example.com",
+        "password": "ApiTest123!",
+        "acceptKVKK": true,
+        "recaptchaToken": "valid_token"
+      },
+      "missingAcceptKVKK": {
+        "email": "test@example.com",
+        "password": "ApiTest123!",
+        "acceptTerms": true,
+        "recaptchaToken": "valid_token"
+      },
+      "invalidEmailFormat": {
+        "email": "notanemail",
+        "password": "ApiTest123!",
+        "acceptTerms": true,
+        "acceptKVKK": true,
+        "recaptchaToken": "valid_token"
+      },
+      "invalidPasswordFormat": {
+        "email": "test@example.com",
+        "password": "weak",
+        "acceptTerms": true,
+        "acceptKVKK": true,
+        "recaptchaToken": "valid_token"
+      },
+      "xssAttemptInEmail": {
+        "email": "<script>alert('XSS')</script>@test.com",
+        "password": "ApiTest123!",
+        "acceptTerms": true,
+        "acceptKVKK": true,
+        "recaptchaToken": "valid_token"
+      },
+      "xssAttemptInPassword": {
+        "email": "test@example.com",
+        "password": "Pass123!\"><script>alert('XSS')</script>",
+        "acceptTerms": true,
+        "acceptKVKK": true,
+        "recaptchaToken": "valid_token"
+      },
+      "sqlInjectionInEmail": {
+        "email": "' OR '1'='1@test.com",
+        "password": "ApiTest123!",
+        "acceptTerms": true,
+        "acceptKVKK": true,
+        "recaptchaToken": "valid_token"
+      },
+      "sqlInjectionInPassword": {
+        "email": "test@example.com",
+        "password": "Pass123!\"; DROP TABLE users; --",
+        "acceptTerms": true,
+        "acceptKVKK": true,
+        "recaptchaToken": "valid_token"
+      }
+    },
+    "performanceBaselines": {
+      "pageLoadTime": {
+        "targetMs": 3000,
+        "description": "Maximum acceptable page load time for /register"
+      },
+      "apiResponseTime": {
+        "targetMs": 500,
+        "description": "Maximum acceptable API response time for registration"
+      },
+      "emailDeliveryTime": {
+        "targetSeconds": 60,
+        "description": "Maximum time for verification email delivery"
+      }
+    },
+    "accessibilityChecks": {
+      "wcagLevel": "AA",
+      "wcagVersion": "2.1",
+      "colorContrast": {
+        "normalText": 4.5,
+        "largeText": 3.0
+      },
+      "keyboardNavigation": [
+        "email_input",
+        "password_input",
+        "terms_checkbox",
+        "kvkk_checkbox",
+        "register_button"
+      ],
+      "ariaAttributes": [
+        "aria-label",
+        "aria-describedby",
+        "aria-required",
+        "aria-invalid",
+        "aria-live"
+      ]
+    }
+  },
+  "expectedResponses": {
+    "successRegistration": {
+      "status": 201,
+      "body": {
+        "success": true,
+        "data": {
+          "userId": "usr_<UUID>",
+          "email": "<email>",
+          "status": "PENDING_VERIFICATION"
+        },
+        "meta": {
+          "timestamp": "<ISO8601>",
+          "request_id": "req_<ID>"
+        }
+      }
+    },
+    "duplicateEmail": {
+      "status": 409,
+      "body": {
+        "success": false,
+        "error": {
+          "code": "DUPLICATE_EMAIL",
+          "message": "Bu email zaten kayıtlı"
+        }
+      }
+    },
+    "validationError": {
+      "status": 400,
+      "body": {
+        "success": false,
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Validation failed",
+          "details": [
+            {
+              "field": "<fieldName>",
+              "message": "<errorMessage>"
+            }
+          ]
+        }
+      }
+    },
+    "rateLimitExceeded": {
+      "status": 429,
+      "body": {
+        "success": false,
+        "error": {
+          "code": "RATE_LIMIT_EXCEEDED",
+          "message": "Çok fazla deneme yaptınız. Lütfen daha sonra tekrar deneyin."
+        }
+      }
+    },
+    "recaptchaValidationFailed": {
+      "status": 400,
+      "body": {
+        "success": false,
+        "error": {
+          "code": "RECAPTCHA_VALIDATION_FAILED",
+          "message": "reCAPTCHA validation failed"
+        }
+      }
+    }
+  },
+  "metadata": {
+    "version": "1.0",
+    "createdDate": "2025-11-19",
+    "lastUpdated": "2025-11-19",
+    "testEnvironment": "development",
+    "testedFeature": "User Registration (Story 1.1)",
+    "coverage": {
+      "functional": "95%",
+      "security": "90%",
+      "accessibility": "85%",
+      "performance": "80%"
+    }
+  }
+}

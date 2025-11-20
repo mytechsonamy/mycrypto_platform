@@ -1,0 +1,594 @@
+openapi: 3.0.3
+info:
+  title: MyCrypto Platform API
+  description: Cryptocurrency exchange platform API specification
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: api@mycrypto.com
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Development server (Auth Service)
+  - url: http://localhost:3002/api/v1
+    description: Development server (Trading Service)
+  - url: http://localhost:3003/api/v1
+    description: Development server (Wallet Service)
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization endpoints
+  - name: KYC
+    description: Know Your Customer verification endpoints
+  - name: Wallet
+    description: Wallet management endpoints
+  - name: Trading
+    description: Trading and order management endpoints
+  - name: Market
+    description: Market data endpoints
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: User Registration
+      description: Register a new user with email and password
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterDto'
+            examples:
+              valid:
+                summary: Valid registration request
+                value:
+                  email: user@example.com
+                  password: SecurePass123!
+                  terms_accepted: true
+                  kvkk_consent_accepted: true
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+              example:
+                success: true
+                data:
+                  user:
+                    id: a1b2c3d4-e5f6-7g8h-9i0j-k1l2m3n4o5p6
+                    email: user@example.com
+                    email_verified: false
+                    created_at: '2025-11-19T10:30:45.123Z'
+                  message: 'Kayıt başarılı. Lütfen email adresinize gönderilen doğrulama linkine tıklayınız.'
+                meta:
+                  timestamp: '2025-11-19T10:30:45.123Z'
+                  request_id: req_abc123def456
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error:
+                  code: EMAIL_ALREADY_EXISTS
+                  message: Bu email zaten kayıtlı
+                meta:
+                  timestamp: '2025-11-19T10:30:45.123Z'
+                  request_id: req_abc123def456
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/verify-email:
+    post:
+      tags:
+        - Authentication
+      summary: Verify Email Address
+      description: Verify user email address using the token sent via email
+      operationId: verifyEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyEmailDto'
+            examples:
+              valid:
+                summary: Valid verification token
+                value:
+                  token: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2
+      responses:
+        '200':
+          description: Email verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyEmailResponse'
+              example:
+                success: true
+                message: Email adresi başarıyla doğrulandı
+                data:
+                  email: user@example.com
+                  emailVerified: true
+                meta:
+                  timestamp: '2025-11-19T10:30:45.123Z'
+                  request_id: req_abc123def456
+        '400':
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalid_token:
+                  summary: Invalid verification token
+                  value:
+                    success: false
+                    error:
+                      code: INVALID_TOKEN
+                      message: Geçersiz doğrulama kodu
+                    meta:
+                      timestamp: '2025-11-19T10:30:45.123Z'
+                      request_id: req_abc123def456
+                expired_token:
+                  summary: Expired verification token
+                  value:
+                    success: false
+                    error:
+                      code: TOKEN_EXPIRED
+                      message: Doğrulama kodunun süresi dolmuş
+                    meta:
+                      timestamp: '2025-11-19T10:30:45.123Z'
+                      request_id: req_abc123def456
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/resend-verification:
+    post:
+      tags:
+        - Authentication
+      summary: Resend Verification Email
+      description: Send a new verification email to the specified email address
+      operationId: resendVerification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResendVerificationDto'
+            examples:
+              valid:
+                summary: Valid email address
+                value:
+                  email: user@example.com
+      responses:
+        '200':
+          description: Verification email sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResendVerificationResponse'
+              example:
+                success: true
+                message: Doğrulama emaili tekrar gönderildi
+                meta:
+                  timestamp: '2025-11-19T10:30:45.123Z'
+                  request_id: req_abc123def456
+        '400':
+          description: Email already verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error:
+                  code: ALREADY_VERIFIED
+                  message: Email adresi zaten doğrulanmış
+                meta:
+                  timestamp: '2025-11-19T10:30:45.123Z'
+                  request_id: req_abc123def456
+        '404':
+          description: Email not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error:
+                  code: EMAIL_NOT_FOUND
+                  message: Email adresi bulunamadı
+                meta:
+                  timestamp: '2025-11-19T10:30:45.123Z'
+                  request_id: req_abc123def456
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    RegisterDto:
+      type: object
+      required:
+        - email
+        - password
+        - terms_accepted
+        - kvkk_consent_accepted
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          description: User email address
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 128
+          description: User password - min 8 chars, 1 uppercase, 1 number, 1 special char
+          example: SecurePass123!
+          pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]'
+        terms_accepted:
+          type: boolean
+          description: Terms and conditions acceptance
+          example: true
+        kvkk_consent_accepted:
+          type: boolean
+          description: KVKK (GDPR) consent
+          example: true
+
+    RegisterResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/UserPublic'
+            message:
+              type: string
+              example: 'Kayıt başarılı. Lütfen email adresinize gönderilen doğrulama linkine tıklayınız.'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+    UserPublic:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: a1b2c3d4-e5f6-7g8h-9i0j-k1l2m3n4o5p6
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        email_verified:
+          type: boolean
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          example: '2025-11-19T10:30:45.123Z'
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+        - meta
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              enum:
+                - VALIDATION_ERROR
+                - EMAIL_ALREADY_EXISTS
+                - INVALID_CREDENTIALS
+                - UNAUTHORIZED
+                - FORBIDDEN
+                - NOT_FOUND
+                - RATE_LIMIT_EXCEEDED
+                - INTERNAL_SERVER_ERROR
+                - INVALID_TOKEN
+                - TOKEN_EXPIRED
+                - ALREADY_VERIFIED
+                - EMAIL_NOT_FOUND
+                - SERVICE_UNAVAILABLE
+                - INSUFFICIENT_FUNDS
+                - INVALID_AMOUNT
+                - INVALID_SYMBOL
+                - ORDER_NOT_FOUND
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: Validation failed
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                    example: password
+                  message:
+                    type: string
+                    example: 'Şifre en az 1 büyük harf, 1 küçük harf, 1 rakam ve 1 özel karakter içermelidir'
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+    ResponseMeta:
+      type: object
+      required:
+        - timestamp
+        - request_id
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: '2025-11-19T10:30:45.123Z'
+        request_id:
+          type: string
+          pattern: '^req_[a-z0-9]{8,}$'
+          example: req_abc123def456
+
+    SuccessResponse:
+      type: object
+      required:
+        - success
+        - data
+        - meta
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+    VerifyEmailDto:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          pattern: '^[a-f0-9]{64}$'
+          minLength: 64
+          maxLength: 64
+          description: Email verification token (64-character hex string)
+          example: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2
+
+    VerifyEmailResponse:
+      type: object
+      required:
+        - success
+        - message
+        - data
+        - meta
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Email adresi başarıyla doğrulandı
+        data:
+          type: object
+          required:
+            - email
+            - emailVerified
+          properties:
+            email:
+              type: string
+              format: email
+              example: user@example.com
+            emailVerified:
+              type: boolean
+              example: true
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+    ResendVerificationDto:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          description: Email address to resend verification to
+          example: user@example.com
+
+    ResendVerificationResponse:
+      type: object
+      required:
+        - success
+        - message
+        - meta
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Doğrulama emaili tekrar gönderildi
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+  responses:
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            single_error:
+              summary: Single validation error
+              value:
+                success: false
+                error:
+                  code: VALIDATION_ERROR
+                  message: 'Geçersiz email formatı'
+                meta:
+                  timestamp: '2025-11-19T10:30:45.123Z'
+                  request_id: req_abc123def456
+            multiple_errors:
+              summary: Multiple validation errors
+              value:
+                success: false
+                error:
+                  code: VALIDATION_ERROR
+                  message: Validation failed
+                  details:
+                    - field: password
+                      message: 'Şifre en az 8 karakter olmalıdır'
+                    - field: email
+                      message: 'Geçersiz email formatı'
+                meta:
+                  timestamp: '2025-11-19T10:30:45.123Z'
+                  request_id: req_abc123def456
+
+    UnauthorizedError:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: UNAUTHORIZED
+              message: Authentication required
+            meta:
+              timestamp: '2025-11-19T10:30:45.123Z'
+              request_id: req_abc123def456
+
+    ForbiddenError:
+      description: Access forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: FORBIDDEN
+              message: Bu işlem için yetkiniz yok
+            meta:
+              timestamp: '2025-11-19T10:30:45.123Z'
+              request_id: req_abc123def456
+
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: NOT_FOUND
+              message: Resource not found
+            meta:
+              timestamp: '2025-11-19T10:30:45.123Z'
+              request_id: req_abc123def456
+
+    RateLimitError:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: RATE_LIMIT_EXCEEDED
+              message: 'Çok fazla istek gönderdiniz. Lütfen daha sonra tekrar deneyin.'
+            meta:
+              timestamp: '2025-11-19T10:30:45.123Z'
+              request_id: req_abc123def456
+          headers:
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+                example: 5
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+                example: 0
+            X-RateLimit-Reset:
+              schema:
+                type: integer
+                example: 1700392245
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: INTERNAL_SERVER_ERROR
+              message: 'Bir hata oluştu. Lütfen daha sonra tekrar deneyin.'
+            meta:
+              timestamp: '2025-11-19T10:30:45.123Z'
+              request_id: req_abc123def456
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT access token (15 min expiry)
+
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for server-to-server communication
+
+    OAuth2:
+      type: oauth2
+      flows:
+        password:
+          tokenUrl: /auth/token
+          scopes:
+            read: Read access
+            write: Write access
+            admin: Admin access
+
+security:
+  - BearerAuth: []

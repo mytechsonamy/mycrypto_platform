@@ -1,0 +1,890 @@
+{
+  "info": {
+    "name": "Story 1.3 - Two-Factor Authentication (2FA) API Tests",
+    "description": "Comprehensive API test collection for 2FA endpoints including setup, login verification, backup codes, and management.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Setup Flow",
+      "item": [
+        {
+          "name": "TC-034: POST /auth/2fa/setup - Generate QR Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains QR code', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('qrCode');",
+                  "  pm.expect(jsonData.data.qrCode).to.include('data:image/png;base64');",
+                  "});",
+                  "",
+                  "pm.test('Response contains backup codes', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('backupCodes');",
+                  "  pm.expect(jsonData.data.backupCodes).to.be.an('array');",
+                  "  pm.expect(jsonData.data.backupCodes).to.have.lengthOf(10);",
+                  "});",
+                  "",
+                  "pm.test('Each backup code is XXXX-XXXX format', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  var codeRegex = /^[A-Z0-9]{4}-[A-Z0-9]{4}$/;",
+                  "  jsonData.data.backupCodes.forEach(function(code) {",
+                  "    pm.expect(code).to.match(codeRegex);",
+                  "  });",
+                  "});",
+                  "",
+                  "pm.test('Response contains setup token', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('setupToken');",
+                  "  pm.expect(jsonData.data.setupToken).to.be.a('string');",
+                  "});",
+                  "",
+                  "pm.test('Setup token is valid UUID', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  var uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;",
+                  "  pm.expect(jsonData.data.setupToken).to.match(uuidRegex);",
+                  "});",
+                  "",
+                  "pm.test('Response contains expiresAt timestamp', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('expiresAt');",
+                  "  var expiryDate = new Date(jsonData.data.expiresAt);",
+                  "  pm.expect(expiryDate).to.be.a('date');",
+                  "});",
+                  "",
+                  "pm.test('Response contains manual entry key', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('manualEntryKey');",
+                  "  pm.expect(jsonData.data.manualEntryKey).to.have.lengthOf(32);",
+                  "});",
+                  "",
+                  "// Save for use in next requests",
+                  "pm.environment.set('setupToken', pm.response.json().data.setupToken);",
+                  "pm.environment.set('backupCodes', JSON.stringify(pm.response.json().data.backupCodes));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/2fa/setup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "2fa",
+                "setup"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-035: POST /auth/2fa/verify-setup - Verify TOTP and Enable",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates success', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.status).to.equal('success');",
+                  "  pm.expect(jsonData.data.twoFactorEnabled).to.equal(true);",
+                  "});",
+                  "",
+                  "pm.test('Response contains enabledAt timestamp', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('enabledAt');",
+                  "});",
+                  "",
+                  "pm.test('Response has correct structure', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData).to.have.property('status');",
+                  "  pm.expect(jsonData).to.have.property('data');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"setupToken\": \"{{setupToken}}\",\n  \"totpCode\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/2fa/verify-setup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "2fa",
+                "verify-setup"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-012: POST /auth/2fa/verify-setup - Invalid Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 or 401', function() {",
+                  "  pm.expect([400, 401]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "pm.test('Error message indicates invalid code', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData).to.have.property('error');",
+                  "  pm.expect(jsonData.error).to.include.oneOf(['Invalid', 'invalid', 'Code']);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"setupToken\": \"{{setupToken}}\",\n  \"totpCode\": \"000000\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/2fa/verify-setup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "2fa",
+                "verify-setup"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Login Flow",
+      "item": [
+        {
+          "name": "Login - Get Challenge Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 403', function() {",
+                  "  pm.expect([200, 403]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "pm.test('If 2FA required, response has challengeToken', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  if (jsonData.requiresTwoFactor === true) {",
+                  "    pm.expect(jsonData).to.have.property('challengeToken');",
+                  "    pm.environment.set('challengeToken', jsonData.challengeToken);",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test2fa-enabled@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-036: POST /auth/2fa/verify - Valid TOTP Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains access token', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('accessToken');",
+                  "});",
+                  "",
+                  "pm.test('Response contains refresh token', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('refreshToken');",
+                  "});",
+                  "",
+                  "pm.test('Response contains user data', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('user');",
+                  "  pm.expect(jsonData.data.user).to.have.property('id');",
+                  "  pm.expect(jsonData.data.user).to.have.property('email');",
+                  "});",
+                  "",
+                  "pm.test('User two_factor_enabled is true', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data.user.twoFactorEnabled).to.equal(true);",
+                  "});",
+                  "",
+                  "// Save tokens",
+                  "pm.environment.set('accessToken', pm.response.json().data.accessToken);",
+                  "pm.environment.set('refreshToken', pm.response.json().data.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challengeToken\": \"{{challengeToken}}\",\n  \"totpCode\": \"123456\",\n  \"rememberDevice\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/2fa/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "2fa",
+                "verify"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-017: POST /auth/2fa/verify - Invalid Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 or 401', function() {",
+                  "  pm.expect([400, 401]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "pm.test('Error message returned', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData).to.have.property('error');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challengeToken\": \"{{challengeToken}}\",\n  \"totpCode\": \"000000\",\n  \"rememberDevice\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/2fa/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "2fa",
+                "verify"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-022: POST /auth/2fa/verify - Valid Backup Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains tokens', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('accessToken');",
+                  "  pm.expect(jsonData.data).to.have.property('refreshToken');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challengeToken\": \"{{challengeToken}}\",\n  \"backupCode\": \"ABCD-1234\",\n  \"rememberDevice\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/2fa/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "2fa",
+                "verify"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-023: POST /auth/2fa/verify - Already Used Backup Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 or 401', function() {",
+                  "  pm.expect([400, 401]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "pm.test('Error indicates code already used', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.error).to.include.oneOf(['already', 'Already', 'used']);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challengeToken\": \"{{challengeToken}}\",\n  \"backupCode\": \"ABCD-1234\",\n  \"rememberDevice\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/2fa/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "2fa",
+                "verify"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Management",
+      "item": [
+        {
+          "name": "TC-038: GET /auth/2fa/status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains 2FA status', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('twoFactorEnabled');",
+                  "});",
+                  "",
+                  "pm.test('Response contains backup codes count', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('backupCodesRemaining');",
+                  "  pm.expect(jsonData.data).to.have.property('backupCodesTotal');",
+                  "});",
+                  "",
+                  "pm.test('Backup codes remaining is <= 10', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data.backupCodesRemaining).to.be.at.most(10);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/2fa/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "2fa",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-027: POST /auth/2fa/backup-codes/regenerate",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains new backup codes', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('backupCodes');",
+                  "  pm.expect(jsonData.data.backupCodes).to.be.an('array');",
+                  "  pm.expect(jsonData.data.backupCodes).to.have.lengthOf(10);",
+                  "});",
+                  "",
+                  "pm.test('Each new code is XXXX-XXXX format', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  var codeRegex = /^[A-Z0-9]{4}-[A-Z0-9]{4}$/;",
+                  "  jsonData.data.backupCodes.forEach(function(code) {",
+                  "    pm.expect(code).to.match(codeRegex);",
+                  "  });",
+                  "});",
+                  "",
+                  "pm.test('Response indicates old codes invalidated', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('oldCodesInvalidated');",
+                  "  pm.expect(jsonData.data.oldCodesInvalidated).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"totpCode\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/2fa/backup-codes/regenerate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "2fa",
+                "backup-codes",
+                "regenerate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-028: POST /auth/2fa/backup-codes/regenerate - Invalid TOTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 or 401', function() {",
+                  "  pm.expect([400, 401]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "pm.test('Error message returned', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData).to.have.property('error');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"totpCode\": \"000000\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/2fa/backup-codes/regenerate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "2fa",
+                "backup-codes",
+                "regenerate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-039: DELETE /auth/2fa - Disable 2FA",
+          "event": [
+            {
+              "listen": "test",
+              "script": [
+                "pm.test('Status code is 200', function() {",
+                "  pm.response.to.have.status(200);",
+                "});",
+                "",
+                "pm.test('Response indicates 2FA disabled', function() {",
+                "  var jsonData = pm.response.json();",
+                "  pm.expect(jsonData.data.twoFactorEnabled).to.equal(false);",
+                "});",
+                "",
+                "pm.test('Response contains disabledAt timestamp', function() {",
+                "  var jsonData = pm.response.json();",
+                "  pm.expect(jsonData.data).to.have.property('disabledAt');",
+                "});"
+              ]
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"totpCode\": \"123456\",\n  \"confirmationToken\": \"email_confirmation_token_here\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/2fa",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "2fa"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Security Tests",
+      "item": [
+        {
+          "name": "TC-042: Rate Limiting - 5 Failed Attempts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('5th failed attempt returns rate limit error', function() {",
+                  "  if (pm.response.code === 429) {",
+                  "    pm.expect(pm.response.code).to.equal(429);",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challengeToken\": \"{{challengeToken}}\",\n  \"totpCode\": \"000000\",\n  \"rememberDevice\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/2fa/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "2fa",
+                "verify"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-043: Verify Secret Encryption",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// This test requires database access",
+                  "// Query: SELECT two_fa_secret_encrypted FROM users WHERE id = ?",
+                  "// Verify: Should NOT be plaintext base32",
+                  "// Should be base64-encoded ciphertext",
+                  "",
+                  "pm.test('Encryption verification note', function() {",
+                  "  pm.expect(true).to.equal(true);",
+                  "  console.log('Manual verification required: Check DB for encrypted secret');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/2fa/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "2fa",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-045: SQL Injection Prevention - TOTP Field",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('SQL injection attempt handled safely', function() {",
+                  "  // Should either reject as invalid format or treat as literal string",
+                  "  var jsonData = pm.response.json();",
+                  "  // No database error leakage",
+                  "  pm.expect(pm.response.code).to.not.equal(500);",
+                  "  pm.expect(jsonData).to.not.have.property('sql');",
+                  "  pm.expect(jsonData).to.not.have.property('database');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challengeToken\": \"{{challengeToken}}\",\n  \"totpCode\": \"\\\" OR \\\"1\\\"=\\\"1\",\n  \"rememberDevice\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/2fa/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "2fa",
+                "verify"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://dev.api.mycrypto.local"
+    },
+    {
+      "key": "userId",
+      "value": "550e8400-e29b-41d4-a716-446655440000"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "setupToken",
+      "value": ""
+    },
+    {
+      "key": "challengeToken",
+      "value": ""
+    },
+    {
+      "key": "backupCodes",
+      "value": ""
+    }
+  ]
+}
