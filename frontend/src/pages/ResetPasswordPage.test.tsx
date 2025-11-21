@@ -40,6 +40,15 @@ const createMockStore = (initialState: Partial<ExtendedAuthState> = {}) => {
       confirmError: null,
     },
     logoutLoading: false,
+    twoFactor: {
+      isEnabled: false,
+      setupData: null,
+      backupCodes: null,
+      challengeToken: null,
+      status: null,
+      error: null,
+      loading: false,
+    },
     ...initialState,
   };
 

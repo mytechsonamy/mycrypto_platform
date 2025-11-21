@@ -644,12 +644,8 @@ export const loginWith2FA = async (data: LoginRequest): Promise<LoginResponseWit
       throw new Error('Hesabiniz kilitlendi. Lutfen daha sonra deneyin.');
     }
 
-    if (data.email !== 'test@example.com' || data.password !== 'Test123!') {
-      throw new Error('E-posta veya sifre hatali');
-    }
-
     // Mock user with 2FA enabled
-    if (data.email === '2fa@example.com') {
+    if (data.email === '2fa@example.com' && data.password === 'Test123!') {
       return {
         success: true,
         requires2FA: true,
@@ -666,6 +662,11 @@ export const loginWith2FA = async (data: LoginRequest): Promise<LoginResponseWit
           },
         },
       };
+    }
+
+    // Validate test user credentials
+    if (data.email !== 'test@example.com' || data.password !== 'Test123!') {
+      throw new Error('E-posta veya sifre hatali');
     }
 
     // Mock success response without 2FA

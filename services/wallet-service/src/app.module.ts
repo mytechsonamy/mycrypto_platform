@@ -6,6 +6,7 @@ import { HealthController } from './common/health.controller';
 import { RedisModule } from './common/redis/redis.module';
 import { WalletModule } from './wallet/wallet.module';
 import { DepositModule } from './deposit/deposit.module';
+import { CryptoDepositModule } from './deposit/crypto/crypto-deposit.module';
 import { WithdrawalModule } from './withdrawal/withdrawal.module';
 import { LedgerModule } from './ledger/ledger.module';
 
@@ -73,6 +74,7 @@ import { LedgerModule } from './ledger/ledger.module';
     // Feature modules
     WalletModule,
     DepositModule,
+    CryptoDepositModule,
     WithdrawalModule,
     LedgerModule,
   ],

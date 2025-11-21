@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { KycModule } from './kyc/kyc.module';
+import { HealthController } from './common/health.controller';
 
 @Module({
   imports: [
@@ -46,5 +47,6 @@ import { KycModule } from './kyc/kyc.module';
     AuthModule,
     KycModule,
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}

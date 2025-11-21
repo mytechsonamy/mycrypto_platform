@@ -38,6 +38,24 @@ describe('authSlice - verification', () => {
     },
     isAuthenticated: false,
     loginSuccess: false,
+    passwordReset: {
+      requestLoading: false,
+      requestSuccess: false,
+      requestError: null,
+      confirmLoading: false,
+      confirmSuccess: false,
+      confirmError: null,
+    },
+    logoutLoading: false,
+    twoFactor: {
+      isEnabled: false,
+      setupData: null,
+      backupCodes: null,
+      challengeToken: null,
+      status: null,
+      error: null,
+      loading: false,
+    },
   };
 
   describe('reducers', () => {
