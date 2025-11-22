@@ -10,6 +10,9 @@ import { UserWallet } from '../wallet/entities/user-wallet.entity';
 import { FiatAccount } from '../wallet/entities/fiat-account.entity';
 import { LedgerEntry } from '../ledger/entities/ledger-entry.entity';
 import { AddressValidationService } from './services/address-validation.service';
+import { FeeCalculationService } from './services/fee-calculation.service';
+import { TwoFactorVerificationService } from './services/two-factor-verification.service';
+import { HttpModule } from '@nestjs/axios';
 
 /**
  * WithdrawalModule
@@ -20,6 +23,7 @@ import { AddressValidationService } from './services/address-validation.service'
 @Module({
   imports: [
     ConfigModule,
+    HttpModule,
     TypeOrmModule.forFeature([
       WithdrawalRequest,
       CryptoWithdrawalRequest,
@@ -30,7 +34,17 @@ import { AddressValidationService } from './services/address-validation.service'
     ]),
   ],
   controllers: [WithdrawalController],
-  providers: [WithdrawalService, AddressValidationService],
-  exports: [WithdrawalService, AddressValidationService],
+  providers: [
+    WithdrawalService,
+    AddressValidationService,
+    FeeCalculationService,
+    TwoFactorVerificationService,
+  ],
+  exports: [
+    WithdrawalService,
+    AddressValidationService,
+    FeeCalculationService,
+    TwoFactorVerificationService,
+  ],
 })
 export class WithdrawalModule {}
