@@ -12,7 +12,10 @@ import { LedgerEntry } from '../ledger/entities/ledger-entry.entity';
 import { AddressValidationService } from './services/address-validation.service';
 import { FeeCalculationService } from './services/fee-calculation.service';
 import { TwoFactorVerificationService } from './services/two-factor-verification.service';
+import { WithdrawalRequestService } from './services/withdrawal-request.service';
 import { HttpModule } from '@nestjs/axios';
+import { CryptoWithdrawalController } from './crypto/crypto-withdrawal.controller';
+import { RedisService } from '../common/redis/redis.service';
 
 /**
  * WithdrawalModule
@@ -33,18 +36,21 @@ import { HttpModule } from '@nestjs/axios';
       LedgerEntry,
     ]),
   ],
-  controllers: [WithdrawalController],
+  controllers: [WithdrawalController, CryptoWithdrawalController],
   providers: [
     WithdrawalService,
     AddressValidationService,
     FeeCalculationService,
     TwoFactorVerificationService,
+    WithdrawalRequestService,
+    RedisService,
   ],
   exports: [
     WithdrawalService,
     AddressValidationService,
     FeeCalculationService,
     TwoFactorVerificationService,
+    WithdrawalRequestService,
   ],
 })
 export class WithdrawalModule {}
