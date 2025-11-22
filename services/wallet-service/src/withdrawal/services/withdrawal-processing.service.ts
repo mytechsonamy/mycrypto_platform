@@ -212,11 +212,7 @@ export class WithdrawalProcessingService {
           parseFloat(wallet.lockedBalance) - totalAmount
         ).toFixed(8);
 
-        // Update total balance
-        wallet.totalBalance = (
-          parseFloat(wallet.availableBalance) + parseFloat(wallet.lockedBalance)
-        ).toFixed(8);
-
+        // Total balance is auto-calculated by getter (available + locked)
         await queryRunner.manager.save(wallet);
 
         // Create ledger entry for completion
@@ -280,7 +276,7 @@ export class WithdrawalProcessingService {
     try {
       // Mark withdrawal as FAILED
       withdrawal.status = 'FAILED';
-      withdrawal.failureReason = errorMessage;
+      withdrawal.errorMessage = errorMessage;
       const updatedWithdrawal = await queryRunner.manager.save(withdrawal);
 
       // Unlock funds

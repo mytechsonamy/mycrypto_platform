@@ -88,20 +88,24 @@ export class CryptoWithdrawalRequest {
 
   /**
    * Withdrawal status
-   * PENDING: Waiting for 2FA verification
-   * APPROVED: Admin approved (if required), ready to broadcast
+   * PENDING: Waiting for 2FA verification or admin approval
+   * APPROVED: Admin approved (if required), ready to sign
+   * SIGNING: Transaction being signed
    * BROADCASTING: Transaction being sent to blockchain
-   * CONFIRMED: Transaction confirmed on blockchain
+   * BROADCASTED: Transaction sent to blockchain, waiting for confirmations
+   * COMPLETED: Transaction confirmed on blockchain and finalized
+   * CONFIRMED: Transaction confirmed on blockchain (alias for COMPLETED)
    * FAILED: Transaction failed (network error, insufficient balance, etc.)
    * CANCELLED: User or admin cancelled the request
+   * REJECTED: Admin rejected the withdrawal
    */
   @Column({
     type: 'enum',
-    enum: ['PENDING', 'APPROVED', 'BROADCASTING', 'CONFIRMED', 'FAILED', 'CANCELLED'],
+    enum: ['PENDING', 'APPROVED', 'SIGNING', 'BROADCASTING', 'BROADCASTED', 'COMPLETED', 'CONFIRMED', 'FAILED', 'CANCELLED', 'REJECTED'],
     default: 'PENDING',
   })
   @Index()
-  status: 'PENDING' | 'APPROVED' | 'BROADCASTING' | 'CONFIRMED' | 'FAILED' | 'CANCELLED';
+  status: 'PENDING' | 'APPROVED' | 'SIGNING' | 'BROADCASTING' | 'BROADCASTED' | 'COMPLETED' | 'CONFIRMED' | 'FAILED' | 'CANCELLED' | 'REJECTED';
 
   /**
    * Blockchain transaction hash (txid)

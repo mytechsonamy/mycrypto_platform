@@ -13,6 +13,9 @@ import { AddressValidationService } from './services/address-validation.service'
 import { FeeCalculationService } from './services/fee-calculation.service';
 import { TwoFactorVerificationService } from './services/two-factor-verification.service';
 import { WithdrawalRequestService } from './services/withdrawal-request.service';
+import { TransactionSigningService } from './services/transaction-signing.service';
+import { BlockchainBroadcastingService } from './services/blockchain-broadcasting.service';
+import { WithdrawalProcessingService } from './services/withdrawal-processing.service';
 import { HttpModule } from '@nestjs/axios';
 import { CryptoWithdrawalController } from './crypto/crypto-withdrawal.controller';
 import { RedisService } from '../common/redis/redis.service';
@@ -43,6 +46,9 @@ import { RedisService } from '../common/redis/redis.service';
     FeeCalculationService,
     TwoFactorVerificationService,
     WithdrawalRequestService,
+    TransactionSigningService,
+    BlockchainBroadcastingService,
+    WithdrawalProcessingService,
     RedisService,
   ],
   exports: [
@@ -51,6 +57,9 @@ import { RedisService } from '../common/redis/redis.service';
     FeeCalculationService,
     TwoFactorVerificationService,
     WithdrawalRequestService,
+    TransactionSigningService,
+    BlockchainBroadcastingService,
+    WithdrawalProcessingService,
   ],
 })
 export class WithdrawalModule {}
