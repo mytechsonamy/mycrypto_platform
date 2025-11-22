@@ -234,24 +234,24 @@ services:
       - "component=object-storage"
 
   # ClamAV - Virus Scanning for KYC Documents
-  clamav:
-    image: clamav/clamav:latest
-    container_name: exchange_clamav
-    ports:
-      - "3310:3310"   # ClamAV daemon port
-    volumes:
-      - clamav_data:/var/lib/clamav
-    networks:
-      - exchange_network
-    healthcheck:
-      test: ["CMD", "clamdscan", "--version"]
-      interval: 60s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    labels:
-      - "app=exchange"
-      - "component=security-scanning"
+  # clamav:
+  #   image: clamav/clamav:latest
+  #   container_name: exchange_clamav
+  #   ports:
+  #     - "3310:3310"   # ClamAV daemon port
+  #   volumes:
+  #     - clamav_data:/var/lib/clamav
+  #   networks:
+  #     - exchange_network
+  #   healthcheck:
+  #     test: ["CMD", "clamdscan", "--version"]
+  #     interval: 60s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 30s
+  #   labels:
+  #     - "app=exchange"
+  #     - "component=security-scanning"
 
   # Wallet Service
   wallet-service:

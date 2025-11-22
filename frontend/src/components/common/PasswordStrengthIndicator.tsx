@@ -24,9 +24,9 @@ interface PasswordStrengthIndicatorProps {
 
 // Strength colors and labels
 const STRENGTH_CONFIG: Record<PasswordStrength, { color: 'error' | 'warning' | 'success'; label: string; value: number }> = {
-  weak: { color: 'error', label: 'Zayif', value: 33 },
+  weak: { color: 'error', label: 'Zayıf', value: 33 },
   medium: { color: 'warning', label: 'Orta', value: 66 },
-  strong: { color: 'success', label: 'Guclu', value: 100 },
+  strong: { color: 'success', label: 'Güçlü', value: 100 },
 };
 
 const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({
@@ -41,16 +41,17 @@ const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({
 
   const requirements = [
     { met: validation.hasMinLength, label: 'En az 8 karakter' },
-    { met: validation.hasUppercase, label: 'En az 1 buyuk harf' },
+    { met: validation.hasUppercase, label: 'En az 1 büyük harf' },
     { met: validation.hasNumber, label: 'En az 1 rakam' },
-    { met: validation.hasSpecialChar, label: 'En az 1 ozel karakter (!@#$%^&*)' },
+    { met: validation.hasSpecialChar, label: 'En az 1 özel karakter (!@#$%^&*)' },
   ];
 
   return (
     <Box
       sx={{ mt: 1, mb: 2 }}
       role="region"
-      aria-label="Sifre guc gostergesi"
+      aria-label="Şifre güç göstergesi"
+      data-testid="password-strength-indicator"
     >
       {/* Strength bar */}
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -60,13 +61,16 @@ const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({
             value={strengthConfig.value}
             color={strengthConfig.color}
             sx={{ height: 8, borderRadius: 4 }}
-            aria-label={`Sifre gucu: ${strengthConfig.label}`}
+            aria-label={`Şifre gücü: ${strengthConfig.label}`}
+            className={`strength-${validation.strength}`}
+            data-testid="password-strength-bar"
           />
         </Box>
         <Typography
           variant="body2"
           color={`${strengthConfig.color}.main`}
           sx={{ minWidth: 50, fontWeight: 500 }}
+          data-testid="password-strength-label"
         >
           {strengthConfig.label}
         </Typography>

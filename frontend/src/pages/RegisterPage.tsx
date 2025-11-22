@@ -49,7 +49,7 @@ const RegisterPage: React.FC = () => {
   // Handle successful registration
   useEffect(() => {
     if (registrationSuccess) {
-      toast.success('Kayit basarili! Lutfen e-posta adresinizi dogrulayin.', {
+      toast.success('Kayıt başarılı! Lütfen e-posta adresinizi doğrulayın.', {
         position: 'top-right',
         autoClose: 5000,
       });
@@ -95,7 +95,7 @@ const RegisterPage: React.FC = () => {
         console.warn('reCAPTCHA execution failed:', recaptchaErr);
 
         // Show warning but allow form submission (graceful fallback)
-        toast.warn('reCAPTCHA dogrulamasi basarisiz oldu. Kayit deneniyor...', {
+        toast.warn('reCAPTCHA doğrulaması başarısız oldu. Kayıt deneniyor...', {
           position: 'top-right',
           autoClose: 3000,
         });
@@ -113,7 +113,7 @@ const RegisterPage: React.FC = () => {
       );
     } catch (err) {
       // Handle unexpected errors
-      toast.error('Beklenmeyen bir hata olustu. Lutfen tekrar deneyin.', {
+      toast.error('Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.', {
         position: 'top-right',
         autoClose: 5000,
       });

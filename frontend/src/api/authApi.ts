@@ -54,7 +54,7 @@ apiClient.interceptors.request.use(
 const mapErrorToMessage = (error: AxiosError<ApiErrorResponse>): string => {
   if (!error.response) {
     // Network error - no response received
-    return 'Baglanti hatasi. Lutfen internet baglantinizi kontrol edin.';
+    return 'Bağlantı hatası. Lütfen internet bağlantınızı kontrol edin.';
   }
 
   const { status, data } = error.response;
@@ -65,30 +65,30 @@ const mapErrorToMessage = (error: AxiosError<ApiErrorResponse>): string => {
       // Validation errors
       if (data?.errors && data.errors.length > 0) {
         // Return the first validation error
-        return data.errors[0].message || 'Gecersiz veri girdiniz.';
+        return data.errors[0].message || 'Geçersiz veri girdiniz.';
       }
-      return data?.message || 'Gecersiz istek. Lutfen bilgilerinizi kontrol edin.';
+      return data?.message || 'Geçersiz istek. Lütfen bilgilerinizi kontrol edin.';
 
     case 409:
       // Conflict - email already exists
-      return 'Bu e-posta adresi zaten kayitli. Lutfen giris yapin veya baska bir e-posta kullanin.';
+      return 'Bu e-posta adresi zaten kayıtlı. Lütfen giriş yapın veya başka bir e-posta kullanın.';
 
     case 422:
       // Unprocessable entity
-      return data?.message || 'Islem yapilamadi. Lutfen bilgilerinizi kontrol edin.';
+      return data?.message || 'İşlem yapılamadı. Lütfen bilgilerinizi kontrol edin.';
 
     case 429:
       // Too many requests
-      return 'Cok fazla istek gonderdiniz. Lutfen bir sure bekleyin.';
+      return 'Çok fazla istek gönderdiniz. Lütfen bir süre bekleyin.';
 
     case 500:
     case 502:
     case 503:
       // Server errors
-      return 'Sunucu hatasi olustu. Lutfen daha sonra tekrar deneyin.';
+      return 'Sunucu hatası oluştu. Lütfen daha sonra tekrar deneyin.';
 
     default:
-      return data?.message || 'Beklenmeyen bir hata olustu. Lutfen tekrar deneyin.';
+      return data?.message || 'Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.';
   }
 };
 
@@ -114,13 +114,13 @@ export const register = async (
 
     // Mock validation - simulate backend validation
     if (data.email === 'existing@example.com') {
-      throw new Error('Bu e-posta adresi zaten kayitli.');
+      throw new Error('Bu e-posta adresi zaten kayıtlı.');
     }
 
     // Mock success response
     return {
       success: true,
-      message: 'Kayit basarili. Lutfen e-posta adresinizi dogrulayin.',
+      message: 'Kayıt başarılı. Lütfen e-posta adresinizi doğrulayın.',
       data: {
         id: 'mock-user-id-' + Date.now(),
         email: data.email,
@@ -155,12 +155,12 @@ export const register = async (
 
       // Handle bot detection (403) with specific message
       if (axiosError.response?.status === 403) {
-        throw new Error('Bot algilandi. Lutfen tekrar deneyin.');
+        throw new Error('Bot algılandı. Lütfen tekrar deneyin.');
       }
 
       throw new Error(mapErrorToMessage(axiosError));
     }
-    throw new Error('Beklenmeyen bir hata olustu. Lutfen tekrar deneyin.');
+    throw new Error('Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.');
   }
 };
 

@@ -18,8 +18,8 @@ export const validateEmail = (email: string): string | undefined => {
   if (!email) {
     return 'E-posta adresi gereklidir.';
   }
-  if (!EMAIL_REGEX.test(email)) {
-    return 'Gecerli bir e-posta adresi giriniz.';
+  if (!EMAIL_REGEX.test(email) || /[<>]/.test(email)) {
+    return 'Geçerli bir e-posta adresi giriniz.';
   }
   return undefined;
 };
@@ -59,7 +59,7 @@ export const validatePassword = (password: string): PasswordValidation => {
  */
 export const getPasswordError = (password: string): string | undefined => {
   if (!password) {
-    return 'Sifre gereklidir.';
+    return 'Şifre gereklidir.';
   }
 
   const validation = validatePassword(password);
@@ -69,17 +69,17 @@ export const getPasswordError = (password: string): string | undefined => {
     errors.push(`en az ${MIN_PASSWORD_LENGTH} karakter`);
   }
   if (!validation.hasUppercase) {
-    errors.push('en az 1 buyuk harf');
+    errors.push('en az 1 büyük harf');
   }
   if (!validation.hasNumber) {
     errors.push('en az 1 rakam');
   }
   if (!validation.hasSpecialChar) {
-    errors.push('en az 1 ozel karakter');
+    errors.push('en az 1 özel karakter');
   }
 
   if (errors.length > 0) {
-    return `Sifre ${errors.join(', ')} icermelidir.`;
+    return `Şifre ${errors.join(', ')} içermelidir.`;
   }
 
   return undefined;
@@ -90,10 +90,10 @@ export const getPasswordError = (password: string): string | undefined => {
  */
 export const validateConfirmPassword = (password: string, confirmPassword: string): string | undefined => {
   if (!confirmPassword) {
-    return 'Sifre tekrari gereklidir.';
+    return 'Şifre tekrarı gereklidir.';
   }
   if (password !== confirmPassword) {
-    return 'Sifreler eslesmedi.';
+    return 'Şifreler eşleşmedi.';
   }
   return undefined;
 };
@@ -120,11 +120,11 @@ export const validateRegistrationForm = (data: RegisterFormData): ValidationErro
   }
 
   if (!data.acceptTerms) {
-    errors.acceptTerms = 'Kullanim kosullarini kabul etmelisiniz.';
+    errors.acceptTerms = 'Kullanım koşullarını kabul etmelisiniz.';
   }
 
   if (!data.acceptKvkk) {
-    errors.acceptKvkk = 'KVKK aydinlatma metnini kabul etmelisiniz.';
+    errors.acceptKvkk = 'KVKK aydınlatma metnini kabul etmelisiniz.';
   }
 
   return errors;

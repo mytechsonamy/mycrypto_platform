@@ -22,11 +22,7 @@ export enum KycStatus {
 }
 
 @Entity('kyc_submissions')
-@Index(['userId'])
-@Index(['status'])
-@Index(['tcKimlikNo'])
-@Index(['userId', 'status'])
-@Index(['createdAt'])
+
 export class KycSubmission {
   @PrimaryGeneratedColumn('uuid')
   id: string;

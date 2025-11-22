@@ -124,10 +124,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
         fieldError = validateConfirmPassword(formData.password, formData.confirmPassword);
         break;
       case 'acceptTerms':
-        fieldError = !formData.acceptTerms ? 'Kullanim kosullarini kabul etmelisiniz.' : undefined;
+        fieldError = !formData.acceptTerms ? 'Kullanım koşullarını kabul etmelisiniz.' : undefined;
         break;
       case 'acceptKvkk':
-        fieldError = !formData.acceptKvkk ? 'KVKK aydinlatma metnini kabul etmelisiniz.' : undefined;
+        fieldError = !formData.acceptKvkk ? 'KVKK aydınlatma metnini kabul etmelisiniz.' : undefined;
         break;
     }
 
@@ -178,7 +178,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
         component="form"
         onSubmit={handleSubmit}
         noValidate
-        aria-label="Kayit formu"
+        aria-label="Kayıt formu"
       >
         {/* Header */}
         <Typography
@@ -188,7 +188,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
           gutterBottom
           sx={{ fontWeight: 600, mb: 3 }}
         >
-          Hesap Olustur
+          Hesap Oluştur
         </Typography>
 
         {/* Email field */}
@@ -218,6 +218,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             'aria-label': 'E-posta adresi',
             'aria-describedby': touched.email && errors.email ? 'email-error' : undefined,
           }}
+          FormHelperTextProps={{
+            'data-testid': 'email-error',
+            'aria-live': 'polite',
+          } as any}
           sx={{ mb: 2 }}
         />
 
@@ -227,7 +231,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
           id="password"
           name="password"
           type={showPassword ? 'text' : 'password'}
-          label="Sifre"
+          label="Şifre"
           value={formData.password}
           onChange={handleChange}
           onBlur={handleBlur}
@@ -245,7 +249,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             endAdornment: (
               <InputAdornment position="end">
                 <IconButton
-                  aria-label={showPassword ? 'Sifreyi gizle' : 'Sifreyi goster'}
+                  aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
                   onClick={togglePasswordVisibility}
                   edge="end"
                   disabled={loading}
@@ -256,10 +260,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             ),
           }}
           inputProps={{
-            'aria-label': 'Sifre',
+            'aria-label': 'Şifre',
             'aria-describedby': touched.password && errors.password ? 'password-error' : undefined,
           }}
-          sx={{ mb: 0 }}
+          FormHelperTextProps={{
+            'data-testid': 'password-error',
+            'aria-live': 'polite',
+          } as any}
+          sx={{ mb: formData.password.length > 0 ? 0 : 2 }}
         />
 
         {/* Password strength indicator */}
@@ -274,7 +282,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
           id="confirmPassword"
           name="confirmPassword"
           type={showConfirmPassword ? 'text' : 'password'}
-          label="Sifre Tekrari"
+          label="Şifre Tekrarı"
           value={formData.confirmPassword}
           onChange={handleChange}
           onBlur={handleBlur}
@@ -292,7 +300,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             endAdornment: (
               <InputAdornment position="end">
                 <IconButton
-                  aria-label={showConfirmPassword ? 'Sifreyi gizle' : 'Sifreyi goster'}
+                  aria-label={showConfirmPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
                   onClick={toggleConfirmPasswordVisibility}
                   edge="end"
                   disabled={loading}
@@ -303,9 +311,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             ),
           }}
           inputProps={{
-            'aria-label': 'Sifre tekrari',
+            'aria-label': 'Şifre tekrarı',
             'aria-describedby': touched.confirmPassword && errors.confirmPassword ? 'confirmPassword-error' : undefined,
           }}
+          FormHelperTextProps={{
+            'data-testid': 'confirmPassword-error',
+            'aria-live': 'polite',
+          } as any}
           sx={{ mb: 2 }}
         />
 
@@ -321,16 +333,16 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
               disabled={loading}
               color="primary"
               inputProps={{
-                'aria-label': 'Kullanim kosullarini kabul ediyorum',
+                'aria-label': 'Kullanım koşullarını kabul ediyorum',
               }}
             />
           }
           label={
             <Typography variant="body2">
               <Link href="/terms" target="_blank" rel="noopener">
-                Kullanim Kosullari
+                Kullanım Koşulları
               </Link>
-              'ni okudum ve kabul ediyorum.
+              'nı okudum ve kabul ediyorum.
             </Typography>
           }
           sx={{ mb: 0, alignItems: 'flex-start' }}
@@ -353,14 +365,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
               disabled={loading}
               color="primary"
               inputProps={{
-                'aria-label': 'KVKK aydinlatma metnini kabul ediyorum',
+                'aria-label': 'KVKK aydınlatma metnini kabul ediyorum',
               }}
             />
           }
           label={
             <Typography variant="body2">
               <Link href="/kvkk" target="_blank" rel="noopener">
-                KVKK Aydinlatma Metni
+                KVKK Aydınlatma Metni
               </Link>
               'ni okudum ve kabul ediyorum.
             </Typography>
@@ -379,14 +391,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
           fullWidth
           variant="contained"
           size="large"
-          disabled={loading}
+          disabled={loading || !formData.email || !formData.password || !formData.acceptTerms || !formData.acceptKvkk}
           sx={{
             py: 1.5,
             mb: 2,
             fontWeight: 600,
             fontSize: '1rem',
           }}
-          aria-label={loading ? 'Kayit yapiliyor' : 'Kayit ol'}
+          aria-label={loading ? 'Kayıt yapılıyor' : 'Kayıt ol'}
         >
           {loading ? (
             <>
@@ -396,10 +408,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 sx={{ mr: 1 }}
                 aria-hidden="true"
               />
-              Kayit Yapiliyor...
+              Kayıt Yapılıyor...
             </>
           ) : (
-            'Kayit Ol'
+            'Kayıt Ol'
           )}
         </Button>
 
@@ -409,9 +421,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
           align="center"
           color="text.secondary"
         >
-          Zaten hesabiniz var mi?{' '}
+          Zaten hesabınız var mı?{' '}
           <Link href="/login" underline="hover">
-            Giris Yapin
+            Giriş Yapın
           </Link>
         </Typography>
       </Box>

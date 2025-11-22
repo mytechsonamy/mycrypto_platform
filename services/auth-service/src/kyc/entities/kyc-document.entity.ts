@@ -27,10 +27,7 @@ export enum DocumentStatus {
 }
 
 @Entity('kyc_documents')
-@Index(['submissionId'])
-@Index(['status'])
-@Index(['documentType'])
-@Index(['userId'])
+
 export class KycDocument {
   @PrimaryGeneratedColumn('uuid')
   id: string;
