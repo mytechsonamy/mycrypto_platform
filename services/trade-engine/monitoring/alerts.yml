@@ -1,0 +1,336 @@
+# ============================================================================
+# PROMETHEUS ALERT RULES - TRADE ENGINE
+# ============================================================================
+# Service Level: Production-grade alerting rules
+# Evaluation Interval: 15 seconds
+# ============================================================================
+
+groups:
+  # ========================================================================
+  # Service Health Alerts
+  # ========================================================================
+  - name: service_health
+    interval: 30s
+    rules:
+      # Service Down Alert
+      - alert: TradeEngineServiceDown
+        expr: up{job="trade-engine"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: trade-engine
+        annotations:
+          summary: "Trade Engine service is down"
+          description: "Trade Engine has been unreachable for more than 1 minute. Immediate action required."
+          runbook_url: "https://wiki.internal/runbooks/trade-engine-down"
+
+      # Service Unhealthy
+      - alert: TradeEngineUnhealthy
+        expr: trade_engine_health_status == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: trade-engine
+        annotations:
+          summary: "Trade Engine health check failing"
+          description: "Trade Engine /health endpoint is not responding successfully"
+
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: |
+          (go_memstats_alloc_bytes{job="trade-engine"} / 1024 / 1024 / 1024) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: trade-engine
+          resource: memory
+        annotations:
+          summary: "High memory usage detected"
+          description: "Trade Engine memory usage is {{ $value }}GB (threshold: 0.8GB)"
+
+      # High Goroutine Count
+      - alert: HighGoroutineCount
+        expr: go_goroutines{job="trade-engine"} > 1000
+        for: 5m
+        labels:
+          severity: warning
+          service: trade-engine
+          resource: goroutines
+        annotations:
+          summary: "Excessive goroutine count"
+          description: "Trade Engine has {{ $value }} goroutines (threshold: 1000)"
+
+  # ========================================================================
+  # API Performance Alerts
+  # ========================================================================
+  - name: api_performance
+    interval: 30s
+    rules:
+      # High Latency - p99
+      - alert: HighAPILatencyP99
+        expr: |
+          histogram_quantile(0.99,
+            rate(http_request_duration_seconds_bucket{job="trade-engine"}[5m])
+          ) > 0.2
+        for: 2m
+        labels:
+          severity: warning
+          service: trade-engine
+          metric_type: latency
+        annotations:
+          summary: "High API latency (p99)"
+          description: "p99 latency is {{ $value | humanizeDuration }} (threshold: 200ms)"
+
+      # High Latency - p95
+      - alert: HighAPILatencyP95
+        expr: |
+          histogram_quantile(0.95,
+            rate(http_request_duration_seconds_bucket{job="trade-engine"}[5m])
+          ) > 0.5
+        for: 3m
+        labels:
+          severity: info
+          service: trade-engine
+          metric_type: latency
+        annotations:
+          summary: "Elevated API latency (p95)"
+          description: "p95 latency is {{ $value | humanizeDuration }} (threshold: 500ms)"
+
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: |
+          (sum(rate(http_requests_total{status=~"5..", job="trade-engine"}[5m])) /
+           sum(rate(http_requests_total{job="trade-engine"}[5m]))) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+          service: trade-engine
+          metric_type: errors
+        annotations:
+          summary: "High error rate detected"
+          description: "Trade Engine error rate is {{ $value | humanizePercentage }} (threshold: 5%)"
+
+      # 4xx Error Rate
+      - alert: Elevated4xxErrorRate
+        expr: |
+          (sum(rate(http_requests_total{status=~"4..", job="trade-engine"}[5m])) /
+           sum(rate(http_requests_total{job="trade-engine"}[5m]))) > 0.2
+        for: 5m
+        labels:
+          severity: warning
+          service: trade-engine
+          metric_type: errors
+        annotations:
+          summary: "High 4xx error rate"
+          description: "Trade Engine 4xx error rate is {{ $value | humanizePercentage }} (threshold: 20%)"
+
+      # Low Request Rate
+      - alert: LowRequestRate
+        expr: |
+          sum(rate(http_requests_total{job="trade-engine"}[5m])) < 1
+        for: 5m
+        labels:
+          severity: warning
+          service: trade-engine
+          metric_type: traffic
+        annotations:
+          summary: "Low request rate"
+          description: "Trade Engine request rate is {{ $value | humanize }}/sec (expected: >1/sec)"
+
+  # ========================================================================
+  # Database Alerts
+  # ========================================================================
+  - name: database_health
+    interval: 30s
+    rules:
+      # Database Down
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: postgres
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL is unreachable. Immediate action required."
+
+      # Database Connection Pool Exhaustion
+      - alert: DBConnectionPoolExhaustion
+        expr: |
+          pg_stat_activity_count{datname="mytrader_trade_engine"} > 90
+        for: 2m
+        labels:
+          severity: critical
+          service: postgres
+          resource: connections
+        annotations:
+          summary: "Database connection pool near exhaustion"
+          description: "Active connections: {{ $value }} (max: 100)"
+
+      # Slow Queries
+      - alert: SlowQueryDetected
+        expr: |
+          rate(pg_stat_statements_mean_exec_time[5m]) > 100
+        for: 3m
+        labels:
+          severity: warning
+          service: postgres
+          metric_type: performance
+        annotations:
+          summary: "Slow database queries detected"
+          description: "Mean query execution time is {{ $value }}ms (threshold: 100ms)"
+
+      # High Transaction Count
+      - alert: HighTransactionCount
+        expr: |
+          rate(pg_stat_activity_count{datname="mytrader_trade_engine"}[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: postgres
+          metric_type: throughput
+        annotations:
+          summary: "Unusually high transaction rate"
+          description: "Transaction rate is {{ $value | humanize }}/sec"
+
+      # Table Bloat
+      - alert: TableBloat
+        expr: |
+          pg_stat_user_tables_n_dead_tup{relname=~"orders|trades|order_book"} > 1000
+        for: 30m
+        labels:
+          severity: info
+          service: postgres
+          maintenance: required
+        annotations:
+          summary: "Table bloat detected in {{ $labels.relname }}"
+          description: "Dead tuples: {{ $value }} (consider VACUUM)"
+
+  # ========================================================================
+  # Redis Alerts
+  # ========================================================================
+  - name: redis_health
+    interval: 30s
+    rules:
+      # Redis Down
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis server is down"
+          description: "Redis is unreachable. Immediate action required."
+
+      # Redis Memory Usage High
+      - alert: RedisHighMemory
+        expr: |
+          (redis_memory_used_bytes / redis_memory_max_bytes) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+          resource: memory
+        annotations:
+          summary: "Redis memory usage high"
+          description: "Redis memory usage is {{ $value | humanizePercentage }} (threshold: 90%)"
+
+      # Redis Evictions
+      - alert: RedisEvictions
+        expr: |
+          rate(redis_evicted_keys_total[5m]) > 100
+        for: 2m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis keys being evicted"
+          description: "Eviction rate is {{ $value | humanize }}/sec - memory pressure detected"
+
+      # Redis Connection Issues
+      - alert: RedisRejectedConnections
+        expr: |
+          rate(redis_rejected_connections_total[5m]) > 0
+        for: 2m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis rejecting connections"
+          description: "Connection rejection rate is {{ $value | humanize }}/sec"
+
+  # ========================================================================
+  # Business Logic Alerts
+  # ========================================================================
+  - name: business_metrics
+    interval: 30s
+    rules:
+      # No Orders Created (potential issue)
+      - alert: NoOrdersBeingCreated
+        expr: |
+          increase(trade_engine_orders_created_total[10m]) == 0
+        for: 10m
+        labels:
+          severity: warning
+          service: trade-engine
+          metric_type: business
+        annotations:
+          summary: "No orders created in last 10 minutes"
+          description: "Order creation has stalled - possible system issue"
+
+      # No Trades Executed
+      - alert: NoTradesExecuted
+        expr: |
+          increase(trade_engine_trades_executed_total[10m]) == 0
+        for: 15m
+        labels:
+          severity: info
+          service: trade-engine
+          metric_type: business
+        annotations:
+          summary: "No trades executed in last 15 minutes"
+          description: "This may be normal during low volume periods"
+
+      # Order Cancellation Spike
+      - alert: OrderCancellationSpike
+        expr: |
+          rate(trade_engine_orders_cancelled_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          service: trade-engine
+          metric_type: business
+        annotations:
+          summary: "Spike in order cancellations"
+          description: "Cancellation rate is {{ $value | humanize }}/sec"
+
+  # ========================================================================
+  # System Resource Alerts
+  # ========================================================================
+  - name: system_resources
+    interval: 30s
+    rules:
+      # Disk Space Low (in container)
+      - alert: DiskSpaceLow
+        expr: |
+          (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.1
+        for: 5m
+        labels:
+          severity: warning
+          resource: disk
+        annotations:
+          summary: "Low disk space"
+          description: "Less than 10% disk space available"
+
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: |
+          (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m]))) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          resource: cpu
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value | humanizePercentage }} (threshold: 85%)"

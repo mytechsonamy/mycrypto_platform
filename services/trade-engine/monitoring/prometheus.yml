@@ -1,0 +1,76 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'mytrader-dev'
+    service: 'trade-engine'
+
+# Alertmanager configuration (configure later)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+          # - 'alertmanager:9093'
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - '/etc/prometheus/alerts.yml'
+
+scrape_configs:
+  # ========================================================================
+  # Trade Engine Service
+  # ========================================================================
+  - job_name: 'trade-engine'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['trade-engine:8080']
+        labels:
+          service: 'trade-engine'
+          environment: 'development'
+    relabel_configs:
+      - source_labels: [__scheme__]
+        target_label: __scheme__
+        replacement: 'http'
+
+  # ========================================================================
+  # PostgreSQL Database (via postgres_exporter)
+  # ========================================================================
+  - job_name: 'postgres'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+        labels:
+          database: 'postgresql'
+          instance: 'mytrader_trade_engine'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'postgres:5432'
+
+  # ========================================================================
+  # Redis (via redis_exporter)
+  # ========================================================================
+  - job_name: 'redis'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          database: 'redis'
+          instance: 'redis:6379'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'redis:6379'
+
+  # ========================================================================
+  # Prometheus itself
+  # ========================================================================
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'

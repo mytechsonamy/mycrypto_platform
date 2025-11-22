@@ -1,0 +1,302 @@
+name: Trade Engine CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'services/trade-engine/**'
+      - '.github/workflows/trade-engine-ci.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'services/trade-engine/**'
+
+env:
+  GO_VERSION: '1.23'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/trade-engine
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ========================================================================
+  # Test Job: Run unit tests, linting, and code analysis
+  # ========================================================================
+  test:
+    name: Test & Lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: ['1.23']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: services/trade-engine/go.sum
+
+      - name: Install dependencies
+        working-directory: services/trade-engine
+        run: |
+          go mod download
+          go mod verify
+
+      - name: Run linter (golangci-lint)
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: latest
+          working-directory: services/trade-engine
+          args: --timeout=5m --verbose
+
+      - name: Run go fmt check
+        working-directory: services/trade-engine
+        run: |
+          if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+            echo "Code formatting issues found:"
+            gofmt -s -d .
+            exit 1
+          fi
+          echo "Code formatting: OK"
+
+      - name: Run go vet
+        working-directory: services/trade-engine
+        run: go vet ./...
+
+      - name: Run unit tests with coverage
+        working-directory: services/trade-engine
+        run: |
+          go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+          go tool cover -func=coverage.out
+
+      - name: Check test coverage threshold
+        working-directory: services/trade-engine
+        run: |
+          coverage=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+          echo "Test coverage: ${coverage}%"
+          if (( $(echo "$coverage < 80" | bc -l) )); then
+            echo "Coverage is below 80% threshold"
+            exit 1
+          fi
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./services/trade-engine/coverage.out
+          flags: unittests
+          name: trade-engine-coverage
+          fail_ci_if_error: false
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Generate coverage report
+        working-directory: services/trade-engine
+        if: always()
+        run: |
+          go tool cover -html=coverage.out -o coverage.html
+          echo "Coverage report generated: coverage.html"
+
+      - name: Upload coverage report artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: services/trade-engine/coverage.html
+          retention-days: 30
+
+  # ========================================================================
+  # Build Job: Build Docker image and push to registry
+  # ========================================================================
+  build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: services/trade-engine
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+
+      - name: Docker image build summary
+        run: |
+          echo "Docker image build completed"
+          echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          echo "Tags: ${{ steps.meta.outputs.tags }}"
+
+  # ========================================================================
+  # Security Job: Run security scanning
+  # ========================================================================
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Run gosec security scanner
+        uses: securego/gosec@master
+        with:
+          args: '-no-fail -fmt json -out gosec-report.json ./services/trade-engine/...'
+
+      - name: Upload security report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-report
+          path: gosec-report.json
+          retention-days: 30
+
+  # ========================================================================
+  # Integration Tests Job
+  # ========================================================================
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: test
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: trade_engine_app
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: trade_engine_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: services/trade-engine/go.sum
+
+      - name: Run integration tests
+        working-directory: services/trade-engine
+        run: |
+          go test -v -race -tags=integration ./... -timeout 10m
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: trade_engine_app
+          DB_PASSWORD: test_password
+          DB_NAME: trade_engine_test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+
+  # ========================================================================
+  # Status Check Job: Summary of all checks
+  # ========================================================================
+  status:
+    name: Status Check
+    runs-on: ubuntu-latest
+    needs: [test, build, security]
+    if: always()
+
+    steps:
+      - name: Check job status
+        run: |
+          if [[ "${{ needs.test.result }}" == "failure" ]]; then
+            echo "Test job failed"
+            exit 1
+          fi
+
+          if [[ "${{ needs.build.result }}" == "failure" ]]; then
+            echo "Build job failed"
+            exit 1
+          fi
+
+          if [[ "${{ needs.security.result }}" == "failure" ]]; then
+            echo "Security job failed"
+            exit 1
+          fi
+
+          echo "All checks passed"
+
+  # ========================================================================
+  # Deployment Job (main branch only)
+  # ========================================================================
+  deploy:
+    name: Deploy to Registry
+    runs-on: ubuntu-latest
+    needs: [test, build, security]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log deployment start
+        run: |
+          echo "Deploying Trade Engine to registry"
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref }}"
