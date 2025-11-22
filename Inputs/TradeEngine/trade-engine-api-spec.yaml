@@ -1,0 +1,1648 @@
+openapi: 3.0.3
+info:
+  title: MyTrader Trade Engine API
+  description: |
+    # MyTrader Trade Engine API
+    
+    Complete REST API specification for the MyTrader Trade Engine - the core component
+    responsible for order management, matching, and trade execution.
+    
+    ## Features
+    - Order Management (Create, Cancel, Update, Query)
+    - Real-time Market Data
+    - WebSocket Streaming
+    - Admin Controls
+    - Paper Trading & Real Trading
+    
+    ## Authentication
+    All endpoints require JWT authentication via Bearer token in Authorization header:
+    ```
+    Authorization: Bearer <jwt_token>
+    ```
+    
+    ## Rate Limiting
+    - Orders: 10 requests/second per user
+    - Queries: 100 requests/minute per user
+    - WebSocket: 1 connection per user per symbol
+    
+    ## Base URLs
+    - Development: `http://localhost:8080/api/v1`
+    - Staging: `https://staging-trade.mytrader.com/api/v1`
+    - Production: `https://trade.mytrader.com/api/v1`
+    
+    ## Error Handling
+    All errors follow RFC 7807 (Problem Details for HTTP APIs):
+    ```json
+    {
+      "type": "https://api.mytrader.com/errors/insufficient-balance",
+      "title": "Insufficient Balance",
+      "status": 400,
+      "detail": "User does not have sufficient USDT balance",
+      "instance": "/orders/550e8400-e29b-41d4-a716-446655440000",
+      "balance_required": "1000.00",
+      "balance_available": "500.00"
+    }
+    ```
+    
+  version: 1.0.0
+  contact:
+    name: Techsonamy - MyTrader Team
+    email: support@mytrader.com
+    url: https://mytrader.com
+  license:
+    name: Proprietary
+    url: https://mytrader.com/license
+
+x-authentication-flows:
+  description: |
+    # Authentication & 2FA Flow
+    
+    MyTrader supports multi-factor authentication (2FA/MFA) for enhanced security.
+    
+    ## Standard Login Flow
+    ```
+    1. POST /auth/login
+       Request: { email, password }
+       Response: { token, requires_2fa: false }
+    
+    2. Use token in Authorization: Bearer <token>
+    ```
+    
+    ## 2FA-Enabled Login Flow
+    ```
+    1. POST /auth/login
+       Request: { email, password }
+       Response: { 
+         session_id: "temp_session_123",
+         requires_2fa: true,
+         2fa_methods: ["TOTP", "SMS"]
+       }
+    
+    2. POST /auth/verify-2fa
+       Request: { 
+         session_id: "temp_session_123",
+         method: "TOTP",
+         code: "123456"
+       }
+       Response: { 
+         token: "jwt_token_here",
+         refresh_token: "refresh_token_here"
+       }
+    
+    3. Use token in Authorization: Bearer <token>
+    ```
+    
+    ## 2FA Setup (Optional for roadmap)
+    ```
+    POST /auth/2fa/enable
+    Authorization: Bearer <token>
+    Request: { method: "TOTP" }
+    Response: { 
+      qr_code: "data:image/png;base64,...",
+      secret: "BASE32_SECRET",
+      backup_codes: ["code1", "code2", ...]
+    }
+    ```
+    
+    ## Token Refresh
+    ```
+    POST /auth/refresh
+    Request: { refresh_token }
+    Response: { token, refresh_token }
+    ```
+    
+    **Note:** 2FA implementation is planned for Phase 2 (post-MVP).
+    Current MVP uses JWT-only authentication.
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Development server
+  - url: https://staging-trade.mytrader.com/api/v1
+    description: Staging server
+  - url: https://trade.mytrader.com/api/v1
+    description: Production server
+
+tags:
+  - name: Orders
+    description: Order management operations
+  - name: Trades
+    description: Trade history and details
+  - name: Market Data
+    description: Real-time and historical market data
+  - name: Positions
+    description: Position tracking and management
+  - name: Admin
+    description: Administrative operations (restricted)
+  - name: WebSocket
+    description: WebSocket streaming endpoints
+
+security:
+  - BearerAuth: []
+
+paths:
+  # ============================================================================
+  # ORDER MANAGEMENT
+  # ============================================================================
+  
+  /orders:
+    post:
+      tags: [Orders]
+      summary: Create a new order
+      description: |
+        Place a new order (MARKET, LIMIT, or STOP).
+        
+        **Idempotency:** This endpoint is idempotent using `client_order_id`.
+        Sending the same `client_order_id` twice will return the same `order_id`.
+        
+        **Balance Check:** System checks if user has sufficient balance before
+        accepting the order. For BUY orders, quote currency is reserved; for SELL
+        orders, base currency is reserved.
+        
+        **Time in Force:**
+        - GTC (Good Till Cancelled): Remains active until filled or cancelled
+        - IOC (Immediate or Cancel): Executes immediately, cancels remainder
+        - FOK (Fill or Kill): Executes completely or cancels entirely
+      operationId: createOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+            examples:
+              market_buy:
+                summary: Market Buy Order
+                value:
+                  client_order_id: "client_123456"
+                  symbol: "BTC/USDT"
+                  side: "BUY"
+                  order_type: "MARKET"
+                  quantity: "0.1"
+                  time_in_force: "IOC"
+              limit_sell:
+                summary: Limit Sell Order
+                value:
+                  client_order_id: "client_789012"
+                  symbol: "BTC/USDT"
+                  side: "SELL"
+                  order_type: "LIMIT"
+                  quantity: "0.5"
+                  price: "51000.00"
+                  time_in_force: "GTC"
+              stop_loss:
+                summary: Stop Loss Order
+                value:
+                  client_order_id: "client_345678"
+                  symbol: "ETH/USDT"
+                  side: "SELL"
+                  order_type: "STOP"
+                  quantity: "2.0"
+                  stop_price: "3000.00"
+                  time_in_force: "GTC"
+              ioc_limit:
+                summary: IOC Limit Buy Order
+                value:
+                  client_order_id: "client_901234"
+                  symbol: "BTC/USDT"
+                  side: "BUY"
+                  order_type: "LIMIT"
+                  quantity: "0.5"
+                  price: "49500.00"
+                  time_in_force: "IOC"
+              fok_market:
+                summary: FOK Market Sell Order
+                value:
+                  client_order_id: "client_567890"
+                  symbol: "ETH/USDT"
+                  side: "SELL"
+                  order_type: "MARKET"
+                  quantity: "5.0"
+                  time_in_force: "FOK"
+      responses:
+        '201':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+              examples:
+                success:
+                  value:
+                    order_id: "550e8400-e29b-41d4-a716-446655440000"
+                    client_order_id: "client_123456"
+                    user_id: "user_123"
+                    symbol: "BTC/USDT"
+                    side: "BUY"
+                    order_type: "MARKET"
+                    status: "PENDING"
+                    quantity: "0.1"
+                    filled_quantity: "0"
+                    price: null
+                    average_price: null
+                    time_in_force: "IOC"
+                    created_at: "2024-11-22T10:30:00Z"
+                    updated_at: "2024-11-22T10:30:00Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    get:
+      tags: [Orders]
+      summary: List user orders
+      description: |
+        Retrieve a list of orders for the authenticated user with optional filters.
+        Results are paginated and sorted by creation time (newest first).
+      operationId: listOrders
+      parameters:
+        - name: symbol
+          in: query
+          description: Filter by trading pair
+          schema:
+            type: string
+            example: "BTC/USDT"
+        - name: status
+          in: query
+          description: Filter by order status
+          schema:
+            type: string
+            enum: [PENDING, OPEN, PARTIALLY_FILLED, FILLED, CANCELLED, REJECTED, EXPIRED]
+        - name: order_type
+          in: query
+          description: Filter by order type
+          schema:
+            type: string
+            enum: [MARKET, LIMIT, STOP]
+        - name: start_date
+          in: query
+          description: Start date for date range filter (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+            example: "2024-11-01T00:00:00Z"
+        - name: end_date
+          in: query
+          description: End date for date range filter (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+            example: "2024-11-22T23:59:59Z"
+        - name: limit
+          in: query
+          description: Number of results per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          description: Offset for pagination
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: sort
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            enum: [created_at_desc, created_at_asc, price_desc, price_asc]
+            default: created_at_desc
+      responses:
+        '200':
+          description: List of orders retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrderResponse'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /orders/{order_id}:
+    get:
+      tags: [Orders]
+      summary: Get order details
+      description: Retrieve detailed information about a specific order
+      operationId: getOrder
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          description: Order ID (UUID)
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Order details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    delete:
+      tags: [Orders]
+      summary: Cancel an order
+      description: |
+        Cancel an open or partially filled order. Reserved balance will be released.
+        Only orders with status OPEN or PARTIALLY_FILLED can be cancelled.
+      operationId: cancelOrder
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          description: Order ID (UUID)
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Order cancelled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    patch:
+      tags: [Orders]
+      summary: Update an order
+      description: |
+        Update an open limit order. Only price and quantity can be modified.
+        Update operation is atomic: cancel old order + create new order.
+        Order loses its queue position (new timestamp).
+      operationId: updateOrder
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          description: Order ID (UUID)
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrderRequest'
+      responses:
+        '200':
+          description: Order updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ============================================================================
+  # TRADES
+  # ============================================================================
+  
+  /trades:
+    get:
+      tags: [Trades]
+      summary: List user trades
+      description: Retrieve trade history for the authenticated user
+      operationId: listTrades
+      parameters:
+        - name: symbol
+          in: query
+          description: Filter by trading pair
+          schema:
+            type: string
+            example: "BTC/USDT"
+        - name: start_date
+          in: query
+          description: Start date for date range filter
+          schema:
+            type: string
+            format: date-time
+        - name: end_date
+          in: query
+          description: End date for date range filter
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Trade history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TradeResponse'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /trades/{trade_id}:
+    get:
+      tags: [Trades]
+      summary: Get trade details
+      description: Retrieve detailed information about a specific trade
+      operationId: getTrade
+      parameters:
+        - name: trade_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Trade details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ============================================================================
+  # MARKET DATA
+  # ============================================================================
+  
+  /market-data/ticker/{symbol}:
+    get:
+      tags: [Market Data]
+      summary: Get ticker data
+      description: Get 24-hour ticker statistics for a symbol
+      operationId: getTicker
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "BTC/USDT"
+      responses:
+        '200':
+          description: Ticker data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TickerResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /market-data/orderbook/{symbol}:
+    get:
+      tags: [Market Data]
+      summary: Get order book
+      description: Get current order book (bids and asks) for a symbol
+      operationId: getOrderBook
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "BTC/USDT"
+        - name: depth
+          in: query
+          description: Number of price levels to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Order book retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderBookResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /market-data/trades/{symbol}:
+    get:
+      tags: [Market Data]
+      summary: Get recent trades
+      description: Get recent public trades for a symbol
+      operationId: getRecentTrades
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        '200':
+          description: Recent trades retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PublicTradeResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /market-data/symbols:
+    get:
+      tags: [Market Data]
+      summary: List all trading symbols
+      description: Get list of all available trading pairs with their metadata
+      operationId: listSymbols
+      responses:
+        '200':
+          description: Symbols list retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SymbolResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ============================================================================
+  # POSITIONS
+  # ============================================================================
+  
+  /positions:
+    get:
+      tags: [Positions]
+      summary: List user positions
+      description: Get all open positions for the authenticated user
+      operationId: listPositions
+      parameters:
+        - name: symbol
+          in: query
+          description: Filter by trading pair
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Positions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PositionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /positions/{symbol}:
+    get:
+      tags: [Positions]
+      summary: Get position for a symbol
+      description: Get detailed position information for a specific trading pair
+      operationId: getPosition
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Position retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PositionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ============================================================================
+  # ADMIN ENDPOINTS
+  # ============================================================================
+  
+  /admin/symbols/{symbol}/status:
+    put:
+      tags: [Admin]
+      summary: Update symbol trading status
+      description: |
+        Update trading status for a symbol (SUPER_ADMIN only).
+        Halting a symbol will cancel all pending orders.
+      operationId: updateSymbolStatus
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSymbolStatusRequest'
+      responses:
+        '200':
+          description: Symbol status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SymbolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /admin/symbols/{symbol}/config:
+    patch:
+      tags: [Admin]
+      summary: Update symbol configuration
+      description: Update trading parameters for a symbol (SUPER_ADMIN only)
+      operationId: updateSymbolConfig
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSymbolConfigRequest'
+      responses:
+        '200':
+          description: Symbol configuration updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SymbolResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /admin/emergency/halt-all:
+    post:
+      tags: [Admin]
+      summary: Emergency halt all trading
+      description: Immediately halt trading on all symbols (SUPER_ADMIN only)
+      operationId: haltAllTrading
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                  enum: [SYSTEM_ISSUE, SECURITY_BREACH, REGULATORY]
+                notify_users:
+                  type: boolean
+                  default: true
+      responses:
+        '200':
+          description: All trading halted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  symbols_halted:
+                    type: integer
+                  timestamp:
+                    type: string
+                    format: date-time
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /admin/emergency/resume-all:
+    post:
+      tags: [Admin]
+      summary: Resume all trading
+      description: Resume trading on all halted symbols (SUPER_ADMIN only)
+      operationId: resumeAllTrading
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                validation_required:
+                  type: boolean
+                  default: true
+      responses:
+        '200':
+          description: All trading resumed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  symbols_resumed:
+                    type: integer
+                  timestamp:
+                    type: string
+                    format: date-time
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ============================================================================
+  # HEALTH & MONITORING
+  # ============================================================================
+  
+  /health:
+    get:
+      tags: [System]
+      summary: Health check
+      description: Check if the service is healthy
+      operationId: healthCheck
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  timestamp:
+                    type: string
+                    format: date-time
+                  components:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                        example: "healthy"
+                      redis:
+                        type: string
+                        example: "healthy"
+                      kafka:
+                        type: string
+                        example: "healthy"
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "unhealthy"
+                  errors:
+                    type: array
+                    items:
+                      type: string
+
+  /metrics:
+    get:
+      tags: [System]
+      summary: Prometheus metrics
+      description: Prometheus-format metrics endpoint
+      operationId: getMetrics
+      security: []
+      responses:
+        '200':
+          description: Metrics in Prometheus format
+          content:
+            text/plain:
+              schema:
+                type: string
+
+# ==============================================================================
+# COMPONENTS
+# ==============================================================================
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from authentication service
+
+  schemas:
+    # ==========================================================================
+    # ORDER SCHEMAS
+    # ==========================================================================
+    
+    CreateOrderRequest:
+      type: object
+      required:
+        - client_order_id
+        - symbol
+        - side
+        - order_type
+        - quantity
+      properties:
+        client_order_id:
+          type: string
+          description: Client-generated unique ID for idempotency
+          maxLength: 100
+          example: "client_abc123"
+        symbol:
+          type: string
+          description: Trading pair
+          example: "BTC/USDT"
+        side:
+          type: string
+          enum: [BUY, SELL]
+        order_type:
+          type: string
+          enum: [MARKET, LIMIT, STOP]
+        quantity:
+          type: string
+          description: Order quantity (decimal string for precision)
+          pattern: '^\d+(\.\d+)?$'
+          example: "0.1"
+        price:
+          type: string
+          description: Limit price (required for LIMIT orders)
+          pattern: '^\d+(\.\d+)?$'
+          example: "50000.00"
+        stop_price:
+          type: string
+          description: Stop price (required for STOP orders)
+          pattern: '^\d+(\.\d+)?$'
+          example: "49000.00"
+        time_in_force:
+          type: string
+          enum: [GTC, IOC, FOK]
+          default: GTC
+          description: |
+            - GTC: Good Till Cancelled
+            - IOC: Immediate or Cancel
+            - FOK: Fill or Kill
+
+    UpdateOrderRequest:
+      type: object
+      properties:
+        price:
+          type: string
+          description: New limit price
+          pattern: '^\d+(\.\d+)?$'
+        quantity:
+          type: string
+          description: New quantity
+          pattern: '^\d+(\.\d+)?$'
+
+    OrderResponse:
+      type: object
+      properties:
+        order_id:
+          type: string
+          format: uuid
+        client_order_id:
+          type: string
+        user_id:
+          type: string
+        symbol:
+          type: string
+        side:
+          type: string
+          enum: [BUY, SELL]
+        order_type:
+          type: string
+          enum: [MARKET, LIMIT, STOP]
+        status:
+          type: string
+          enum: [PENDING, OPEN, PARTIALLY_FILLED, FILLED, CANCELLED, REJECTED, EXPIRED]
+        quantity:
+          type: string
+        filled_quantity:
+          type: string
+        price:
+          type: string
+          nullable: true
+        average_price:
+          type: string
+          nullable: true
+        stop_price:
+          type: string
+          nullable: true
+        time_in_force:
+          type: string
+          enum: [GTC, IOC, FOK]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        filled_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancelled_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    OrderDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/OrderResponse'
+        - type: object
+          properties:
+            fills:
+              type: array
+              description: List of trade fills for this order
+              items:
+                type: object
+                properties:
+                  trade_id:
+                    type: string
+                    format: uuid
+                  price:
+                    type: string
+                  quantity:
+                    type: string
+                  fee:
+                    type: string
+                  fee_asset:
+                    type: string
+                  is_maker:
+                    type: boolean
+                  executed_at:
+                    type: string
+                    format: date-time
+
+    # ==========================================================================
+    # TRADE SCHEMAS
+    # ==========================================================================
+    
+    TradeResponse:
+      type: object
+      properties:
+        trade_id:
+          type: string
+          format: uuid
+        symbol:
+          type: string
+        side:
+          type: string
+          enum: [BUY, SELL]
+          description: User's side (buyer or seller)
+        order_id:
+          type: string
+          format: uuid
+        price:
+          type: string
+        quantity:
+          type: string
+        fee:
+          type: string
+        fee_asset:
+          type: string
+        is_maker:
+          type: boolean
+        executed_at:
+          type: string
+          format: date-time
+
+    PublicTradeResponse:
+      type: object
+      properties:
+        trade_id:
+          type: string
+          format: uuid
+        symbol:
+          type: string
+        price:
+          type: string
+        quantity:
+          type: string
+        executed_at:
+          type: string
+          format: date-time
+        is_buyer_maker:
+          type: boolean
+
+    # ==========================================================================
+    # MARKET DATA SCHEMAS
+    # ==========================================================================
+    
+    TickerResponse:
+      type: object
+      properties:
+        symbol:
+          type: string
+        last_price:
+          type: string
+        price_change_24h:
+          type: string
+        price_change_percent_24h:
+          type: string
+        high_24h:
+          type: string
+        low_24h:
+          type: string
+        volume_24h:
+          type: string
+        quote_volume_24h:
+          type: string
+        bid_price:
+          type: string
+        ask_price:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    OrderBookResponse:
+      type: object
+      properties:
+        symbol:
+          type: string
+        last_update_id:
+          type: integer
+          description: Sequence number for sync
+        bids:
+          type: array
+          description: Buy orders (price, quantity)
+          items:
+            type: array
+            items:
+              type: string
+            minItems: 2
+            maxItems: 2
+          example:
+            - ["50000.00", "1.5"]
+            - ["49999.00", "0.8"]
+        asks:
+          type: array
+          description: Sell orders (price, quantity)
+          items:
+            type: array
+            items:
+              type: string
+            minItems: 2
+            maxItems: 2
+          example:
+            - ["50001.00", "2.1"]
+            - ["50002.00", "1.2"]
+        timestamp:
+          type: string
+          format: date-time
+
+    SymbolResponse:
+      type: object
+      properties:
+        symbol:
+          type: string
+          example: "BTC/USDT"
+        base_asset:
+          type: string
+          example: "BTC"
+        quote_asset:
+          type: string
+          example: "USDT"
+        status:
+          type: string
+          enum: [ACTIVE, HALTED, MAINTENANCE, DELISTED]
+        tick_size:
+          type: string
+          description: Minimum price increment
+          example: "0.01"
+        min_order_size:
+          type: string
+          example: "0.0001"
+        max_order_size:
+          type: string
+          example: "100"
+        min_order_value:
+          type: string
+          description: Minimum order value in quote currency
+          example: "10"
+        maker_fee:
+          type: string
+          example: "0.0005"
+        taker_fee:
+          type: string
+          example: "0.001"
+
+    # ==========================================================================
+    # POSITION SCHEMAS
+    # ==========================================================================
+    
+    PositionResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+        symbol:
+          type: string
+        side:
+          type: string
+          enum: [LONG, SHORT]
+        quantity:
+          type: string
+        entry_price:
+          type: string
+          description: Average entry price
+        current_price:
+          type: string
+        unrealized_pnl:
+          type: string
+        unrealized_pnl_percent:
+          type: string
+        realized_pnl:
+          type: string
+        opened_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # ==========================================================================
+    # ADMIN SCHEMAS
+    # ==========================================================================
+    
+    UpdateSymbolStatusRequest:
+      type: object
+      required: [status, reason]
+      properties:
+        status:
+          type: string
+          enum: [ACTIVE, HALTED, MAINTENANCE, DELISTED]
+        reason:
+          type: string
+          maxLength: 500
+        estimated_resume:
+          type: string
+          format: date-time
+          description: Estimated resume time (for MAINTENANCE status)
+
+    UpdateSymbolConfigRequest:
+      type: object
+      properties:
+        tick_size:
+          type: string
+        min_order_size:
+          type: string
+        max_order_size:
+          type: string
+        price_band_percentage:
+          type: string
+          description: Price band limit (±percentage from last price)
+        trading_hours:
+          type: object
+          properties:
+            start:
+              type: string
+              example: "00:00"
+            end:
+              type: string
+              example: "23:59"
+            timezone:
+              type: string
+              example: "UTC"
+
+    # ==========================================================================
+    # COMMON SCHEMAS
+    # ==========================================================================
+    
+    RateLimitHeaders:
+      type: object
+      description: Standard rate limit headers returned with all responses
+      properties:
+        X-RateLimit-Limit:
+          type: integer
+          description: Maximum requests allowed per time window
+          example: 100
+        X-RateLimit-Remaining:
+          type: integer
+          description: Remaining requests in current time window
+          example: 95
+        X-RateLimit-Reset:
+          type: integer
+          description: Unix timestamp when rate limit resets
+          example: 1700000000
+        X-RateLimit-Retry-After:
+          type: integer
+          description: Seconds to wait before retrying (only when rate limited)
+          example: 60
+    
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Total number of items
+        limit:
+          type: integer
+          description: Items per page
+        offset:
+          type: integer
+          description: Current offset
+        has_next:
+          type: boolean
+          description: Whether there are more pages
+
+    ErrorResponse:
+      type: object
+      properties:
+        type:
+          type: string
+          description: URI reference identifying problem type
+          example: "https://api.mytrader.com/errors/insufficient-balance"
+        title:
+          type: string
+          description: Short, human-readable summary
+          example: "Insufficient Balance"
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+        detail:
+          type: string
+          description: Detailed explanation
+          example: "User does not have sufficient USDT balance"
+        instance:
+          type: string
+          description: URI reference identifying specific occurrence
+          example: "/orders/550e8400-e29b-41d4-a716-446655440000"
+      required:
+        - type
+        - title
+        - status
+
+  # ============================================================================
+  # RESPONSES
+  # ============================================================================
+  
+  responses:
+    BadRequest:
+      description: Bad Request - Invalid input parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            invalid_quantity:
+              value:
+                type: "https://api.mytrader.com/errors/invalid-quantity"
+                title: "Invalid Quantity"
+                status: 400
+                detail: "Quantity must be greater than minimum order size"
+                min_order_size: "0.0001"
+            insufficient_balance:
+              value:
+                type: "https://api.mytrader.com/errors/insufficient-balance"
+                title: "Insufficient Balance"
+                status: 400
+                detail: "User does not have sufficient USDT balance"
+                balance_required: "1000.00"
+                balance_available: "500.00"
+
+    Unauthorized:
+      description: Unauthorized - Invalid or missing authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            type: "https://api.mytrader.com/errors/unauthorized"
+            title: "Unauthorized"
+            status: 401
+            detail: "Invalid or expired JWT token"
+
+    Forbidden:
+      description: Forbidden - Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            type: "https://api.mytrader.com/errors/forbidden"
+            title: "Forbidden"
+            status: 403
+            detail: "User does not have SUPER_ADMIN role"
+
+    NotFound:
+      description: Not Found - Resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            type: "https://api.mytrader.com/errors/not-found"
+            title: "Not Found"
+            status: 404
+            detail: "Order not found"
+
+    Conflict:
+      description: Conflict - Request conflicts with current state
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            idempotency_conflict:
+              value:
+                type: "https://api.mytrader.com/errors/idempotency-conflict"
+                title: "Idempotency Conflict"
+                status: 409
+                detail: "client_order_id already exists with different parameters"
+            order_already_cancelled:
+              value:
+                type: "https://api.mytrader.com/errors/order-already-cancelled"
+                title: "Order Already Cancelled"
+                status: 409
+                detail: "Cannot cancel an order that is already cancelled"
+
+    TooManyRequests:
+      description: Too Many Requests - Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            type: "https://api.mytrader.com/errors/rate-limit-exceeded"
+            title: "Rate Limit Exceeded"
+            status: 429
+            detail: "User has exceeded 10 orders per second limit"
+            retry_after: 1
+
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            type: "https://api.mytrader.com/errors/internal-error"
+            title: "Internal Server Error"
+            status: 500
+            detail: "An unexpected error occurred"
+
+# ==============================================================================
+# WEBSOCKET DOCUMENTATION
+# ==============================================================================
+x-websocket-documentation:
+  description: |
+    # WebSocket API
+    
+    MyTrader provides WebSocket endpoints for real-time market data and user events.
+    
+    ## Connection
+    
+    ```
+    wss://trade.mytrader.com/ws?token=<jwt_token>
+    ```
+    
+    Authentication via JWT token in query parameter.
+    
+    ## Message Format
+    
+    All messages are JSON-formatted.
+    
+    ### Client → Server (Subscribe)
+    
+    ```json
+    {
+      "action": "subscribe",
+      "channels": ["BTC/USDT@orderbook", "BTC/USDT@trade", "user@order"]
+    }
+    ```
+    
+    ### Server → Client (Data)
+    
+    ```json
+    {
+      "channel": "BTC/USDT@orderbook",
+      "type": "snapshot",
+      "data": {
+        "symbol": "BTC/USDT",
+        "last_update_id": 12345,
+        "bids": [["50000.00", "1.5"], ["49999.00", "0.8"]],
+        "asks": [["50001.00", "2.1"], ["50002.00", "1.2"]]
+      },
+      "timestamp": "2024-11-22T10:30:00Z"
+    }
+    ```
+    
+    ## Available Channels
+    
+    ### Public Channels
+    
+    1. **Order Book**: `{symbol}@orderbook`
+       - Snapshot on subscribe
+       - Incremental updates (type: "update")
+       - Includes last_update_id for sync
+    
+    2. **Trades**: `{symbol}@trade`
+       - Real-time public trades
+       - Type: "trade"
+    
+    3. **Ticker**: `{symbol}@ticker`
+       - 24-hour ticker updates
+       - Type: "ticker"
+    
+    ### Private Channels (Requires Authentication)
+    
+    1. **User Orders**: `user@order`
+       - Order status updates
+       - Types: "order_created", "order_filled", "order_cancelled"
+    
+    2. **User Trades**: `user@trade`
+       - User's trade executions
+       - Type: "trade_executed"
+    
+    3. **User Balance**: `user@balance`
+       - Balance updates
+       - Type: "balance_updated"
+    
+    ## Heartbeat
+    
+    Server sends ping every 30 seconds:
+    ```json
+    {"type": "ping"}
+    ```
+    
+    Client must respond with pong:
+    ```json
+    {"type": "pong"}
+    ```
+    
+    Connection closed if no pong received within 60 seconds.
+    
+    ## Reconnection & Resync
+    
+    On reconnect, client sends last received sequence number:
+    
+    ```json
+    {
+      "action": "resync",
+      "channel": "BTC/USDT@orderbook",
+      "last_update_id": 12340
+    }
+    ```
+    
+    Server replays missed updates or sends new snapshot if gap too large.
+    
+    ## Example: Order Book Subscription
+    
+    ```javascript
+    const ws = new WebSocket('wss://trade.mytrader.com/ws?token=<jwt>');
+    
+    ws.onopen = () => {
+      ws.send(JSON.stringify({
+        action: 'subscribe',
+        channels: ['BTC/USDT@orderbook']
+      }));
+    };
+    
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      
+      if (message.type === 'snapshot') {
+        // Initialize order book
+        console.log('Snapshot:', message.data);
+      } else if (message.type === 'update') {
+        // Apply incremental update
+        console.log('Update:', message.data);
+      } else if (message.type === 'ping') {
+        ws.send(JSON.stringify({type: 'pong'}));
+      }
+    };
+    ```
+    
+    ## Rate Limits
+    
+    - Max 10 subscriptions per connection
+    - Max 1 connection per user per symbol
+    - Max 100 messages per second (combined)
+    
+    ## Error Messages
+    
+    ```json
+    {
+      "type": "error",
+      "code": "SUBSCRIPTION_LIMIT_EXCEEDED",
+      "message": "Maximum 10 subscriptions allowed per connection"
+    }
+    ```

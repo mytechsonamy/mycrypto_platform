@@ -32,7 +32,7 @@ const VerificationSuccess: React.FC = () => {
         gutterBottom
         sx={{ fontWeight: 600, color: 'success.main' }}
       >
-        E-posta Dogrulandi!
+        E-posta Doğrulandı!
       </Typography>
 
       <Typography
@@ -40,7 +40,7 @@ const VerificationSuccess: React.FC = () => {
         color="text.secondary"
         sx={{ mb: 4 }}
       >
-        E-posta adresiniz basariyla dogrulandi. Artik giris yapabilirsiniz.
+        E-posta adresiniz başarıyla doğrulandı. Artık giriş yapabilirsiniz.
       </Typography>
 
       <Button
@@ -49,10 +49,10 @@ const VerificationSuccess: React.FC = () => {
         href="/login"
         size="large"
         startIcon={<LoginIcon />}
-        aria-label="Giris sayfasina git"
+        aria-label="Giriş sayfasına git"
         sx={{ px: 4 }}
       >
-        Giris Yap
+        Giriş Yap
       </Button>
     </Paper>
   );

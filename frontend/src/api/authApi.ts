@@ -172,7 +172,7 @@ export const verifyEmail = async (token: string): Promise<{ success: boolean; me
     await mockDelay(1000);
     return {
       success: true,
-      message: 'E-posta adresiniz basariyla dogrulandi.',
+      message: 'E-posta adresiniz başarıyla doğrulandı.',
     };
   }
 
@@ -188,7 +188,7 @@ export const resendVerificationEmail = async (email: string): Promise<{ success:
     await mockDelay(1000);
     return {
       success: true,
-      message: 'Dogrulama e-postasi yeniden gonderildi.',
+      message: 'Doğrulama e-postası yeniden gönderildi.',
     };
   }
 
@@ -206,13 +206,13 @@ export const login = async (data: LoginRequest): Promise<LoginResponse> => {
 
     // Mock validation - simulate backend validation
     if (data.email === 'locked@example.com') {
-      const error = new Error('Hesabiniz kilitlendi. Lutfen daha sonra deneyin.') as Error & { status?: number };
+      const error = new Error('Hesabınız kilitlendi. Lütfen daha sonra deneyin.') as Error & { status?: number };
       error.status = 403;
       throw error;
     }
 
     if (data.email !== 'test@example.com' || data.password !== 'Test123!') {
-      const error = new Error('E-posta veya sifre hatali') as Error & { status?: number };
+      const error = new Error('E-posta veya şifre hatalı') as Error & { status?: number };
       error.status = 401;
       throw error;
     }
@@ -247,13 +247,13 @@ export const login = async (data: LoginRequest): Promise<LoginResponse> => {
 
       // Handle specific status codes for login
       if (status === 401) {
-        throw new Error('E-posta veya sifre hatali');
+        throw new Error('E-posta veya şifre hatalı');
       }
       if (status === 403) {
-        throw new Error('Hesabiniz kilitlendi. Lutfen daha sonra deneyin.');
+        throw new Error('Hesabınız kilitlendi. Lütfen daha sonra deneyin.');
       }
       if (status === 429) {
-        throw new Error('Cok fazla deneme. Lutfen bekleyin.');
+        throw new Error('Çok fazla deneme. Lütfen bekleyin.');
       }
 
       throw new Error(mapErrorToMessage(axiosError));
@@ -271,7 +271,7 @@ export const logout = async (): Promise<LogoutResponse> => {
     await mockDelay(500);
     return {
       success: true,
-      message: 'Basariyla cikis yapildi.',
+      message: 'Başarıyla çıkış yapıldı.',
     };
   }
 
@@ -283,7 +283,7 @@ export const logout = async (): Promise<LogoutResponse> => {
       const axiosError = error as AxiosError<ApiErrorResponse>;
       throw new Error(mapErrorToMessage(axiosError));
     }
-    throw new Error('Cikis sirasinda bir hata olustu.');
+    throw new Error('Çıkış sırasında bir hata oluştu.');
   }
 };
 
@@ -298,7 +298,7 @@ export const requestPasswordReset = async (email: string): Promise<PasswordReset
     // Always return success for security (don't reveal if email exists)
     return {
       success: true,
-      message: 'Sifre sifirlama baglantisi e-posta adresinize gonderildi.',
+      message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.',
     };
   }
 
@@ -315,12 +315,12 @@ export const requestPasswordReset = async (email: string): Promise<PasswordReset
 
       // Handle rate limiting
       if (status === 429) {
-        throw new Error('Cok fazla istek gonderdiniz. Lutfen bir sure bekleyin.');
+        throw new Error('Çok fazla istek gönderdiniz. Lütfen bir süre bekleyin.');
       }
 
       throw new Error(mapErrorToMessage(axiosError));
     }
-    throw new Error('Sifre sifirlama istegi sirasinda bir hata olustu.');
+    throw new Error('Şifre sıfırlama isteği sırasında bir hata oluştu.');
   }
 };
 
@@ -338,15 +338,15 @@ export const confirmPasswordReset = async (
 
     // Simulate token validation
     if (token === 'expired-token') {
-      throw new Error('Sifre sifirlama baglantisinin suresi dolmus. Lutfen yeni bir istek gonderin.');
+      throw new Error('Şifre sıfırlama bağlantısının süresi dolmuş. Lütfen yeni bir istek gönderin.');
     }
     if (token === 'invalid-token') {
-      throw new Error('Gecersiz sifre sifirlama baglantisi.');
+      throw new Error('Geçersiz şifre sıfırlama bağlantısı.');
     }
 
     return {
       success: true,
-      message: 'Sifreniz basariyla degistirildi.',
+      message: 'Şifreniz başarıyla değiştirildi.',
     };
   }
 
@@ -369,16 +369,16 @@ export const confirmPasswordReset = async (
       if (status === 400 || status === 422) {
         const message = axiosError.response?.data?.message;
         if (message?.toLowerCase().includes('expired') || message?.toLowerCase().includes('suresi')) {
-          throw new Error('Sifre sifirlama baglantisinin suresi dolmus. Lutfen yeni bir istek gonderin.');
+          throw new Error('Şifre sıfırlama bağlantısının süresi dolmuş. Lütfen yeni bir istek gönderin.');
         }
         if (message?.toLowerCase().includes('invalid') || message?.toLowerCase().includes('gecersiz')) {
-          throw new Error('Gecersiz sifre sifirlama baglantisi.');
+          throw new Error('Geçersiz şifre sıfırlama bağlantısı.');
         }
       }
 
       throw new Error(mapErrorToMessage(axiosError));
     }
-    throw new Error('Sifre degistirme sirasinda bir hata olustu.');
+    throw new Error('Şifre değiştirme sırasında bir hata oluştu.');
   }
 };
 
@@ -407,7 +407,7 @@ export const setup2FA = async (): Promise<TwoFactorSetupResponse> => {
       const axiosError = error as AxiosError<ApiErrorResponse>;
       throw new Error(mapErrorToMessage(axiosError));
     }
-    throw new Error('2FA kurulumu sirasinda bir hata olustu.');
+    throw new Error('2FA kurulumu sırasında bir hata oluştu.');
   }
 };
 
@@ -423,7 +423,7 @@ export const verifySetup2FA = async (
     await mockDelay(1000);
 
     if (code !== '123456') {
-      throw new Error('Gecersiz dogrulama kodu.');
+      throw new Error('Geçersiz doğrulama kodu.');
     }
 
     return {
@@ -451,12 +451,12 @@ export const verifySetup2FA = async (
       const status = axiosError.response?.status;
 
       if (status === 400 || status === 401) {
-        throw new Error('Gecersiz dogrulama kodu. Lutfen tekrar deneyin.');
+        throw new Error('Geçersiz doğrulama kodu. Lütfen tekrar deneyin.');
       }
 
       throw new Error(mapErrorToMessage(axiosError));
     }
-    throw new Error('2FA dogrulama sirasinda bir hata olustu.');
+    throw new Error('2FA doğrulama sırasında bir hata oluştu.');
   }
 };
 
@@ -503,15 +503,15 @@ export const verify2FA = async (
       const status = axiosError.response?.status;
 
       if (status === 400 || status === 401) {
-        throw new Error('Gecersiz dogrulama kodu. Lutfen tekrar deneyin.');
+        throw new Error('Geçersiz doğrulama kodu. Lütfen tekrar deneyin.');
       }
       if (status === 429) {
-        throw new Error('Cok fazla deneme. Lutfen bekleyin.');
+        throw new Error('Çok fazla deneme. Lütfen bekleyin.');
       }
 
       throw new Error(mapErrorToMessage(axiosError));
     }
-    throw new Error('2FA dogrulama sirasinda bir hata olustu.');
+    throw new Error('2FA doğrulama sırasında bir hata oluştu.');
   }
 };
 
@@ -539,7 +539,7 @@ export const get2FAStatus = async (): Promise<TwoFactorStatusResponse> => {
       const axiosError = error as AxiosError<ApiErrorResponse>;
       throw new Error(mapErrorToMessage(axiosError));
     }
-    throw new Error('2FA durumu alinirken bir hata olustu.');
+    throw new Error('2FA durumu alınırken bir hata oluştu.');
   }
 };
 
@@ -553,7 +553,7 @@ export const regenerateBackupCodes = async (
     await mockDelay(1000);
 
     if (password !== 'Test123!') {
-      throw new Error('Gecersiz sifre.');
+      throw new Error('Geçersiz şifre.');
     }
 
     return {
@@ -581,12 +581,12 @@ export const regenerateBackupCodes = async (
       const status = axiosError.response?.status;
 
       if (status === 401) {
-        throw new Error('Gecersiz sifre.');
+        throw new Error('Geçersiz şifre.');
       }
 
       throw new Error(mapErrorToMessage(axiosError));
     }
-    throw new Error('Yedek kodlar yenilenirken bir hata olustu.');
+    throw new Error('Yedek kodlar yenilenirken bir hata oluştu.');
   }
 };
 
@@ -601,12 +601,12 @@ export const disable2FA = async (
     await mockDelay(1000);
 
     if (password !== 'Test123!' || code !== '123456') {
-      throw new Error('Gecersiz sifre veya dogrulama kodu.');
+      throw new Error('Geçersiz şifre veya doğrulama kodu.');
     }
 
     return {
       success: true,
-      message: '2FA basariyla devre disi birakildi.',
+      message: '2FA başarıyla devre dışı bırakıldı.',
     };
   }
 
@@ -622,12 +622,12 @@ export const disable2FA = async (
       const status = axiosError.response?.status;
 
       if (status === 401) {
-        throw new Error('Gecersiz sifre veya dogrulama kodu.');
+        throw new Error('Geçersiz şifre veya doğrulama kodu.');
       }
 
       throw new Error(mapErrorToMessage(axiosError));
     }
-    throw new Error('2FA devre disi birakilirken bir hata olustu.');
+    throw new Error('2FA devre dışı bırakılırken bir hata oluştu.');
   }
 };
 
@@ -641,7 +641,7 @@ export const loginWith2FA = async (data: LoginRequest): Promise<LoginResponseWit
 
     // Mock validation
     if (data.email === 'locked@example.com') {
-      throw new Error('Hesabiniz kilitlendi. Lutfen daha sonra deneyin.');
+      throw new Error('Hesabınız kilitlendi. Lütfen daha sonra deneyin.');
     }
 
     // Mock user with 2FA enabled
@@ -666,7 +666,7 @@ export const loginWith2FA = async (data: LoginRequest): Promise<LoginResponseWit
 
     // Validate test user credentials
     if (data.email !== 'test@example.com' || data.password !== 'Test123!') {
-      throw new Error('E-posta veya sifre hatali');
+      throw new Error('E-posta veya şifre hatalı');
     }
 
     // Mock success response without 2FA
@@ -698,18 +698,18 @@ export const loginWith2FA = async (data: LoginRequest): Promise<LoginResponseWit
       const status = axiosError.response?.status;
 
       if (status === 401) {
-        throw new Error('E-posta veya sifre hatali');
+        throw new Error('E-posta veya şifre hatalı');
       }
       if (status === 403) {
-        throw new Error('Hesabiniz kilitlendi. Lutfen daha sonra deneyin.');
+        throw new Error('Hesabınız kilitlendi. Lütfen daha sonra deneyin.');
       }
       if (status === 429) {
-        throw new Error('Cok fazla deneme. Lutfen bekleyin.');
+        throw new Error('Çok fazla deneme. Lütfen bekleyin.');
       }
 
       throw new Error(mapErrorToMessage(axiosError));
     }
-    throw new Error('Beklenmeyen bir hata olustu. Lutfen tekrar deneyin.');
+    throw new Error('Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.');
   }
 };
 

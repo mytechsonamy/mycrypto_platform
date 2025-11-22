@@ -112,7 +112,7 @@ const TwoFactorSettingsPage: React.FC = () => {
               variant="h5"
               sx={{ fontWeight: 600 }}
             >
-              Iki Faktorlu Kimlik Dogrulama
+              İki Faktörlü Kimlik Doğrulama
             </Typography>
           </Box>
 
@@ -131,7 +131,7 @@ const TwoFactorSettingsPage: React.FC = () => {
               </Typography>
               <Chip
                 icon={isEnabled ? <CheckCircleIcon /> : <WarningIcon />}
-                label={isEnabled ? 'Etkin' : 'Devre Disi'}
+                label={isEnabled ? 'Etkin' : 'Devre Dışı'}
                 color={isEnabled ? 'success' : 'default'}
                 size="small"
               />
@@ -140,7 +140,7 @@ const TwoFactorSettingsPage: React.FC = () => {
             {isEnabled && status && (
               <>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                  Etkinlestirme tarihi: {formatDate(status.enabledAt)}
+                  Etkinleştirme tarihi: {formatDate(status.enabledAt)}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Kalan yedek kod: {status.backupCodesRemaining}
@@ -157,7 +157,7 @@ const TwoFactorSettingsPage: React.FC = () => {
               {/* Warning for low backup codes */}
               {status && status.backupCodesRemaining <= 3 && (
                 <Alert severity="warning" sx={{ mb: 3 }}>
-                  Kalan yedek kod sayiniz dusuk. Yeni kodlar olusturmanizi oneririz.
+                  Kalan yedek kod sayınız düşük. Yeni kodlar oluşturmanızı öneririz.
                 </Alert>
               )}
 
@@ -168,7 +168,7 @@ const TwoFactorSettingsPage: React.FC = () => {
                 onClick={() => setRegenerateModalOpen(true)}
                 sx={{ mb: 2 }}
               >
-                Yedek Kodlari Yenile
+                Yedek Kodları Yenile
               </Button>
 
               {/* Disable 2FA */}
@@ -178,7 +178,7 @@ const TwoFactorSettingsPage: React.FC = () => {
                 fullWidth
                 onClick={() => setDisableModalOpen(true)}
               >
-                2FA'yi Devre Disi Birak
+                2FA'yı Devre Dışı Bırak
               </Button>
 
               {/* Description */}
@@ -187,16 +187,16 @@ const TwoFactorSettingsPage: React.FC = () => {
                 color="text.secondary"
                 sx={{ mt: 3, textAlign: 'center' }}
               >
-                2FA hesabinizi daha guvenli hale getirir. Devre disi birakmaniz
-                onerilmez.
+                2FA hesabınızı daha güvenli hale getirir. Devre dışı bırakmanız
+                önerilmez.
               </Typography>
             </Box>
           ) : (
             <Box>
               {/* Enable 2FA */}
               <Alert severity="info" sx={{ mb: 3 }}>
-                Iki faktorlu kimlik dogrulama, hesabiniza ek bir guvenlik katmani
-                ekler. Etkinlestirmeniz siddetle onerilir.
+                İki faktörlü kimlik doğrulama, hesabınıza ek bir güvenlik katmanı
+                ekler. Etkinleştirmeniz şiddetle önerilir.
               </Alert>
 
               <Button
@@ -205,7 +205,7 @@ const TwoFactorSettingsPage: React.FC = () => {
                 onClick={handleEnable}
                 size="large"
               >
-                2FA'yi Etkinlestir
+                2FA'yı Etkinleştir
               </Button>
             </Box>
           )}

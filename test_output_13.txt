@@ -1,0 +1,131 @@
+
+DevTools listening on ws://127.0.0.1:59762/devtools/browser/3ee2c2fb-7b8a-4712-a98a-63736df2b2b0
+
+===================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.7.0                                                                         │
+  │ Browser:        Electron 138 (headless)                                                        │
+  │ Node Version:   v25.2.1 (/opt/homebrew/Cellar/node/25.2.1/bin/node)                            │
+  │ Specs:          1 found (registration.spec.ts)                                                 │
+  │ Searched:       cypress/e2e/**/*.{js,jsx,ts,tsx,spec.ts}                                       │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  registration.spec.ts                                                            (1 of 1)
+
+
+  User Registration - Story 1.1
+    TC-001: Valid password - All requirements met
+      ✓ Should successfully register with valid email and strong password (2237ms)
+    TC-002: Valid password - Minimum requirements only
+      1) Should register with minimum valid password (MEDIUM strength)
+    TC-004: Password too short (7 characters)
+      ✓ Should reject password shorter than 8 characters (638ms)
+    TC-005: Password missing uppercase letter
+      ✓ Should reject password without uppercase letters (994ms)
+    TC-006: Password missing number
+      ✓ Should reject password without numeric characters (928ms)
+    TC-007: Password missing special character
+      ✓ Should reject password without special characters (951ms)
+    TC-011 & TC-012: Email validation
+      ✓ TC-011: Should accept valid email formats (1636ms)
+      ✓ TC-012: Should reject invalid email formats (1605ms)
+    TC-016 & TC-017: Duplicate email handling
+      ✓ Should prevent registration with duplicate email (1602ms)
+      ✓ Should be case-insensitive for email duplicates (1372ms)
+    TC-021 to TC-025: Checkbox and consent requirements
+      ✓ TC-021: Terms & Conditions checkbox is required (1060ms)
+      ✓ TC-022: KVKK consent checkbox is required (1051ms)
+      ✓ TC-023: Both checkboxes required (1137ms)
+      ✓ TC-024: Terms & Conditions link accessible (157ms)
+      ✓ TC-025: KVKK consent link accessible (151ms)
+    TC-028 to TC-030: Password strength indicator
+      ✓ TC-028: Weak password shows weak indicator (254ms)
+      ✓ TC-029: Medium password shows medium indicator (310ms)
+      ✓ TC-030: Strong password shows strong indicator (459ms)
+    Security Tests - XSS Prevention
+      ✓ TC-034: XSS attempt in email should be blocked (689ms)
+      ✓ TC-035: XSS attempt in password should be safely stored (1315ms)
+    Accessibility Tests
+      ✓ TC-047: Form labels properly associated with inputs (72ms)
+      ✓ TC-048: Form keyboard navigation (860ms)
+      ✓ TC-049: Error messages announced to screen readers (275ms)
+      ✓ TC-050: Sufficient color contrast (333ms)
+      ✓ TC-051: Password strength indicator accessible (296ms)
+      ✓ TC-052: Required field indicators accessible (61ms)
+      ✓ TC-053: Checkbox labels linked correctly (210ms)
+    Performance Tests
+      ✓ TC-054: Page loads within 3 seconds (86ms)
+      ✓ TC-055: Form interaction is responsive (353ms)
+    Email Verification Flow
+      ✓ Should register with minimum valid password (MEDIUM strength) (1879ms)
+      ✓ TC-001: Successful registration with valid credentials (1222ms)
+
+
+  30 passing (31s)
+  1 failing
+
+  1) User Registration - Story 1.1
+       TC-002: Valid password - Minimum requirements only
+         Should register with minimum valid password (MEDIUM strength):
+     CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `registerMedium`. No request ever occurred.
+
+https://on.cypress.io/wait
+      at cypressErr (http://localhost:3003/__cypress/runner/cypress_runner.js:77989:18)
+      at Object.errByPath (http://localhost:3003/__cypress/runner/cypress_runner.js:78057:10)
+      at checkForXhr (http://localhost:3003/__cypress/runner/cypress_runner.js:138412:84)
+      at <unknown> (http://localhost:3003/__cypress/runner/cypress_runner.js:138437:28)
+      at tryCatcher (http://localhost:3003/__cypress/runner/cypress_runner.js:1777:23)
+      at Promise.attempt.Promise.try (http://localhost:3003/__cypress/runner/cypress_runner.js:4285:29)
+      at whenStable (http://localhost:3003/__cypress/runner/cypress_runner.js:151483:68)
+      at <unknown> (http://localhost:3003/__cypress/runner/cypress_runner.js:151424:14)
+      at tryCatcher (http://localhost:3003/__cypress/runner/cypress_runner.js:1777:23)
+      at Promise._settlePromiseFromHandler (http://localhost:3003/__cypress/runner/cypress_runner.js:1489:31)
+      at Promise._settlePromise (http://localhost:3003/__cypress/runner/cypress_runner.js:1546:18)
+      at Promise._settlePromise0 (http://localhost:3003/__cypress/runner/cypress_runner.js:1591:10)
+      at Promise._settlePromises (http://localhost:3003/__cypress/runner/cypress_runner.js:1671:18)
+      at Promise._fulfill (http://localhost:3003/__cypress/runner/cypress_runner.js:1615:18)
+      at <unknown> (http://localhost:3003/__cypress/runner/cypress_runner.js:5420:46)
+
+
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        31                                                                               │
+  │ Passing:      30                                                                               │
+  │ Failing:      1                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  1                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     30 seconds                                                                       │
+  │ Spec Ran:     registration.spec.ts                                                             │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+  (Screenshots)
+
+  -  /Users/musti/Documents/Projects/MyCrypto_Platform/cypress/screenshots/registrati    (2560x1440)
+     on.spec.ts/User Registration - Story 1.1 -- TC-002 Valid password - Minimum requ               
+     irements only -- Should register with minimum valid password (MEDIUM strength) (               
+     failed).png                                                                                    
+
+
+===================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✖  registration.spec.ts                     00:30       31       30        1        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✖  1 of 1 failed (100%)                     00:30       31       30        1        -        -  
+

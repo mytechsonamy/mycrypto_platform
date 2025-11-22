@@ -40,7 +40,7 @@ const LoginPage: React.FC = () => {
   // Handle successful login
   useEffect(() => {
     if (loginSuccess) {
-      toast.success('Giris basarili! Hosgeldiniz.', {
+      toast.success('Giriş başarılı! Hoşgeldiniz.', {
         position: 'top-right',
         autoClose: 3000,
       });

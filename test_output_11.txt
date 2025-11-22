@@ -1,0 +1,124 @@
+
+DevTools listening on ws://127.0.0.1:58832/devtools/browser/084dbccd-fbf5-438d-9121-fb4e426126b7
+
+===================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.7.0                                                                         │
+  │ Browser:        Electron 138 (headless)                                                        │
+  │ Node Version:   v25.2.1 (/opt/homebrew/Cellar/node/25.2.1/bin/node)                            │
+  │ Specs:          1 found (registration.spec.ts)                                                 │
+  │ Searched:       cypress/e2e/**/*.{js,jsx,ts,tsx,spec.ts}                                       │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  registration.spec.ts                                                            (1 of 1)
+
+
+  User Registration - Story 1.1
+    TC-001: Valid password - All requirements met
+      ✓ Should successfully register with valid email and strong password (2254ms)
+    TC-002: Valid password - Minimum requirements only
+      1) Should register with minimum valid password (MEDIUM strength)
+    TC-004: Password too short (7 characters)
+      ✓ Should reject password shorter than 8 characters (638ms)
+    TC-005: Password missing uppercase letter
+      ✓ Should reject password without uppercase letters (1024ms)
+    TC-006: Password missing number
+      ✓ Should reject password without numeric characters (947ms)
+    TC-007: Password missing special character
+      ✓ Should reject password without special characters (975ms)
+    TC-011 & TC-012: Email validation
+      ✓ TC-011: Should accept valid email formats (1658ms)
+      ✓ TC-012: Should reject invalid email formats (1589ms)
+    TC-016 & TC-017: Duplicate email handling
+      ✓ Should prevent registration with duplicate email (1711ms)
+      ✓ Should be case-insensitive for email duplicates (1434ms)
+    TC-021 to TC-025: Checkbox and consent requirements
+      ✓ TC-021: Terms & Conditions checkbox is required (1120ms)
+      ✓ TC-022: KVKK consent checkbox is required (1096ms)
+      ✓ TC-023: Both checkboxes required (1144ms)
+      ✓ TC-024: Terms & Conditions link accessible (169ms)
+      ✓ TC-025: KVKK consent link accessible (154ms)
+    TC-028 to TC-030: Password strength indicator
+      ✓ TC-028: Weak password shows weak indicator (262ms)
+      ✓ TC-029: Medium password shows medium indicator (304ms)
+      ✓ TC-030: Strong password shows strong indicator (476ms)
+    Security Tests - XSS Prevention
+      ✓ TC-034: XSS attempt in email should be blocked (744ms)
+      ✓ TC-035: XSS attempt in password should be safely stored (1346ms)
+    Accessibility Tests
+      ✓ TC-047: Form labels properly associated with inputs (77ms)
+      ✓ TC-048: Form keyboard navigation (834ms)
+      ✓ TC-049: Error messages announced to screen readers (284ms)
+      ✓ TC-050: Sufficient color contrast (305ms)
+      ✓ TC-051: Password strength indicator accessible (253ms)
+      ✓ TC-052: Required field indicators accessible (59ms)
+      ✓ TC-053: Checkbox labels linked correctly (215ms)
+    Performance Tests
+      ✓ TC-054: Page loads within 3 seconds (92ms)
+      ✓ TC-055: Form interaction is responsive (364ms)
+    Email Verification Flow
+      ✓ Should register with minimum valid password (MEDIUM strength) (1378ms)
+      2) TC-001: Successful registration with valid credentials
+
+
+  29 passing (34s)
+  2 failing
+
+  1) User Registration - Story 1.1
+       TC-002: Valid password - Minimum requirements only
+         Should register with minimum valid password (MEDIUM strength):
+     AssertionError: Timed out retrying after 4000ms: Expected to find element: `[role="alert"]`, but never found it.
+      at Context.eval (webpack://mycrypto_platform/./cypress/e2e/auth/registration.spec.ts:133:31)
+
+  2) User Registration - Story 1.1
+       Email Verification Flow
+         TC-001: Successful registration with valid credentials:
+     AssertionError: Timed out retrying after 4000ms: expected '\n    You need to enable JavaScript to run this app.\n    E-posta DogrulamasiDogrulama baglantisi e-posta adresinize gonderildi.Lutfen e-postanizi kontrol edin. E-posta gelmediyse, spam/istenmeyen klasorunuzu kontrol edin.E-posta AdresiE-posta AdresiTekrar GonderGeri DonKayıt başarılı! Lütfen e-posta adresinizi doğrulayın.\n  \n\n' to match /email|verify/
+      at Context.eval (webpack://mycrypto_platform/./cypress/e2e/auth/registration.spec.ts:616:36)
+
+
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        31                                                                               │
+  │ Passing:      29                                                                               │
+  │ Failing:      2                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  2                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     34 seconds                                                                       │
+  │ Spec Ran:     registration.spec.ts                                                             │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+  (Screenshots)
+
+  -  /Users/musti/Documents/Projects/MyCrypto_Platform/cypress/screenshots/registrati    (2560x1440)
+     on.spec.ts/User Registration - Story 1.1 -- TC-002 Valid password - Minimum requ               
+     irements only -- Should register with minimum valid password (MEDIUM strength) (               
+     failed).png                                                                                    
+  -  /Users/musti/Documents/Projects/MyCrypto_Platform/cypress/screenshots/registrati    (2560x1440)
+     on.spec.ts/User Registration - Story 1.1 -- Email Verification Flow -- TC-001 Su               
+     ccessful registration with valid credentials (failed).png                                      
+
+
+===================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✖  registration.spec.ts                     00:34       31       29        2        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✖  1 of 1 failed (100%)                     00:34       31       29        2        -        -  
+

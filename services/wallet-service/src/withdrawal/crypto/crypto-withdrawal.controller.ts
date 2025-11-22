@@ -96,7 +96,7 @@ export class CryptoWithdrawalController {
   }
 
   @Post(':id/cancel')
-  @ApiOperation({ summary: 'Cancel pending withdrawal' }}
+  @ApiOperation({ summary: 'Cancel pending withdrawal' })
   @ApiResponse({ status: 200, type: CryptoWithdrawalResponseDto })
   async cancelWithdrawal(
     @Param('id') id: string,

@@ -46,18 +46,18 @@ const BackupCodesDisplay: React.FC<BackupCodesDisplayProps> = ({
   };
 
   const handleDownload = () => {
-    const codesText = `MyCrypto Platform - 2FA Yedek Kodlari
+    const codesText = `MyCrypto Platform - 2FA Yedek Kodları
 ==========================================
-Olusturulma Tarihi: ${new Date().toLocaleDateString('tr-TR')}
+Oluşturulma Tarihi: ${new Date().toLocaleDateString('tr-TR')}
 
-Her kod sadece bir kez kullanilabilir.
-Bu kodlari guvenli bir yerde saklayin.
+Her kod sadece bir kez kullanılabilir.
+Bu kodları güvenli bir yerde saklayın.
 
 ${codes.map((code, index) => `${index + 1}. ${code}`).join('\n')}
 
 ==========================================
-UYARI: Bu dosyayi guvenli bir yerde saklayin
-ve kimseyle paylaşmayin.
+UYARI: Bu dosyayı güvenli bir yerde saklayın
+ve kimseyle paylaşmayın.
 `;
 
     const blob = new Blob([codesText], { type: 'text/plain' });
@@ -88,9 +88,9 @@ ve kimseyle paylaşmayin.
         sx={{ mb: 3 }}
       >
         <Typography variant="body2">
-          Bu kodlari guvenli bir yere kaydedin. Telefonunuza erisiminizi
-          kaybettiginizde hesabiniza giris yapmak icin bu kodlara ihtiyaciniz olacak.
-          Her kod sadece bir kez kullanilabilir.
+          Bu kodları güvenli bir yere kaydedin. Telefonunuza erişiminizi
+          kaybettiğinizde hesabınıza giriş yapmak için bu kodlara ihtiyacınız olacak.
+          Her kod sadece bir kez kullanılabilir.
         </Typography>
       </Alert>
 
@@ -138,7 +138,7 @@ ve kimseyle paylaşmayin.
           startIcon={<CopyIcon />}
           onClick={handleCopyAll}
           fullWidth
-          aria-label="Tum kodlari kopyala"
+          aria-label="Tüm kodları kopyala"
         >
           Kopyala
         </Button>
@@ -147,9 +147,9 @@ ve kimseyle paylaşmayin.
           startIcon={<DownloadIcon />}
           onClick={handleDownload}
           fullWidth
-          aria-label="Kodlari indir"
+          aria-label="Kodları indir"
         >
-          Indir
+          İndir
         </Button>
       </Box>
 
@@ -163,13 +163,13 @@ ve kimseyle paylaşmayin.
                 onChange={handleConfirmChange}
                 color="primary"
                 inputProps={{
-                  'aria-label': 'Yedek kodlari kaydettim onay',
+                  'aria-label': 'Yedek kodları kaydettim onay',
                 }}
               />
             }
             label={
               <Typography variant="body2">
-                Bu kodlari guvenli bir yere kaydettim
+                Bu kodları güvenli bir yere kaydettim
               </Typography>
             }
           />
@@ -201,7 +201,7 @@ ve kimseyle paylaşmayin.
           severity="success"
           sx={{ width: '100%' }}
         >
-          Kodlar panoya kopyalandi
+          Kodlar panoya kopyalandı
         </Alert>
       </Snackbar>
     </Box>

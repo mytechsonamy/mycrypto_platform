@@ -1,0 +1,124 @@
+
+DevTools listening on ws://127.0.0.1:58927/devtools/browser/207153ca-45af-45f8-8640-fce9dc1447f3
+
+===================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.7.0                                                                         │
+  │ Browser:        Electron 138 (headless)                                                        │
+  │ Node Version:   v25.2.1 (/opt/homebrew/Cellar/node/25.2.1/bin/node)                            │
+  │ Specs:          1 found (login.spec.ts)                                                        │
+  │ Searched:       cypress/e2e/auth/login.spec.ts                                                 │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  login.spec.ts                                                                   (1 of 1)
+
+
+  Login Flow (Turkish)
+    ✓ should display the login page with correct Turkish localization (381ms)
+    ✓ should show validation errors for empty fields (164ms)
+    ✓ should show error for invalid email format (365ms)
+    1) should handle successful login
+    2) should handle login failure
+    ✓ should toggle password visibility (472ms)
+
+
+  4 passing (13s)
+  2 failing
+
+  1) Login Flow (Turkish)
+       should handle successful login:
+     CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `loginRequest`. No request ever occurred.
+
+https://on.cypress.io/wait
+      at cypressErr (http://localhost:3003/__cypress/runner/cypress_runner.js:77989:18)
+      at Object.errByPath (http://localhost:3003/__cypress/runner/cypress_runner.js:78057:10)
+      at checkForXhr (http://localhost:3003/__cypress/runner/cypress_runner.js:138412:84)
+      at <unknown> (http://localhost:3003/__cypress/runner/cypress_runner.js:138437:28)
+      at tryCatcher (http://localhost:3003/__cypress/runner/cypress_runner.js:1777:23)
+      at Promise.attempt.Promise.try (http://localhost:3003/__cypress/runner/cypress_runner.js:4285:29)
+      at whenStable (http://localhost:3003/__cypress/runner/cypress_runner.js:151483:68)
+      at <unknown> (http://localhost:3003/__cypress/runner/cypress_runner.js:151424:14)
+      at tryCatcher (http://localhost:3003/__cypress/runner/cypress_runner.js:1777:23)
+      at Promise._settlePromiseFromHandler (http://localhost:3003/__cypress/runner/cypress_runner.js:1489:31)
+      at Promise._settlePromise (http://localhost:3003/__cypress/runner/cypress_runner.js:1546:18)
+      at Promise._settlePromise0 (http://localhost:3003/__cypress/runner/cypress_runner.js:1591:10)
+      at Promise._settlePromises (http://localhost:3003/__cypress/runner/cypress_runner.js:1671:18)
+      at Promise._fulfill (http://localhost:3003/__cypress/runner/cypress_runner.js:1615:18)
+      at <unknown> (http://localhost:3003/__cypress/runner/cypress_runner.js:5420:46)
+  From Your Spec Code:
+      at Object.proxyGetter [as get] (http://localhost:3003/__cypress/runner/cypress_runner.js:80776:22)
+      at exists (http://localhost:3003/__cypress/runner/cypress_runner.js:150671:26)
+      at elExists (http://localhost:3003/__cypress/runner/cypress_runner.js:150686:10)
+      at ensureExistence (http://localhost:3003/__cypress/runner/cypress_runner.js:150867:22)
+      at onFailFn (http://localhost:3003/__cypress/runner/cypress_runner.js:150896:53)
+
+  2) Login Flow (Turkish)
+       should handle login failure:
+     CypressError: Timed out retrying after 5000ms: `cy.wait()` timed out waiting `5000ms` for the 1st request to the route: `loginRequest`. No request ever occurred.
+
+https://on.cypress.io/wait
+      at cypressErr (http://localhost:3003/__cypress/runner/cypress_runner.js:77989:18)
+      at Object.errByPath (http://localhost:3003/__cypress/runner/cypress_runner.js:78057:10)
+      at checkForXhr (http://localhost:3003/__cypress/runner/cypress_runner.js:138412:84)
+      at <unknown> (http://localhost:3003/__cypress/runner/cypress_runner.js:138437:28)
+      at tryCatcher (http://localhost:3003/__cypress/runner/cypress_runner.js:1777:23)
+      at Promise.attempt.Promise.try (http://localhost:3003/__cypress/runner/cypress_runner.js:4285:29)
+      at whenStable (http://localhost:3003/__cypress/runner/cypress_runner.js:151483:68)
+      at <unknown> (http://localhost:3003/__cypress/runner/cypress_runner.js:151424:14)
+      at tryCatcher (http://localhost:3003/__cypress/runner/cypress_runner.js:1777:23)
+      at Promise._settlePromiseFromHandler (http://localhost:3003/__cypress/runner/cypress_runner.js:1489:31)
+      at Promise._settlePromise (http://localhost:3003/__cypress/runner/cypress_runner.js:1546:18)
+      at Promise._settlePromise0 (http://localhost:3003/__cypress/runner/cypress_runner.js:1591:10)
+      at Promise._settlePromises (http://localhost:3003/__cypress/runner/cypress_runner.js:1671:18)
+      at Promise._fulfill (http://localhost:3003/__cypress/runner/cypress_runner.js:1615:18)
+      at <unknown> (http://localhost:3003/__cypress/runner/cypress_runner.js:5420:46)
+  From Your Spec Code:
+      at Object.proxyGetter [as get] (http://localhost:3003/__cypress/runner/cypress_runner.js:80776:22)
+      at exists (http://localhost:3003/__cypress/runner/cypress_runner.js:150671:26)
+      at elExists (http://localhost:3003/__cypress/runner/cypress_runner.js:150686:10)
+      at ensureExistence (http://localhost:3003/__cypress/runner/cypress_runner.js:150867:22)
+      at onFailFn (http://localhost:3003/__cypress/runner/cypress_runner.js:150896:53)
+
+
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        6                                                                                │
+  │ Passing:      4                                                                                │
+  │ Failing:      2                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  2                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     13 seconds                                                                       │
+  │ Spec Ran:     login.spec.ts                                                                    │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+  (Screenshots)
+
+  -  /Users/musti/Documents/Projects/MyCrypto_Platform/cypress/screenshots/login.spec    (2560x1440)
+     .ts/Login Flow (Turkish) -- should handle successful login (failed).png                        
+  -  /Users/musti/Documents/Projects/MyCrypto_Platform/cypress/screenshots/login.spec    (2560x1440)
+     .ts/Login Flow (Turkish) -- should handle login failure (failed).png                           
+
+
+===================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✖  login.spec.ts                            00:13        6        4        2        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✖  1 of 1 failed (100%)                     00:13        6        4        2        -        -  
+

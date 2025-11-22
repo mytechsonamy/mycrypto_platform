@@ -70,7 +70,7 @@ const RegenerateBackupCodesModal: React.FC<RegenerateBackupCodesModalProps> = ({
   useEffect(() => {
     if (backupCodes && step === 'password') {
       setStep('codes');
-      toast.success('Yeni yedek kodlar olusturuldu!');
+      toast.success('Yeni yedek kodlar oluşturuldu!');
     }
   }, [backupCodes, step]);
 
@@ -88,7 +88,7 @@ const RegenerateBackupCodesModal: React.FC<RegenerateBackupCodesModalProps> = ({
   // Handle regenerate
   const handleRegenerate = async () => {
     if (!password) {
-      setLocalError('Sifre gereklidir.');
+      setLocalError('Şifre gereklidir.');
       return;
     }
 
@@ -119,7 +119,7 @@ const RegenerateBackupCodesModal: React.FC<RegenerateBackupCodesModalProps> = ({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <RefreshIcon color="primary" />
           <Typography variant="h6" component="span">
-            Yedek Kodlari Yenile
+            Yedek Kodları Yenile
           </Typography>
         </Box>
       </DialogTitle>
@@ -130,8 +130,8 @@ const RegenerateBackupCodesModal: React.FC<RegenerateBackupCodesModalProps> = ({
             {/* Warning */}
             <Alert severity="warning" sx={{ mb: 3 }}>
               <Typography variant="body2">
-                Yeni kodlar olusturulunca eski kodlar gecersiz olacak.
-                Yeni kodlari guvenli bir yere kaydettiginizden emin olun.
+                Yeni kodlar oluşturulunca eski kodlar geçersiz olacak.
+                Yeni kodları güvenli bir yere kaydettiğinizden emin olun.
               </Typography>
             </Alert>
 
@@ -146,7 +146,7 @@ const RegenerateBackupCodesModal: React.FC<RegenerateBackupCodesModalProps> = ({
             <TextField
               fullWidth
               type={showPassword ? 'text' : 'password'}
-              label="Sifre"
+              label="Şifre"
               value={password}
               onChange={handlePasswordChange}
               disabled={loading}
@@ -157,7 +157,7 @@ const RegenerateBackupCodesModal: React.FC<RegenerateBackupCodesModalProps> = ({
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
-                      aria-label={showPassword ? 'Sifreyi gizle' : 'Sifreyi goster'}
+                      aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
                       onClick={togglePasswordVisibility}
                       edge="end"
                       disabled={loading}
@@ -168,14 +168,14 @@ const RegenerateBackupCodesModal: React.FC<RegenerateBackupCodesModalProps> = ({
                 ),
               }}
               inputProps={{
-                'aria-label': 'Sifre',
+                'aria-label': 'Şifre',
               }}
             />
           </DialogContent>
 
           <DialogActions sx={{ px: 3, pb: 3 }}>
             <Button onClick={handleClose} disabled={loading}>
-              Iptal
+              İptal
             </Button>
             <Button
               type="submit"
@@ -185,7 +185,7 @@ const RegenerateBackupCodesModal: React.FC<RegenerateBackupCodesModalProps> = ({
               {loading ? (
                 <CircularProgress size={24} color="inherit" />
               ) : (
-                'Kodlari Yenile'
+                'Kodları Yenile'
               )}
             </Button>
           </DialogActions>

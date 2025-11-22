@@ -65,13 +65,13 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ qrCode, secret }) => {
 
       {/* Instructions */}
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Google Authenticator veya benzer bir uygulama ile QR kodunu tarayin.
+        Google Authenticator veya benzer bir uygulama ile QR kodunu tarayın.
       </Typography>
 
       {/* Manual Entry Section */}
       <Box sx={{ mb: 2 }}>
         <Typography variant="body2" color="text.secondary" gutterBottom>
-          QR kodu tarayamiyorsaniz, bu kodu manuel olarak girin:
+          QR kodu tarayamıyorsanız, bu kodu manuel olarak girin:
         </Typography>
 
         <Paper
@@ -93,7 +93,7 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ qrCode, secret }) => {
               letterSpacing: 1,
               wordBreak: 'break-all',
             }}
-            aria-label="Manuel giris kodu"
+            aria-label="Manuel giriş kodu"
           >
             {formattedSecret}
           </Typography>
@@ -123,7 +123,7 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({ qrCode, secret }) => {
           severity="success"
           sx={{ width: '100%' }}
         >
-          Kod panoya kopyalandi
+          Kod panoya kopyalandı
         </Alert>
       </Snackbar>
     </Box>

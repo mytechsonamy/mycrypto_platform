@@ -84,7 +84,7 @@ export const registerUser = createAsyncThunk(
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
-      return rejectWithValue('Kayit sirasinda bir hata olustu.');
+      return rejectWithValue('Kayıt sırasında bir hata oluştu.');
     }
   }
 );
@@ -110,7 +110,7 @@ export const verifyEmail = createAsyncThunk(
         }
         return rejectWithValue(error.message);
       }
-      return rejectWithValue('Dogrulama sirasinda bir hata olustu.');
+      return rejectWithValue('Doğrulama sırasında bir hata oluştu.');
     }
   }
 );
@@ -128,7 +128,7 @@ export const resendVerification = createAsyncThunk(
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
-      return rejectWithValue('E-posta gonderimi sirasinda bir hata olustu.');
+      return rejectWithValue('E-posta gönderimi sırasında bir hata oluştu.');
     }
   }
 );
@@ -146,7 +146,7 @@ export const loginUser = createAsyncThunk(
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
-      return rejectWithValue('Giris sirasinda bir hata olustu.');
+      return rejectWithValue('Giriş sırasında bir hata oluştu.');
     }
   }
 );
@@ -170,7 +170,7 @@ export const logoutUser = createAsyncThunk(
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
-      return rejectWithValue('Cikis sirasinda bir hata olustu.');
+      return rejectWithValue('Çıkış sırasında bir hata oluştu.');
     }
   }
 );
@@ -188,7 +188,7 @@ export const requestPasswordReset = createAsyncThunk(
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
-      return rejectWithValue('Sifre sifirlama istegi sirasinda bir hata olustu.');
+      return rejectWithValue('Şifre sıfırlama isteği sırasında bir hata oluştu.');
     }
   }
 );
@@ -209,7 +209,7 @@ export const confirmPasswordReset = createAsyncThunk(
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
-      return rejectWithValue('Sifre degistirme sirasinda bir hata olustu.');
+      return rejectWithValue('Şifre değiştirme sırasında bir hata oluştu.');
     }
   }
 );
@@ -227,7 +227,7 @@ export const setup2FA = createAsyncThunk(
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
-      return rejectWithValue('2FA kurulumu sirasinda bir hata olustu.');
+      return rejectWithValue('2FA kurulumu sırasında bir hata oluştu.');
     }
   }
 );
@@ -245,7 +245,7 @@ export const verifySetup2FA = createAsyncThunk(
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
-      return rejectWithValue('2FA dogrulama sirasinda bir hata olustu.');
+      return rejectWithValue('2FA doğrulama sırasında bir hata oluştu.');
     }
   }
 );
@@ -263,7 +263,7 @@ export const verify2FA = createAsyncThunk(
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
-      return rejectWithValue('2FA dogrulama sirasinda bir hata olustu.');
+      return rejectWithValue('2FA doğrulama sırasında bir hata oluştu.');
     }
   }
 );
@@ -281,7 +281,7 @@ export const get2FAStatus = createAsyncThunk(
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
-      return rejectWithValue('2FA durumu alinirken bir hata olustu.');
+      return rejectWithValue('2FA durumu alınırken bir hata oluştu.');
     }
   }
 );
@@ -299,7 +299,7 @@ export const regenerateBackupCodes = createAsyncThunk(
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
-      return rejectWithValue('Yedek kodlar yenilenirken bir hata olustu.');
+      return rejectWithValue('Yedek kodlar yenilenirken bir hata oluştu.');
     }
   }
 );
@@ -317,7 +317,7 @@ export const disable2FA = createAsyncThunk(
       if (error instanceof Error) {
         return rejectWithValue(error.message);
       }
-      return rejectWithValue('2FA devre disi birakilirken bir hata olustu.');
+      return rejectWithValue('2FA devre dışı bırakılırken bir hata oluştu.');
     }
   }
 );
@@ -479,7 +479,7 @@ const authSlice = createSlice({
       // Register rejected
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string || 'Kayit basarisiz oldu.';
+        state.error = action.payload as string || 'Kayıt başarısız oldu.';
         state.registrationSuccess = false;
       })
       // Verify email pending
@@ -499,7 +499,7 @@ const authSlice = createSlice({
       // Verify email rejected
       .addCase(verifyEmail.rejected, (state, action) => {
         state.verification.status = 'error';
-        state.verification.error = action.payload as string || 'Dogrulama basarisiz oldu.';
+        state.verification.error = action.payload as string || 'Doğrulama başarısız oldu.';
       })
       // Resend verification pending
       .addCase(resendVerification.pending, (state) => {
@@ -517,7 +517,7 @@ const authSlice = createSlice({
       .addCase(resendVerification.rejected, (state, action) => {
         state.verification.resendLoading = false;
         state.verification.resendSuccess = false;
-        state.verification.resendError = action.payload as string || 'E-posta gonderimi basarisiz oldu.';
+        state.verification.resendError = action.payload as string || 'E-posta gönderimi başarısız oldu.';
       })
       // Login pending
       .addCase(loginUser.pending, (state) => {
@@ -555,7 +555,7 @@ const authSlice = createSlice({
       // Login rejected
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string || 'Giris basarisiz oldu.';
+        state.error = action.payload as string || 'Giriş başarısız oldu.';
         state.loginSuccess = false;
         state.isAuthenticated = false;
       })
@@ -605,7 +605,7 @@ const authSlice = createSlice({
       .addCase(requestPasswordReset.rejected, (state, action) => {
         state.passwordReset.requestLoading = false;
         state.passwordReset.requestSuccess = false;
-        state.passwordReset.requestError = action.payload as string || 'Sifre sifirlama istegi basarisiz oldu.';
+        state.passwordReset.requestError = action.payload as string || 'Şifre sıfırlama isteği başarısız oldu.';
       })
       // Confirm password reset pending
       .addCase(confirmPasswordReset.pending, (state) => {
@@ -623,7 +623,7 @@ const authSlice = createSlice({
       .addCase(confirmPasswordReset.rejected, (state, action) => {
         state.passwordReset.confirmLoading = false;
         state.passwordReset.confirmSuccess = false;
-        state.passwordReset.confirmError = action.payload as string || 'Sifre degistirme basarisiz oldu.';
+        state.passwordReset.confirmError = action.payload as string || 'Şifre değiştirme başarısız oldu.';
       })
       // Setup 2FA pending
       .addCase(setup2FA.pending, (state) => {
@@ -638,7 +638,7 @@ const authSlice = createSlice({
       // Setup 2FA rejected
       .addCase(setup2FA.rejected, (state, action) => {
         state.twoFactor.loading = false;
-        state.twoFactor.error = action.payload as string || '2FA kurulumu basarisiz oldu.';
+        state.twoFactor.error = action.payload as string || '2FA kurulumu başarısız oldu.';
       })
       // Verify setup 2FA pending
       .addCase(verifySetup2FA.pending, (state) => {
@@ -655,7 +655,7 @@ const authSlice = createSlice({
       // Verify setup 2FA rejected
       .addCase(verifySetup2FA.rejected, (state, action) => {
         state.twoFactor.loading = false;
-        state.twoFactor.error = action.payload as string || '2FA dogrulama basarisiz oldu.';
+        state.twoFactor.error = action.payload as string || '2FA doğrulama başarısız oldu.';
       })
       // Verify 2FA pending
       .addCase(verify2FA.pending, (state) => {
@@ -692,7 +692,7 @@ const authSlice = createSlice({
       // Verify 2FA rejected
       .addCase(verify2FA.rejected, (state, action) => {
         state.twoFactor.loading = false;
-        state.twoFactor.error = action.payload as string || '2FA dogrulama basarisiz oldu.';
+        state.twoFactor.error = action.payload as string || '2FA doğrulama başarısız oldu.';
       })
       // Get 2FA status pending
       .addCase(get2FAStatus.pending, (state) => {
@@ -711,7 +711,7 @@ const authSlice = createSlice({
       // Get 2FA status rejected
       .addCase(get2FAStatus.rejected, (state, action) => {
         state.twoFactor.loading = false;
-        state.twoFactor.error = action.payload as string || '2FA durumu alinamadi.';
+        state.twoFactor.error = action.payload as string || '2FA durumu alınamadı.';
       })
       // Regenerate backup codes pending
       .addCase(regenerateBackupCodes.pending, (state) => {
@@ -746,7 +746,7 @@ const authSlice = createSlice({
       // Disable 2FA rejected
       .addCase(disable2FA.rejected, (state, action) => {
         state.twoFactor.loading = false;
-        state.twoFactor.error = action.payload as string || '2FA devre disi birakma basarisiz oldu.';
+        state.twoFactor.error = action.payload as string || '2FA devre dışı bırakma başarısız oldu.';
       });
   },
 });

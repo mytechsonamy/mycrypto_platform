@@ -74,14 +74,14 @@ const ResetPasswordPage: React.FC = () => {
               gutterBottom
               sx={{ fontWeight: 600, mb: 2 }}
             >
-              Gecersiz Baglanti
+              Geçersiz Bağlantı
             </Typography>
 
             <Alert
               severity="error"
               sx={{ mb: 3, textAlign: 'left' }}
             >
-              Sifre sifirlama baglantisi gecersiz veya eksik. Lutfen e-postanizdaki baglantiya tiklayin veya yeni bir sifre sifirlama istegi gonderin.
+              Şifre sıfırlama bağlantısı geçersiz veya eksik. Lütfen e-postanızdaki bağlantıya tıklayın veya yeni bir şifre sıfırlama isteği gönderin.
             </Alert>
 
             <Button
@@ -91,7 +91,7 @@ const ResetPasswordPage: React.FC = () => {
               fullWidth
               sx={{ mb: 2 }}
             >
-              Yeni Sifirlama Istegi Gonder
+              Yeni Sıfırlama İsteği Gönder
             </Button>
 
             <Button
@@ -100,7 +100,7 @@ const ResetPasswordPage: React.FC = () => {
               variant="outlined"
               fullWidth
             >
-              Giris Sayfasina Don
+              Giriş Sayfasına Dön
             </Button>
           </Paper>
         </Container>

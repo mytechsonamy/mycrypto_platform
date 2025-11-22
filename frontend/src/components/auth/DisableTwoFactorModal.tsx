@@ -83,19 +83,19 @@ const DisableTwoFactorModal: React.FC<DisableTwoFactorModalProps> = ({
   const handleDisable = async () => {
     // Validate inputs
     if (!password) {
-      setLocalError('Sifre gereklidir.');
+      setLocalError('Şifre gereklidir.');
       return;
     }
 
     if (code.length !== 6) {
-      setLocalError('Dogrulama kodu 6 haneli olmalidir.');
+      setLocalError('Doğrulama kodu 6 haneli olmalıdır.');
       return;
     }
 
     const result = await dispatch(disable2FA({ password, code }));
 
     if (disable2FA.fulfilled.match(result)) {
-      toast.success('2FA basariyla devre disi birakildi.');
+      toast.success('2FA başarıyla devre dışı bırakıldı.');
       onClose();
     }
   };
@@ -118,7 +118,7 @@ const DisableTwoFactorModal: React.FC<DisableTwoFactorModalProps> = ({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <WarningIcon color="error" />
           <Typography variant="h6" component="span">
-            2FA'yi Devre Disi Birak
+            2FA'yı Devre Dışı Bırak
           </Typography>
         </Box>
       </DialogTitle>
@@ -128,8 +128,8 @@ const DisableTwoFactorModal: React.FC<DisableTwoFactorModalProps> = ({
           {/* Warning */}
           <Alert severity="warning" sx={{ mb: 3 }}>
             <Typography variant="body2">
-              2FA'yi devre disi birakmak hesabinizin guvenligini azaltir.
-              Sadece gerekli durumlarda devre disi birakin.
+              2FA'yı devre dışı bırakmak hesabınızın güvenliğini azaltır.
+              Sadece gerekli durumlarda devre dışı bırakın.
             </Typography>
           </Alert>
 
@@ -144,7 +144,7 @@ const DisableTwoFactorModal: React.FC<DisableTwoFactorModalProps> = ({
           <TextField
             fullWidth
             type={showPassword ? 'text' : 'password'}
-            label="Sifre"
+            label="Şifre"
             value={password}
             onChange={handlePasswordChange}
             disabled={loading}
@@ -154,7 +154,7 @@ const DisableTwoFactorModal: React.FC<DisableTwoFactorModalProps> = ({
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
-                    aria-label={showPassword ? 'Sifreyi gizle' : 'Sifreyi goster'}
+                    aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
                     onClick={togglePasswordVisibility}
                     edge="end"
                     disabled={loading}
@@ -165,7 +165,7 @@ const DisableTwoFactorModal: React.FC<DisableTwoFactorModalProps> = ({
               ),
             }}
             inputProps={{
-              'aria-label': 'Sifre',
+              'aria-label': 'Şifre',
             }}
             sx={{ mb: 2 }}
           />
@@ -173,7 +173,7 @@ const DisableTwoFactorModal: React.FC<DisableTwoFactorModalProps> = ({
           {/* 2FA Code Input */}
           <TextField
             fullWidth
-            label="Dogrulama Kodu"
+            label="Doğrulama Kodu"
             value={code}
             onChange={handleCodeChange}
             disabled={loading}
@@ -183,14 +183,14 @@ const DisableTwoFactorModal: React.FC<DisableTwoFactorModalProps> = ({
               pattern: '[0-9]*',
               inputMode: 'numeric',
               autoComplete: 'one-time-code',
-              'aria-label': 'Dogrulama kodu',
+              'aria-label': 'Doğrulama kodu',
             }}
           />
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 3 }}>
           <Button onClick={onClose} disabled={loading}>
-            Iptal
+            İptal
           </Button>
           <Button
             type="submit"
@@ -201,7 +201,7 @@ const DisableTwoFactorModal: React.FC<DisableTwoFactorModalProps> = ({
             {loading ? (
               <CircularProgress size={24} color="inherit" />
             ) : (
-              'Devre Disi Birak'
+              'Devre Dışı Bırak'
             )}
           </Button>
         </DialogActions>

@@ -1,0 +1,265 @@
+# ============================================================================
+# MYTRADER TRADE ENGINE - DOCKER COMPOSE
+# ============================================================================
+# Project: MyTrader White-Label Kripto Exchange Platform
+# Version: 1.0
+# Date: 2024-11-22
+# Description: Complete development environment with all dependencies
+# ============================================================================
+
+version: '3.8'
+
+services:
+  # ==========================================================================
+  # PostgreSQL Database
+  # ==========================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: mytrader-postgres
+    environment:
+      POSTGRES_DB: mytrader_trade_engine
+      POSTGRES_USER: trade_engine_app
+      POSTGRES_PASSWORD: dev_password_change_in_prod
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trade_engine_app -d mytrader_trade_engine"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mytrader-network
+
+  # ==========================================================================
+  # Redis (Order Book Cache)
+  # ==========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: mytrader-redis
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mytrader-network
+
+  # ==========================================================================
+  # Kafka (Event Streaming)
+  # ==========================================================================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: mytrader-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_logs:/var/lib/zookeeper/log
+    networks:
+      - mytrader-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: mytrader-kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_LOG_RETENTION_HOURS: 168
+    ports:
+      - "29092:29092"
+      - "9092:9092"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - mytrader-network
+
+  # ==========================================================================
+  # Kafka UI (Optional - for development)
+  # ==========================================================================
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: mytrader-kafka-ui
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: mytrader
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    ports:
+      - "8090:8080"
+    networks:
+      - mytrader-network
+
+  # ==========================================================================
+  # Prometheus (Metrics)
+  # ==========================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: mytrader-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - mytrader-network
+
+  # ==========================================================================
+  # Grafana (Dashboards)
+  # ==========================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: mytrader-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    networks:
+      - mytrader-network
+
+  # ==========================================================================
+  # Trade Engine (Application)
+  # ==========================================================================
+  trade-engine:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mytrader-trade-engine
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      # Server
+      PORT: 8080
+      GIN_MODE: debug
+      
+      # Database
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: mytrader_trade_engine
+      DB_USER: trade_engine_app
+      DB_PASSWORD: dev_password_change_in_prod
+      
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      
+      # Kafka
+      KAFKA_BROKERS: kafka:9092
+      
+      # Logging
+      LOG_LEVEL: info
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config.yaml:/app/config.yaml
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - mytrader-network
+    restart: unless-stopped
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  zookeeper_data:
+    driver: local
+  zookeeper_logs:
+    driver: local
+  kafka_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  mytrader-network:
+    driver: bridge
+
+# ============================================================================
+# USAGE
+# ============================================================================
+#
+# Start all services:
+#   docker-compose up -d
+#
+# Start specific services:
+#   docker-compose up -d postgres redis kafka
+#
+# View logs:
+#   docker-compose logs -f trade-engine
+#
+# Stop all services:
+#   docker-compose down
+#
+# Stop and remove volumes (CAUTION: deletes all data):
+#   docker-compose down -v
+#
+# Rebuild trade-engine:
+#   docker-compose up -d --build trade-engine
+#
+# Access services:
+#   - Trade Engine API: http://localhost:8080
+#   - PostgreSQL: localhost:5432
+#   - Redis: localhost:6379
+#   - Kafka: localhost:29092
+#   - Kafka UI: http://localhost:8090
+#   - Prometheus: http://localhost:9090
+#   - Grafana: http://localhost:3000 (admin/admin)
+#
+# Health checks:
+#   curl http://localhost:8080/health
+#   curl http://localhost:8080/api/v1/stats
+#
+# ============================================================================

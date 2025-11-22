@@ -1,0 +1,85 @@
+
+DevTools listening on ws://127.0.0.1:59567/devtools/browser/d4894131-cd1b-459d-a558-6dffa599cafb
+
+===================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.7.0                                                                         │
+  │ Browser:        Electron 138 (headless)                                                        │
+  │ Node Version:   v25.2.1 (/opt/homebrew/Cellar/node/25.2.1/bin/node)                            │
+  │ Specs:          1 found (login.spec.ts)                                                        │
+  │ Searched:       cypress/e2e/auth/login.spec.ts                                                 │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  login.spec.ts                                                                   (1 of 1)
+
+
+  Login Flow (Turkish)
+    ✓ should display the login page with correct Turkish localization (338ms)
+    ✓ should show validation errors for empty fields (166ms)
+    ✓ should show error for invalid email format (377ms)
+    1) should handle successful login
+    2) should handle login failure
+    ✓ should toggle password visibility (462ms)
+
+
+  4 passing (7s)
+  2 failing
+
+  1) Login Flow (Turkish)
+       should handle successful login:
+     AssertionError: Timed out retrying after 4000ms: Expected to find content: 'Giriş başarılı! Hoşgeldiniz.' but never did.
+      at Context.eval (webpack://mycrypto_platform/./cypress/e2e/auth/login.spec.ts:46:52)
+
+  2) Login Flow (Turkish)
+       should handle login failure:
+     AssertionError: expected 'Çok fazla deneme. Lütfen bekleyin.' to include 'E-posta veya şifre hatalı'
+      at Context.eval (webpack://mycrypto_platform/./cypress/e2e/auth/login.spec.ts:67:32)
+      at getRet (http://localhost:3003/__cypress/runner/cypress_runner.js:122456:20)
+      at tryCatcher (http://localhost:3003/__cypress/runner/cypress_runner.js:1777:23)
+      at Promise.attempt.Promise.try (http://localhost:3003/__cypress/runner/cypress_runner.js:4285:29)
+      at Context.thenFn (http://localhost:3003/__cypress/runner/cypress_runner.js:122467:66)
+      at Context.then (http://localhost:3003/__cypress/runner/cypress_runner.js:122718:21)
+
+
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        6                                                                                │
+  │ Passing:      4                                                                                │
+  │ Failing:      2                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  2                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     7 seconds                                                                        │
+  │ Spec Ran:     login.spec.ts                                                                    │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+  (Screenshots)
+
+  -  /Users/musti/Documents/Projects/MyCrypto_Platform/cypress/screenshots/login.spec    (2560x1440)
+     .ts/Login Flow (Turkish) -- should handle successful login (failed).png                        
+  -  /Users/musti/Documents/Projects/MyCrypto_Platform/cypress/screenshots/login.spec    (2560x1440)
+     .ts/Login Flow (Turkish) -- should handle login failure (failed).png                           
+
+
+===================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✖  login.spec.ts                            00:07        6        4        2        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✖  1 of 1 failed (100%)                     00:07        6        4        2        -        -  
+

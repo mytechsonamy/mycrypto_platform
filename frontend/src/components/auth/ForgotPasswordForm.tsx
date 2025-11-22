@@ -131,14 +131,14 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
             gutterBottom
             sx={{ fontWeight: 600, mb: 2 }}
           >
-            E-posta Gonderildi
+            E-posta Gönderildi
           </Typography>
 
           <Alert
             severity="success"
             sx={{ mb: 3, textAlign: 'left' }}
           >
-            Sifre sifirlama baglantisi e-posta adresinize gonderildi. Lutfen gelen kutunuzu kontrol edin.
+            Şifre sıfırlama bağlantısı e-posta adresinize gönderildi. Lütfen gelen kutunuzu kontrol edin.
           </Alert>
 
           <Typography
@@ -146,7 +146,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
             color="text.secondary"
             sx={{ mb: 3 }}
           >
-            E-posta birka dakika icinde gelmezse, spam klasorunuzu kontrol edin.
+            E-posta birkaç dakika içinde gelmezse, spam klasörünüzü kontrol edin.
           </Typography>
 
           <Button
@@ -156,7 +156,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
             fullWidth
             startIcon={<ArrowBackIcon />}
           >
-            Giris Sayfasina Don
+            Giriş Sayfasına Dön
           </Button>
         </Box>
       </Paper>
@@ -177,7 +177,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
         component="form"
         onSubmit={handleSubmit}
         noValidate
-        aria-label="Sifre sifirlama formu"
+        aria-label="Şifre sıfırlama formu"
       >
         {/* Header */}
         <Typography
@@ -187,7 +187,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
           gutterBottom
           sx={{ fontWeight: 600, mb: 1 }}
         >
-          Sifremi Unuttum
+          Şifremi Unuttum
         </Typography>
 
         <Typography
@@ -196,7 +196,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
           color="text.secondary"
           sx={{ mb: 3 }}
         >
-          E-posta adresinizi girin, size sifre sifirlama baglantisi gonderelim.
+          E-posta adresinizi girin, size şifre sıfırlama bağlantısı gönderelim.
         </Typography>
 
         {/* Error alert */}
@@ -253,7 +253,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
             fontWeight: 600,
             fontSize: '1rem',
           }}
-          aria-label={loading ? 'Gonderiliyor' : 'Sifre sifirlama baglantisi gonder'}
+          aria-label={loading ? 'Gönderiliyor' : 'Şifre sıfırlama bağlantısı gönder'}
         >
           {loading ? (
             <>
@@ -263,10 +263,10 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
                 sx={{ mr: 1 }}
                 aria-hidden="true"
               />
-              Gonderiliyor...
+              Gönderiliyor...
             </>
           ) : (
-            'Sifirlama Baglantisi Gonder'
+            'Sıfırlama Bağlantısı Gönder'
           )}
         </Button>
 
@@ -280,7 +280,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
             sx={{ display: 'inline-flex', alignItems: 'center' }}
           >
             <ArrowBackIcon fontSize="small" sx={{ mr: 0.5 }} />
-            Giris sayfasina don
+            Giriş sayfasına dön
           </Link>
         </Box>
       </Box>

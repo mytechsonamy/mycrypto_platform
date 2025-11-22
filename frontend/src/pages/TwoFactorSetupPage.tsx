@@ -33,7 +33,7 @@ import {
 import QRCodeDisplay from '../components/auth/QRCodeDisplay';
 import BackupCodesDisplay from '../components/auth/BackupCodesDisplay';
 
-const steps = ['QR Kodu Tara', 'Kodu Dogrula', 'Yedek Kodlar'];
+const steps = ['QR Kodu Tara', 'Kodu Doğrula', 'Yedek Kodlar'];
 
 const TwoFactorSetupPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -60,7 +60,7 @@ const TwoFactorSetupPage: React.FC = () => {
   useEffect(() => {
     if (backupCodes && activeStep === 1) {
       setActiveStep(2);
-      toast.success('2FA basariyla etkinlestirildi!');
+      toast.success('2FA başarıyla etkinleştirildi!');
     }
   }, [backupCodes, activeStep]);
 
@@ -81,7 +81,7 @@ const TwoFactorSetupPage: React.FC = () => {
     if (!setupData?.setupToken) return;
 
     if (code.length !== 6) {
-      setCodeError('Dogrulama kodu 6 haneli olmalidir.');
+      setCodeError('Doğrulama kodu 6 haneli olmalıdır.');
       return;
     }
 
@@ -150,12 +150,12 @@ const TwoFactorSetupPage: React.FC = () => {
         return (
           <Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Authenticator uygulamanizda goruntulenen 6 haneli kodu girin.
+              Authenticator uygulamanızda görüntülenen 6 haneli kodu girin.
             </Typography>
 
             <TextField
               fullWidth
-              label="Dogrulama Kodu"
+              label="Doğrulama Kodu"
               value={verificationCode}
               onChange={handleCodeChange}
               error={!!codeError || !!error}
@@ -166,7 +166,7 @@ const TwoFactorSetupPage: React.FC = () => {
                 pattern: '[0-9]*',
                 inputMode: 'numeric',
                 autoComplete: 'one-time-code',
-                'aria-label': 'Dogrulama kodu',
+                'aria-label': 'Doğrulama kodu',
               }}
               autoFocus
               sx={{ mb: 3 }}
@@ -190,7 +190,7 @@ const TwoFactorSetupPage: React.FC = () => {
                 {loading ? (
                   <CircularProgress size={24} color="inherit" />
                 ) : (
-                  'Dogrula'
+                  'Doğrula'
                 )}
               </Button>
             </Box>
@@ -240,7 +240,7 @@ const TwoFactorSetupPage: React.FC = () => {
             gutterBottom
             sx={{ fontWeight: 600, mb: 3 }}
           >
-            Iki Faktorlu Kimlik Dogrulama Kurulumu
+            İki Faktörlü Kimlik Doğrulama Kurulumu
           </Typography>
 
           {/* Stepper */}

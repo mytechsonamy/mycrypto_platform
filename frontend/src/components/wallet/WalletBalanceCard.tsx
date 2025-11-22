@@ -95,7 +95,7 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
         },
       }}
       role="article"
-      aria-label={`${metadata.name} cuzdan kartı`}
+      aria-label={`${metadata.name} cüzdan kartı`}
     >
       <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Currency Header */}
@@ -134,7 +134,7 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
         <Stack spacing={1} sx={{ mb: 2, flex: 1 }}>
           <Box>
             <Typography variant="body2" color="text.secondary">
-              Kullanilabilir:
+              Kullanılabilir:
             </Typography>
             <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
               {formatBalance(balance.availableBalance, balance.currency)}
@@ -162,9 +162,9 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
             startIcon={<ArrowDownwardIcon />}
             onClick={() => onDeposit(balance.currency)}
             fullWidth
-            aria-label={`${metadata.name} yatir`}
+            aria-label={`${metadata.name} yatır`}
           >
-            Yatir
+            Yatır
           </Button>
           <Button
             variant="outlined"
@@ -172,9 +172,9 @@ const WalletBalanceCard: React.FC<WalletBalanceCardProps> = ({
             startIcon={<ArrowUpwardIcon />}
             onClick={() => onWithdraw(balance.currency)}
             fullWidth
-            aria-label={`${metadata.name} cek`}
+            aria-label={`${metadata.name} çek`}
           >
-            Cek
+            Çek
           </Button>
         </Box>
       </CardContent>

@@ -53,7 +53,7 @@ const VerifyEmailPage: React.FC = () => {
   // Handle resend success toast
   useEffect(() => {
     if (resendSuccess) {
-      toast.success('Dogrulama e-postasi yeniden gonderildi.', {
+      toast.success('Doğrulama e-postası yeniden gönderildi.', {
         position: 'top-right',
         autoClose: 5000,
       });

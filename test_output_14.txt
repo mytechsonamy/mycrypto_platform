@@ -1,0 +1,115 @@
+
+DevTools listening on ws://127.0.0.1:60118/devtools/browser/ab44d1cd-c1bd-4b58-8b7d-cb724442dcc5
+
+===================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.7.0                                                                         │
+  │ Browser:        Electron 138 (headless)                                                        │
+  │ Node Version:   v25.2.1 (/opt/homebrew/Cellar/node/25.2.1/bin/node)                            │
+  │ Specs:          1 found (registration.spec.ts)                                                 │
+  │ Searched:       cypress/e2e/**/*.{js,jsx,ts,tsx,spec.ts}                                       │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  registration.spec.ts                                                            (1 of 1)
+
+
+  User Registration - Story 1.1
+    TC-001: Valid password - All requirements met
+      ✓ Should successfully register with valid email and strong password (2339ms)
+    TC-002: Valid password - Minimum requirements only
+      1) Should register with minimum valid password (MEDIUM strength)
+    TC-004: Password too short (7 characters)
+      ✓ Should reject password shorter than 8 characters (659ms)
+    TC-005: Password missing uppercase letter
+      ✓ Should reject password without uppercase letters (952ms)
+    TC-006: Password missing number
+      ✓ Should reject password without numeric characters (944ms)
+    TC-007: Password missing special character
+      ✓ Should reject password without special characters (944ms)
+    TC-011 & TC-012: Email validation
+      ✓ TC-011: Should accept valid email formats (1612ms)
+      ✓ TC-012: Should reject invalid email formats (1554ms)
+    TC-016 & TC-017: Duplicate email handling
+      ✓ Should prevent registration with duplicate email (1611ms)
+      ✓ Should be case-insensitive for email duplicates (1384ms)
+    TC-021 to TC-025: Checkbox and consent requirements
+      ✓ TC-021: Terms & Conditions checkbox is required (1094ms)
+      ✓ TC-022: KVKK consent checkbox is required (1042ms)
+      ✓ TC-023: Both checkboxes required (1112ms)
+      ✓ TC-024: Terms & Conditions link accessible (155ms)
+      ✓ TC-025: KVKK consent link accessible (152ms)
+    TC-028 to TC-030: Password strength indicator
+      ✓ TC-028: Weak password shows weak indicator (255ms)
+      ✓ TC-029: Medium password shows medium indicator (303ms)
+      ✓ TC-030: Strong password shows strong indicator (520ms)
+    Security Tests - XSS Prevention
+      ✓ TC-034: XSS attempt in email should be blocked (659ms)
+      ✓ TC-035: XSS attempt in password should be safely stored (1288ms)
+    Accessibility Tests
+      ✓ TC-047: Form labels properly associated with inputs (66ms)
+      ✓ TC-048: Form keyboard navigation (869ms)
+      ✓ TC-049: Error messages announced to screen readers (278ms)
+      ✓ TC-050: Sufficient color contrast (297ms)
+      ✓ TC-051: Password strength indicator accessible (258ms)
+      ✓ TC-052: Required field indicators accessible (79ms)
+      ✓ TC-053: Checkbox labels linked correctly (242ms)
+    Performance Tests
+      ✓ TC-054: Page loads within 3 seconds (109ms)
+      ✓ TC-055: Form interaction is responsive (362ms)
+    Email Verification Flow
+      ✓ Should register with minimum valid password (MEDIUM strength) (1405ms)
+      ✓ TC-001: Successful registration with valid credentials (1203ms)
+
+
+  30 passing (29s)
+  1 failing
+
+  1) User Registration - Story 1.1
+       TC-002: Valid password - Minimum requirements only
+         Should register with minimum valid password (MEDIUM strength):
+     AssertionError: Timed out retrying after 4000ms: expected 'Güçlü' to match /MEDIUM|Orta/i
+      at Context.eval (webpack://mycrypto_platform/./cypress/e2e/auth/registration.spec.ts:122:24)
+
+
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        31                                                                               │
+  │ Passing:      30                                                                               │
+  │ Failing:      1                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  1                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     29 seconds                                                                       │
+  │ Spec Ran:     registration.spec.ts                                                             │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+  (Screenshots)
+
+  -  /Users/musti/Documents/Projects/MyCrypto_Platform/cypress/screenshots/registrati    (2560x1440)
+     on.spec.ts/User Registration - Story 1.1 -- TC-002 Valid password - Minimum requ               
+     irements only -- Should register with minimum valid password (MEDIUM strength) (               
+     failed).png                                                                                    
+
+
+===================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✖  registration.spec.ts                     00:29       31       30        1        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✖  1 of 1 failed (100%)                     00:29       31       30        1        -        -  
+

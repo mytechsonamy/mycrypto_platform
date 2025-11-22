@@ -65,14 +65,14 @@ const WalletDashboardPage: React.FC = () => {
   const handleDeposit = (currency: Currency) => {
     // TODO: Implement deposit modal in FE-025/FE-026
     console.log(`Deposit ${currency} - To be implemented in next sprint`);
-    alert(`${currency} yatirma ozelligi yakin zamanda eklenecek`);
+    alert(`${currency} yatırma özelliği yakın zamanda eklenecek`);
   };
 
   // Handle withdraw action
   const handleWithdraw = (currency: Currency) => {
     // TODO: Implement withdraw modal in FE-028/FE-029
     console.log(`Withdraw ${currency} - To be implemented in next sprint`);
-    alert(`${currency} cekme ozelligi yakin zamanda eklenecek`);
+    alert(`${currency} çekme özelliği yakın zamanda eklenecek`);
   };
 
   // Calculate total portfolio value in TRY
@@ -113,12 +113,12 @@ const WalletDashboardPage: React.FC = () => {
         }}
       >
         <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold' }}>
-          Cuzdanlarim
+          Cüzdanlarım
         </Typography>
 
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
           <Typography variant="caption" color="text.secondary">
-            Son guncelleme: {lastRefresh.toLocaleTimeString('tr-TR')}
+            Son güncelleme: {lastRefresh.toLocaleTimeString('tr-TR')}
           </Typography>
           <Button
             variant="outlined"
@@ -145,13 +145,13 @@ const WalletDashboardPage: React.FC = () => {
           }}
         >
           <Typography variant="h6" gutterBottom>
-            Toplam Portfoy Degeri
+            Toplam Portföy Değeri
           </Typography>
           <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
             {calculatePortfolioValue()} ₺
           </Typography>
           <Typography variant="caption" sx={{ opacity: 0.9, mt: 1, display: 'block' }}>
-            4 farkli varlik
+            4 farklı varlık
           </Typography>
         </Paper>
       )}
@@ -211,10 +211,10 @@ const WalletDashboardPage: React.FC = () => {
               }}
             >
               <Typography variant="h6" color="text.secondary" gutterBottom>
-                Cuzdan bulunamadi
+                Cüzdan bulunamadı
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Cuzdanlariniz yuklenemiyor. Lutfen tekrar deneyin.
+                Cüzdanlarınız yüklenemiyor. Lütfen tekrar deneyin.
               </Typography>
               <Button
                 variant="contained"
@@ -236,13 +236,13 @@ const WalletDashboardPage: React.FC = () => {
         </Typography>
         <Divider sx={{ mb: 2 }} />
         <Typography variant="body2" color="text.secondary" paragraph>
-          - Bakiyeleriniz her 30 saniyede bir otomatik olarak guncellenir.
+          - Bakiyeleriniz her 30 saniyede bir otomatik olarak güncellenir.
         </Typography>
         <Typography variant="body2" color="text.secondary" paragraph>
-          - Kilitli bakiyeler, bekleyen emirlerde kullanilan miktarlari gosterir.
+          - Kilitli bakiyeler, bekleyen emirlerde kullanılan miktarları gösterir.
         </Typography>
         <Typography variant="body2" color="text.secondary" paragraph>
-          - Yatirma ve cekme islemleri icin ilgili butonlari kullanabilirsiniz.
+          - Yatırma ve çekme işlemleri için ilgili butonları kullanabilirsiniz.
         </Typography>
       </Paper>
     </Container>

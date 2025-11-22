@@ -91,7 +91,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         break;
       case 'password':
         if (!formData.password) {
-          fieldError = 'Sifre gereklidir.';
+          fieldError = 'Şifre gereklidir.';
         }
         break;
     }
@@ -114,7 +114,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
     // Validate password
     if (!formData.password) {
-      newErrors.password = 'Sifre gereklidir.';
+      newErrors.password = 'Şifre gereklidir.';
     }
 
     setErrors(newErrors);
@@ -154,7 +154,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         component="form"
         onSubmit={handleSubmit}
         noValidate
-        aria-label="Giris formu"
+        aria-label="Giriş formu"
       >
         {/* Header */}
         <Typography
@@ -164,7 +164,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
           gutterBottom
           sx={{ fontWeight: 600, mb: 3 }}
         >
-          Giris Yap
+          Giriş Yap
         </Typography>
 
         {/* Error alert */}
@@ -214,7 +214,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
           id="password"
           name="password"
           type={showPassword ? 'text' : 'password'}
-          label="Sifre"
+          label="Şifre"
           value={formData.password}
           onChange={handleChange}
           onBlur={handleBlur}
@@ -232,7 +232,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
             endAdornment: (
               <InputAdornment position="end">
                 <IconButton
-                  aria-label={showPassword ? 'Sifreyi gizle' : 'Sifreyi goster'}
+                  aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
                   onClick={togglePasswordVisibility}
                   edge="end"
                   disabled={loading}
@@ -243,7 +243,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
             ),
           }}
           inputProps={{
-            'aria-label': 'Sifre',
+            'aria-label': 'Şifre',
             'aria-describedby': touched.password && errors.password ? 'password-error' : undefined,
           }}
           sx={{ mb: 1 }}
@@ -268,13 +268,13 @@ const LoginForm: React.FC<LoginFormProps> = ({
                 disabled={loading}
                 color="primary"
                 inputProps={{
-                  'aria-label': 'Beni hatirla',
+                  'aria-label': 'Beni hatırla',
                 }}
               />
             }
             label={
               <Typography variant="body2">
-                Beni hatirla
+                Beni hatırla
               </Typography>
             }
           />
@@ -284,7 +284,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
             variant="body2"
             underline="hover"
           >
-            Sifremi unuttum
+            Şifremi unuttum
           </Link>
         </Box>
 
@@ -301,7 +301,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
             fontWeight: 600,
             fontSize: '1rem',
           }}
-          aria-label={loading ? 'Giris yapiliyor' : 'Giris yap'}
+          aria-label={loading ? 'Giriş yapılıyor' : 'Giriş yap'}
         >
           {loading ? (
             <>
@@ -311,10 +311,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
                 sx={{ mr: 1 }}
                 aria-hidden="true"
               />
-              Giris Yapiliyor...
+              Giriş Yapılıyor...
             </>
           ) : (
-            'Giris Yap'
+            'Giriş Yap'
           )}
         </Button>
 
@@ -324,13 +324,13 @@ const LoginForm: React.FC<LoginFormProps> = ({
           align="center"
           color="text.secondary"
         >
-          Hesabiniz yok mu?{' '}
+          Hesabınız yok mu?{' '}
           <Link
             component={RouterLink}
             to="/register"
             underline="hover"
           >
-            Kayit ol
+            Kayıt ol
           </Link>
         </Typography>
       </Box>

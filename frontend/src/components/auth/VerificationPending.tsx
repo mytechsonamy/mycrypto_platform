@@ -41,7 +41,7 @@ const VerificationPending: React.FC<VerificationPendingProps> = ({
       return false;
     }
     if (!emailRegex.test(value)) {
-      setEmailError('Gecerli bir e-posta adresi girin.');
+      setEmailError('Geçerli bir e-posta adresi girin.');
       return false;
     }
     setEmailError(null);
@@ -84,7 +84,7 @@ const VerificationPending: React.FC<VerificationPendingProps> = ({
         gutterBottom
         sx={{ fontWeight: 600 }}
       >
-        E-posta Dogrulamasi
+        E-posta Doğrulaması
       </Typography>
 
       <Typography
@@ -92,7 +92,7 @@ const VerificationPending: React.FC<VerificationPendingProps> = ({
         color="text.secondary"
         sx={{ mb: 2 }}
       >
-        Dogrulama baglantisi e-posta adresinize gonderildi.
+        Doğrulama bağlantısı e-posta adresinize gönderildi.
       </Typography>
 
       {email && (
@@ -109,12 +109,12 @@ const VerificationPending: React.FC<VerificationPendingProps> = ({
         color="text.secondary"
         sx={{ mb: 3 }}
       >
-        Lutfen e-postanizi kontrol edin. E-posta gelmediyse, spam/istenmeyen klasorunuzu kontrol edin.
+        Lütfen e-postanızı kontrol edin. E-posta gelmediyse, spam/istenmeyen klasörünüzü kontrol edin.
       </Typography>
 
       {resendSuccess && (
         <Alert severity="success" sx={{ mb: 2 }} role="status">
-          Dogrulama e-postasi yeniden gonderildi.
+          Doğrulama e-postası yeniden gönderildi.
         </Alert>
       )}
 
@@ -147,10 +147,10 @@ const VerificationPending: React.FC<VerificationPendingProps> = ({
           onClick={handleResend}
           disabled={resendLoading || resendSuccess}
           startIcon={resendLoading ? <CircularProgress size={20} /> : <SendIcon />}
-          aria-label="Dogrulama e-postasini tekrar gonder"
+          aria-label="Doğrulama e-postasını tekrar gönder"
           fullWidth
         >
-          {resendLoading ? 'Gonderiliyor...' : 'Tekrar Gonder'}
+          {resendLoading ? 'Gönderiliyor...' : 'Tekrar Gönder'}
         </Button>
       </Box>
 
@@ -158,9 +158,9 @@ const VerificationPending: React.FC<VerificationPendingProps> = ({
         variant="text"
         color="primary"
         href="/register"
-        aria-label="Kayit sayfasina geri don"
+        aria-label="Kayıt sayfasına geri dön"
       >
-        Geri Don
+        Geri Dön
       </Button>
     </Paper>
   );

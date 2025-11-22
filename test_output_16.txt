@@ -1,0 +1,98 @@
+
+DevTools listening on ws://127.0.0.1:60786/devtools/browser/4a945393-3b8b-4f5c-89d8-6dd40ae4a3e7
+
+===================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        15.7.0                                                                         │
+  │ Browser:        Electron 138 (headless)                                                        │
+  │ Node Version:   v25.2.1 (/opt/homebrew/Cellar/node/25.2.1/bin/node)                            │
+  │ Specs:          1 found (registration.spec.ts)                                                 │
+  │ Searched:       cypress/e2e/**/*.{js,jsx,ts,tsx,spec.ts}                                       │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  registration.spec.ts                                                            (1 of 1)
+
+
+  User Registration - Story 1.1
+    TC-001: Valid password - All requirements met
+      ✓ Should successfully register with valid email and strong password (2302ms)
+    TC-002: Valid password - Minimum requirements only
+      ✓ Should register with minimum valid password (MEDIUM strength) (1290ms)
+    TC-004: Password too short (7 characters)
+      ✓ Should reject password shorter than 8 characters (579ms)
+    TC-005: Password missing uppercase letter
+      ✓ Should reject password without uppercase letters (1106ms)
+    TC-006: Password missing number
+      ✓ Should reject password without numeric characters (903ms)
+    TC-007: Password missing special character
+      ✓ Should reject password without special characters (938ms)
+    TC-011 & TC-012: Email validation
+      ✓ TC-011: Should accept valid email formats (1641ms)
+      ✓ TC-012: Should reject invalid email formats (1565ms)
+    TC-016 & TC-017: Duplicate email handling
+      ✓ Should prevent registration with duplicate email (1645ms)
+      ✓ Should be case-insensitive for email duplicates (1386ms)
+    TC-021 to TC-025: Checkbox and consent requirements
+      ✓ TC-021: Terms & Conditions checkbox is required (1115ms)
+      ✓ TC-022: KVKK consent checkbox is required (1069ms)
+      ✓ TC-023: Both checkboxes required (1104ms)
+      ✓ TC-024: Terms & Conditions link accessible (158ms)
+      ✓ TC-025: KVKK consent link accessible (155ms)
+    TC-028 to TC-030: Password strength indicator
+      ✓ TC-028: Weak password shows weak indicator (259ms)
+      ✓ TC-029: Medium password shows medium indicator (301ms)
+      ✓ TC-030: Strong password shows strong indicator (477ms)
+    Security Tests - XSS Prevention
+      ✓ TC-034: XSS attempt in email should be blocked (713ms)
+      ✓ TC-035: XSS attempt in password should be safely stored (1316ms)
+    Accessibility Tests
+      ✓ TC-047: Form labels properly associated with inputs (72ms)
+      ✓ TC-048: Form keyboard navigation (887ms)
+      ✓ TC-049: Error messages announced to screen readers (279ms)
+      ✓ TC-050: Sufficient color contrast (299ms)
+      ✓ TC-051: Password strength indicator accessible (264ms)
+      ✓ TC-052: Required field indicators accessible (66ms)
+      ✓ TC-053: Checkbox labels linked correctly (207ms)
+    Performance Tests
+      ✓ TC-054: Page loads within 3 seconds (98ms)
+      ✓ TC-055: Form interaction is responsive (363ms)
+    Email Verification Flow
+      ✓ Should register with minimum valid password (MEDIUM strength) (1320ms)
+      ✓ TC-001: Successful registration with valid credentials (1245ms)
+
+
+  31 passing (26s)
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        31                                                                               │
+  │ Passing:      31                                                                               │
+  │ Failing:      0                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  0                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     25 seconds                                                                       │
+  │ Spec Ran:     registration.spec.ts                                                             │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+===================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✔  registration.spec.ts                     00:25       31       31        -        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✔  All specs passed!                        00:25       31       31        -        -        -  
+

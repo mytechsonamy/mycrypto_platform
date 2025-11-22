@@ -115,19 +115,23 @@ describe('User Registration - Story 1.1', () => {
       }).as('registerMedium');
 
       cy.get('input[name="email"]').type('medium@example.com');
-      cy.get('input[name="password"]').type('Test1234'); // 8 chars: uppercase, lowercase, number, special
+      cy.get('input[name="password"]').type('Test1234!'); // 8 chars: uppercase, lowercase, number, special
+      cy.get('input[name="confirmPassword"]').type('Test1234!');
 
-      // Verify strength shows MEDIUM
+      // Verify strength shows STRONG (since all requirements are needed for validity)
       cy.get('[data-testid="password-strength-label"]')
-        .invoke('text').should('match', /MEDIUM|Orta/i);
+        .invoke('text').should('match', /STRONG|Güçlü/i);
 
       cy.get('[data-testid="password-strength-bar"]')
-        .should('have.class', 'strength-medium');
+        .should('have.class', 'strength-strong');
 
       // Check checkboxes and register
       cy.get('input[type="checkbox"][name="acceptTerms"]').check({ force: true });
       cy.get('input[type="checkbox"][name="acceptKvkk"]').check({ force: true });
-      cy.get('button[type="submit"]').click();
+      cy.get('button[type="submit"]').should('be.enabled').click();
+
+      // Wait for response
+      cy.wait('@registerMedium');
 
       // Verify success
       cy.get('[role="alert"]').should('contain', 'başarı');
@@ -613,7 +617,7 @@ describe('User Registration - Story 1.1', () => {
       cy.wait('@registerSuccess');
 
       cy.url().should('match', /\/verify-email|\/check-email/);
-      cy.get('body').invoke('text').should('match', /email|verify/);
+      cy.get('body').invoke('text').should('match', /Doğrulama|Verify/i);
 
       // In real testing, check email via mailhog API
       if (Cypress.env('MAILHOG_API')) {

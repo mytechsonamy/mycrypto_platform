@@ -39,22 +39,22 @@ const VerificationError: React.FC<VerificationErrorProps> = ({
   const getErrorMessage = (): string => {
     switch (errorType) {
       case 'expired':
-        return 'Dogrulama baglantisinin suresi dolmus. Lutfen yeni bir baglanti isteyin.';
+        return 'Doğrulama bağlantısının süresi dolmuş. Lütfen yeni bir bağlantı isteyin.';
       case 'invalid':
-        return 'Gecersiz dogrulama baglantisi. Lutfen yeni bir baglanti isteyin.';
+        return 'Geçersiz doğrulama bağlantısı. Lütfen yeni bir bağlantı isteyin.';
       default:
-        return 'Dogrulama sirasinda bir hata olustu. Lutfen tekrar deneyin.';
+        return 'Doğrulama sırasında bir hata oluştu. Lütfen tekrar deneyin.';
     }
   };
 
   const getErrorTitle = (): string => {
     switch (errorType) {
       case 'expired':
-        return 'Baglanti Suresi Doldu';
+        return 'Bağlantı Süresi Doldu';
       case 'invalid':
-        return 'Gecersiz Baglanti';
+        return 'Geçersiz Bağlantı';
       default:
-        return 'Dogrulama Hatasi';
+        return 'Doğrulama Hatası';
     }
   };
 
@@ -65,7 +65,7 @@ const VerificationError: React.FC<VerificationErrorProps> = ({
       return false;
     }
     if (!emailRegex.test(value)) {
-      setEmailError('Gecerli bir e-posta adresi girin.');
+      setEmailError('Geçerli bir e-posta adresi girin.');
       return false;
     }
     setEmailError(null);
@@ -121,7 +121,7 @@ const VerificationError: React.FC<VerificationErrorProps> = ({
 
       {resendSuccess && (
         <Alert severity="success" sx={{ mb: 2 }} role="status">
-          Dogrulama e-postasi yeniden gonderildi.
+          Doğrulama e-postası yeniden gönderildi.
         </Alert>
       )}
 
@@ -154,10 +154,10 @@ const VerificationError: React.FC<VerificationErrorProps> = ({
           onClick={handleResend}
           disabled={resendLoading || resendSuccess}
           startIcon={resendLoading ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
-          aria-label="Yeni dogrulama baglantisi gonder"
+          aria-label="Yeni doğrulama bağlantısı gönder"
           fullWidth
         >
-          {resendLoading ? 'Gonderiliyor...' : 'Yeni Baglanti Gonder'}
+          {resendLoading ? 'Gönderiliyor...' : 'Yeni Bağlantı Gönder'}
         </Button>
       </Box>
 
@@ -165,9 +165,9 @@ const VerificationError: React.FC<VerificationErrorProps> = ({
         variant="text"
         color="primary"
         href="/register"
-        aria-label="Kayit sayfasina geri don"
+        aria-label="Kayıt sayfasına geri dön"
       >
-        Geri Don
+        Geri Dön
       </Button>
     </Paper>
   );

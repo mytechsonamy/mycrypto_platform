@@ -172,14 +172,14 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
             gutterBottom
             sx={{ fontWeight: 600, mb: 2 }}
           >
-            Sifre Degistirildi
+            Şifre Değiştirildi
           </Typography>
 
           <Alert
             severity="success"
             sx={{ mb: 3, textAlign: 'left' }}
           >
-            Sifreniz basariyla degistirildi. Artik yeni sifrenizle giris yapabilirsiniz.
+            Şifreniz başarıyla değiştirildi. Artık yeni şifrenizle giriş yapabilirsiniz.
           </Alert>
 
           <Button
@@ -189,7 +189,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
             fullWidth
             size="large"
           >
-            Giris Yap
+            Giriş Yap
           </Button>
         </Box>
       </Paper>
@@ -210,7 +210,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
         component="form"
         onSubmit={handleSubmit}
         noValidate
-        aria-label="Sifre sifirlama formu"
+        aria-label="Şifre sıfırlama formu"
       >
         {/* Header */}
         <Typography
@@ -220,7 +220,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
           gutterBottom
           sx={{ fontWeight: 600, mb: 1 }}
         >
-          Yeni Sifre Belirle
+          Yeni Şifre Belirle
         </Typography>
 
         <Typography
@@ -229,7 +229,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
           color="text.secondary"
           sx={{ mb: 3 }}
         >
-          Hesabiniz icin yeni bir sifre belirleyin.
+          Hesabınız için yeni bir şifre belirleyin.
         </Typography>
 
         {/* Error alert */}
@@ -249,7 +249,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
           id="newPassword"
           name="newPassword"
           type={showNewPassword ? 'text' : 'password'}
-          label="Yeni Sifre"
+          label="Yeni Şifre"
           value={formData.newPassword}
           onChange={handleChange}
           onBlur={handleBlur}
@@ -268,7 +268,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
             endAdornment: (
               <InputAdornment position="end">
                 <IconButton
-                  aria-label={showNewPassword ? 'Sifreyi gizle' : 'Sifreyi goster'}
+                  aria-label={showNewPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
                   onClick={toggleNewPasswordVisibility}
                   edge="end"
                   disabled={loading}
@@ -279,7 +279,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
             ),
           }}
           inputProps={{
-            'aria-label': 'Yeni sifre',
+            'aria-label': 'Yeni şifre',
             'aria-describedby': touched.newPassword && errors.password ? 'password-error' : undefined,
           }}
           sx={{ mb: 1 }}
@@ -297,7 +297,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
           id="confirmPassword"
           name="confirmPassword"
           type={showConfirmPassword ? 'text' : 'password'}
-          label="Sifre Tekrari"
+          label="Şifre Tekrarı"
           value={formData.confirmPassword}
           onChange={handleChange}
           onBlur={handleBlur}
@@ -315,7 +315,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
             endAdornment: (
               <InputAdornment position="end">
                 <IconButton
-                  aria-label={showConfirmPassword ? 'Sifreyi gizle' : 'Sifreyi goster'}
+                  aria-label={showConfirmPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
                   onClick={toggleConfirmPasswordVisibility}
                   edge="end"
                   disabled={loading}
@@ -326,7 +326,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
             ),
           }}
           inputProps={{
-            'aria-label': 'Sifre tekrari',
+            'aria-label': 'Şifre tekrarı',
             'aria-describedby': touched.confirmPassword && errors.confirmPassword ? 'confirm-password-error' : undefined,
           }}
           sx={{ mb: 3 }}
@@ -345,7 +345,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
             fontWeight: 600,
             fontSize: '1rem',
           }}
-          aria-label={loading ? 'Sifre degistiriliyor' : 'Sifreyi degistir'}
+          aria-label={loading ? 'Şifre değiştiriliyor' : 'Şifreyi değiştir'}
         >
           {loading ? (
             <>
@@ -355,10 +355,10 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
                 sx={{ mr: 1 }}
                 aria-hidden="true"
               />
-              Sifre Degistiriliyor...
+              Şifre Değiştiriliyor...
             </>
           ) : (
-            'Sifreyi Degistir'
+            'Şifreyi Değiştir'
           )}
         </Button>
 
@@ -373,7 +373,7 @@ const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
             to="/login"
             underline="hover"
           >
-            Giris sayfasina don
+            Giriş sayfasına dön
           </Link>
         </Typography>
       </Box>

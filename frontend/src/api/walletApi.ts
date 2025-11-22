@@ -57,28 +57,28 @@ walletApiClient.interceptors.response.use(
  */
 const mapErrorToMessage = (error: AxiosError): string => {
   if (!error.response) {
-    return 'Baglanti hatasi. Lutfen internet baglantinizi kontrol edin.';
+    return 'Bağlantı hatası. Lütfen internet bağlantınızı kontrol edin.';
   }
 
   const { status } = error.response;
 
   switch (status) {
     case 400:
-      return 'Gecersiz istek. Lutfen tekrar deneyin.';
+      return 'Geçersiz istek. Lütfen tekrar deneyin.';
     case 401:
-      return 'Oturum suresi dolmus. Lutfen tekrar giris yapin.';
+      return 'Oturum süresi dolmuş. Lütfen tekrar giriş yapın.';
     case 403:
-      return 'Bu islemi yapmaya yetkiniz yok.';
+      return 'Bu işlemi yapmaya yetkiniz yok.';
     case 404:
-      return 'Cuzdan bulunamadi.';
+      return 'Cüzdan bulunamadı.';
     case 429:
-      return 'Cok fazla istek gonderdiniz. Lutfen bir sure bekleyin.';
+      return 'Çok fazla istek gönderdiniz. Lütfen bir süre bekleyin.';
     case 500:
     case 502:
     case 503:
-      return 'Sunucu hatasi olustu. Lutfen daha sonra tekrar deneyin.';
+      return 'Sunucu hatası oluştu. Lütfen daha sonra tekrar deneyin.';
     default:
-      return 'Beklenmeyen bir hata olustu. Lutfen tekrar deneyin.';
+      return 'Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.';
   }
 };
 
@@ -139,7 +139,7 @@ export const getWalletBalances = async (): Promise<GetWalletBalancesResponse> =>
     if (axios.isAxiosError(error)) {
       throw new Error(mapErrorToMessage(error));
     }
-    throw new Error('Cuzdan bakiyeleri alinirken bir hata olustu.');
+    throw new Error('Cüzdan bakiyeleri alınırken bir hata oluştu.');
   }
 };
 

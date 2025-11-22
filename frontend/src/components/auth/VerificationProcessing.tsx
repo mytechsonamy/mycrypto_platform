@@ -47,14 +47,14 @@ const VerificationProcessing: React.FC = () => {
         gutterBottom
         sx={{ fontWeight: 600 }}
       >
-        Dogrulaniyor...
+        Doğrulanıyor...
       </Typography>
 
       <Typography
         variant="body1"
         color="text.secondary"
       >
-        E-posta adresiniz dogrulaniyor. Lutfen bekleyin.
+        E-posta adresiniz doğrulanıyor. Lütfen bekleyin.
       </Typography>
     </Paper>
   );

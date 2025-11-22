@@ -115,8 +115,8 @@ const TwoFactorVerifyModal: React.FC<TwoFactorVerifyModalProps> = ({
     if (verificationCode.length !== expectedLength) {
       setCodeError(
         isBackupCode
-          ? 'Yedek kod 11 karakter olmalidir.'
-          : 'Dogrulama kodu 6 haneli olmalidir.'
+          ? 'Yedek kod 11 karakter olmalıdır.'
+          : 'Doğrulama kodu 6 haneli olmalıdır.'
       );
       return;
     }
@@ -152,7 +152,7 @@ const TwoFactorVerifyModal: React.FC<TwoFactorVerifyModalProps> = ({
     >
       <DialogTitle id="2fa-dialog-title" sx={{ pb: 1 }}>
         <Typography variant="h6" component="span">
-          Iki Faktorlu Dogrulama
+          İki Faktörlü Doğrulama
         </Typography>
       </DialogTitle>
 
@@ -164,15 +164,15 @@ const TwoFactorVerifyModal: React.FC<TwoFactorVerifyModalProps> = ({
               variant="body2"
               color={timeRemaining < 60 ? 'error' : 'text.secondary'}
             >
-              Kalan sure: {formatTime(timeRemaining)}
+              Kalan süre: {formatTime(timeRemaining)}
             </Typography>
           </Box>
 
           {/* Instructions */}
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             {isBackupCode
-              ? 'Yedek kodlarinizdan birini girin.'
-              : 'Authenticator uygulamanizda goruntulenen 6 haneli kodu girin.'}
+              ? 'Yedek kodlarınızdan birini girin.'
+              : 'Authenticator uygulamanızda görüntülenen 6 haneli kodu girin.'}
           </Typography>
 
           {/* Error Alert */}
@@ -185,7 +185,7 @@ const TwoFactorVerifyModal: React.FC<TwoFactorVerifyModalProps> = ({
           {/* Code Input */}
           <TextField
             fullWidth
-            label={isBackupCode ? 'Yedek Kod' : 'Dogrulama Kodu'}
+            label={isBackupCode ? 'Yedek Kod' : 'Doğrulama Kodu'}
             value={code}
             onChange={handleCodeChange}
             disabled={loading}
@@ -194,7 +194,7 @@ const TwoFactorVerifyModal: React.FC<TwoFactorVerifyModalProps> = ({
               pattern: isBackupCode ? '[A-Za-z0-9-]*' : '[0-9]*',
               inputMode: isBackupCode ? 'text' : 'numeric',
               autoComplete: 'one-time-code',
-              'aria-label': isBackupCode ? 'Yedek kod' : 'Dogrulama kodu',
+              'aria-label': isBackupCode ? 'Yedek kod' : 'Doğrulama kodu',
             }}
             autoFocus
             sx={{ mb: 2 }}
@@ -217,7 +217,7 @@ const TwoFactorVerifyModal: React.FC<TwoFactorVerifyModalProps> = ({
 
         <DialogActions sx={{ px: 3, pb: 3 }}>
           <Button onClick={onClose} disabled={loading}>
-            Iptal
+            İptal
           </Button>
           <Button
             type="submit"
@@ -227,7 +227,7 @@ const TwoFactorVerifyModal: React.FC<TwoFactorVerifyModalProps> = ({
             {loading ? (
               <CircularProgress size={24} color="inherit" />
             ) : (
-              'Dogrula'
+              'Doğrula'
             )}
           </Button>
         </DialogActions>
