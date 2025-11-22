@@ -4,26 +4,33 @@ import { ConfigModule } from '@nestjs/config';
 import { WithdrawalService } from './withdrawal.service';
 import { WithdrawalController } from './withdrawal.controller';
 import { WithdrawalRequest } from './entities/withdrawal-request.entity';
+import { CryptoWithdrawalRequest } from './entities/crypto-withdrawal-request.entity';
+import { WhitelistedAddress } from './entities/whitelisted-address.entity';
 import { UserWallet } from '../wallet/entities/user-wallet.entity';
 import { FiatAccount } from '../wallet/entities/fiat-account.entity';
 import { LedgerEntry } from '../ledger/entities/ledger-entry.entity';
+import { AddressValidationService } from './services/address-validation.service';
 
 /**
  * WithdrawalModule
- * Handles TRY withdrawal operations
+ * Handles TRY and crypto (BTC/ETH/USDT) withdrawal operations
+ * Story 2.3: TRY Withdrawal
+ * Story 2.5: Crypto Withdrawal
  */
 @Module({
   imports: [
     ConfigModule,
     TypeOrmModule.forFeature([
       WithdrawalRequest,
+      CryptoWithdrawalRequest,
+      WhitelistedAddress,
       UserWallet,
       FiatAccount,
       LedgerEntry,
     ]),
   ],
   controllers: [WithdrawalController],
-  providers: [WithdrawalService],
-  exports: [WithdrawalService],
+  providers: [WithdrawalService, AddressValidationService],
+  exports: [WithdrawalService, AddressValidationService],
 })
 export class WithdrawalModule {}
