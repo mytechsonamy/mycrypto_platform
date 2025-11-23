@@ -306,12 +306,9 @@ func TestIOC_NoFill_CancelledImmediately(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, trades)
 
-	// Should have zero fill
-	// NOTE: Current implementation returns OPEN, but should be CANCELLED per IOC semantics
-	// BUG: IOC orders with zero fill should be auto-cancelled
+	// Should have zero fill and be automatically cancelled per IOC semantics
 	assert.Equal(t, "0", iocBuy.FilledQuantity.String())
-	// assert.Equal(t, domain.OrderStatusCancelled, iocBuy.Status)  // TODO: Fix in engine
-	assert.Equal(t, domain.OrderStatusOpen, iocBuy.Status) // Current (incorrect) behavior
+	assert.Equal(t, domain.OrderStatusCancelled, iocBuy.Status)
 }
 
 // ============================================================================

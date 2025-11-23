@@ -207,11 +207,14 @@ func (me *MatchingEngine) PlaceOrder(order *domain.Order) ([]*domain.Trade, erro
 		return trades, err
 	}
 
-	// 7. Update order status based on fill
+	// 7. Update order status based on fill and time-in-force
 	if order.IsFilled() {
 		order.Status = domain.OrderStatusFilled
 	} else if order.IsPartiallyFilled() {
 		order.Status = domain.OrderStatusPartiallyFilled
+	} else if order.TimeInForce == domain.TimeInForceIOC {
+		// IOC orders with zero fill are automatically cancelled
+		order.Status = domain.OrderStatusCancelled
 	}
 
 	// 8. Update statistics
@@ -773,4 +776,18 @@ func (me *MatchingEngine) triggerStopOrders(currentPrice decimal.Decimal, symbol
 // GetStopOrderManager returns the stop order manager (for testing/debugging)
 func (me *MatchingEngine) GetStopOrderManager() *StopOrderManager {
 	return me.stopOrderManager
+}
+
+// RecoverStopOrders loads pending stop orders from storage on startup
+//
+// This method is used for production hardening to recover stop orders that were
+// pending at the time of shutdown. It should be called during system initialization
+// before normal order processing begins.
+//
+// Parameters:
+//   - pendingOrders: Slice of orders to check for stop orders
+//
+// Returns: Number of stop orders recovered
+func (me *MatchingEngine) RecoverStopOrders(pendingOrders []*domain.Order) int {
+	return me.stopOrderManager.LoadStopOrders(pendingOrders)
 }

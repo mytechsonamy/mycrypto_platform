@@ -8,7 +8,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/mytrader/trade-engine/internal/domain"
 	"github.com/mytrader/trade-engine/internal/matching"
+	"github.com/mytrader/trade-engine/internal/repository"
 	"github.com/mytrader/trade-engine/internal/server"
 	ws "github.com/mytrader/trade-engine/internal/websocket"
 	"github.com/mytrader/trade-engine/pkg/clients"
@@ -71,6 +73,36 @@ func main() {
 		zap.String("version", "2.0"),
 		zap.String("algorithm", "Price-Time Priority"),
 	)
+
+	// Recover pending stop orders from database (production hardening)
+	// This ensures stop orders survive service restarts
+	ctx := context.Background()
+	orderRepo := repository.NewPostgresOrderRepository(db, log)
+
+	// Common trading pairs to check (in production, this could be dynamic)
+	symbols := []string{"BTC/USDT", "ETH/USDT", "BNB/USDT", "XRP/USDT", "SOL/USDT"}
+	var allPendingOrders []*domain.Order
+
+	for _, symbol := range symbols {
+		orders, err := orderRepo.GetActiveOrders(ctx, symbol)
+		if err != nil {
+			log.Warn("Failed to load active orders for symbol",
+				zap.String("symbol", symbol),
+				zap.Error(err),
+			)
+			continue
+		}
+		allPendingOrders = append(allPendingOrders, orders...)
+	}
+
+	if len(allPendingOrders) > 0 {
+		recovered := matchingEngine.RecoverStopOrders(allPendingOrders)
+		if recovered > 0 {
+			log.Info("Stop orders recovered from persistent storage",
+				zap.Int("recovered_count", recovered),
+			)
+		}
+	}
 
 	// Initialize WebSocket connection manager
 	connectionManager := ws.NewConnectionManager(log)

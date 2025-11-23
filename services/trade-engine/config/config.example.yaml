@@ -29,6 +29,8 @@ database:
   max_open_conns: 25
   max_idle_conns: 5
   conn_max_lifetime: 5m
+  # Connection max idle time (production hardening - closes stale connections)
+  conn_max_idle_time: 2m
   # Enable SSL (set to "require" for production)
   ssl_mode: disable
 

@@ -37,13 +37,14 @@ type ServerConfig struct {
 type DatabaseConfig struct {
 	Host            string        `mapstructure:"host"`
 	Port            int           `mapstructure:"port"`
-	Database        string        `mapstructure:"database"`
-	User            string        `mapstructure:"user"`
-	Password        string        `mapstructure:"password"`
-	MaxOpenConns    int           `mapstructure:"max_open_conns"`
-	MaxIdleConns    int           `mapstructure:"max_idle_conns"`
-	ConnMaxLifetime time.Duration `mapstructure:"conn_max_lifetime"`
-	SSLMode         string        `mapstructure:"ssl_mode"`
+	Database           string        `mapstructure:"database"`
+	User               string        `mapstructure:"user"`
+	Password           string        `mapstructure:"password"`
+	MaxOpenConns       int           `mapstructure:"max_open_conns"`
+	MaxIdleConns       int           `mapstructure:"max_idle_conns"`
+	ConnMaxLifetime    time.Duration `mapstructure:"conn_max_lifetime"`
+	ConnMaxIdleTime    time.Duration `mapstructure:"conn_max_idle_time"`
+	SSLMode            string        `mapstructure:"ssl_mode"`
 }
 
 // RedisConfig holds Redis configuration

@@ -43,6 +43,11 @@ func NewDatabaseClient(cfg *config.Config, log *zap.Logger) (*gorm.DB, error) {
 	sqlDB.SetMaxIdleConns(cfg.Database.MaxIdleConns)
 	sqlDB.SetConnMaxLifetime(cfg.Database.ConnMaxLifetime)
 
+	// Set connection idle timeout for production hardening (closes stale connections)
+	if cfg.Database.ConnMaxIdleTime > 0 {
+		sqlDB.SetConnMaxIdleTime(cfg.Database.ConnMaxIdleTime)
+	}
+
 	// Verify connection
 	if err := sqlDB.Ping(); err != nil {
 		return nil, fmt.Errorf("failed to ping database: %w", err)

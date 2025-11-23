@@ -191,3 +191,33 @@ func (som *StopOrderManager) GetLastMarketPrice() decimal.Decimal {
 
 	return som.lastMarketPrice
 }
+
+// LoadStopOrders loads pending stop orders from a slice (used for recovery on startup)
+//
+// This method is used to recover stop orders from persistent storage after a restart.
+// It loads all orders that are:
+//   - Type = STOP
+//   - Status = OPEN or PARTIALLY_FILLED
+//
+// Parameters:
+//   - orders: Slice of orders to load
+//
+// Returns: Number of stop orders successfully loaded
+func (som *StopOrderManager) LoadStopOrders(orders []*domain.Order) int {
+	som.mu.Lock()
+	defer som.mu.Unlock()
+
+	loadedCount := 0
+	for _, order := range orders {
+		// Only load stop orders that are still active
+		if order.Type == domain.OrderTypeStop &&
+			(order.Status == domain.OrderStatusOpen || order.Status == domain.OrderStatusPartiallyFilled) &&
+			order.StopPrice != nil && order.StopPrice.IsPositive() {
+
+			som.stopOrders[order.ID] = order
+			loadedCount++
+		}
+	}
+
+	return loadedCount
+}
