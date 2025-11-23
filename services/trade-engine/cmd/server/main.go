@@ -8,7 +8,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/mytrader/trade-engine/internal/matching"
 	"github.com/mytrader/trade-engine/internal/server"
+	ws "github.com/mytrader/trade-engine/internal/websocket"
 	"github.com/mytrader/trade-engine/pkg/clients"
 	"github.com/mytrader/trade-engine/pkg/config"
 	"github.com/mytrader/trade-engine/pkg/logger"
@@ -62,8 +64,34 @@ func main() {
 		}
 	}()
 
+	// Initialize Matching Engine
+	matchingEngine := matching.NewMatchingEngine()
+
+	log.Info("Matching engine initialized",
+		zap.String("version", "2.0"),
+		zap.String("algorithm", "Price-Time Priority"),
+	)
+
+	// Initialize WebSocket connection manager
+	connectionManager := ws.NewConnectionManager(log)
+	connectionManager.Start()
+
+	// Initialize WebSocket publisher
+	publisher := ws.NewPublisher(connectionManager, log)
+	publisher.Start()
+
+	// Wire WebSocket publisher to matching engine callbacks
+	matchingEngine.SetOrderUpdateCallback(publisher.PublishOrderUpdate)
+	matchingEngine.SetTradeCallback(publisher.PublishTradeExecution)
+
+	log.Info("WebSocket system initialized",
+		zap.String("order_stream", "/ws/orders"),
+		zap.String("trade_stream", "/ws/trades"),
+		zap.String("market_stream", "/ws/markets/{symbol}"),
+	)
+
 	// Create HTTP router
-	router := server.NewRouter(log, db, redisClient, cfg)
+	router := server.NewRouter(log, db, redisClient, matchingEngine, cfg, connectionManager)
 
 	// Create HTTP server
 	httpServer := &http.Server{
@@ -97,6 +125,11 @@ func main() {
 	if err := httpServer.Shutdown(ctx); err != nil {
 		log.Error("HTTP server forced to shutdown", zap.Error(err))
 	}
+
+	// Stop WebSocket system
+	log.Info("Shutting down WebSocket system...")
+	publisher.Stop()
+	connectionManager.Stop()
 
 	log.Info("Trade Engine service stopped gracefully")
 }

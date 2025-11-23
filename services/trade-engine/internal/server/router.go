@@ -10,14 +10,16 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
+	"github.com/mytrader/trade-engine/internal/matching"
 	"github.com/mytrader/trade-engine/internal/repository"
 	"github.com/mytrader/trade-engine/internal/service"
+	ws "github.com/mytrader/trade-engine/internal/websocket"
 	"github.com/mytrader/trade-engine/pkg/clients/wallet"
 	"github.com/mytrader/trade-engine/pkg/config"
 )
 
 // NewRouter creates a new HTTP router with all routes and middleware configured
-func NewRouter(logger *zap.Logger, db *gorm.DB, redis *redis.Client, cfg *config.Config) http.Handler {
+func NewRouter(logger *zap.Logger, db *gorm.DB, redis *redis.Client, matchingEngine *matching.MatchingEngine, cfg *config.Config, connectionManager *ws.ConnectionManager) http.Handler {
 	r := chi.NewRouter()
 
 	// Create handler with dependencies
@@ -50,12 +52,19 @@ func NewRouter(logger *zap.Logger, db *gorm.DB, redis *redis.Client, cfg *config
 
 	// Create repositories
 	orderRepo := repository.NewPostgresOrderRepository(db, logger)
+	tradeRepo := repository.NewPostgresTradeRepository(db, logger)
 
-	// Create services
-	orderService := service.NewOrderService(orderRepo, walletClient, logger)
+	// Create services with matching engine
+	orderService := service.NewOrderService(orderRepo, tradeRepo, matchingEngine, walletClient, logger)
 
-	// Create order handler
+	// Create handlers
 	orderHandler := NewOrderHandler(orderService, logger)
+	orderbookHandler := NewOrderBookHandler(matchingEngine, logger)
+	tradeHandler := NewTradeHandler(tradeRepo, logger)
+	marketHandler := NewMarketHandler(matchingEngine, tradeRepo, logger)
+
+	// Create WebSocket handler
+	wsHandler := NewWebSocketHandler(connectionManager, logger)
 
 	// Global middleware
 	r.Use(RequestIDMiddleware)
@@ -72,6 +81,14 @@ func NewRouter(logger *zap.Logger, db *gorm.DB, redis *redis.Client, cfg *config
 	r.Get("/health", h.Health)
 	r.Get("/ready", h.Ready)
 
+	// WebSocket endpoints
+	r.Route("/ws", func(r chi.Router) {
+		r.Get("/", wsHandler.HandleGeneralStream)                      // Generic WebSocket with manual subscription
+		r.Get("/orders", wsHandler.HandleOrdersStream)                 // Order updates stream
+		r.Get("/trades", wsHandler.HandleTradesStream)                 // Trade executions stream
+		r.Get("/markets/{symbol}", wsHandler.HandleMarketStream)       // Market data (order book) stream
+	})
+
 	// API routes
 	r.Route("/api/v1", func(r chi.Router) {
 		// Order endpoints
@@ -81,6 +98,16 @@ func NewRouter(logger *zap.Logger, db *gorm.DB, redis *redis.Client, cfg *config
 			r.Get("/{id}", orderHandler.GetOrder)         // GET /api/v1/orders/{id}
 			r.Delete("/{id}", orderHandler.CancelOrder)   // DELETE /api/v1/orders/{id}
 		})
+
+		// Order book endpoints
+		r.Get("/orderbook/{symbol}", orderbookHandler.GetOrderBook) // GET /api/v1/orderbook/BTC-USDT
+
+		// Trade endpoints
+		r.Get("/trades", tradeHandler.ListTrades)                   // GET /api/v1/trades?symbol=BTC-USDT
+		r.Get("/trades/{id}", tradeHandler.GetTrade)                // GET /api/v1/trades/{id}
+
+		// Market data endpoints
+		r.Get("/markets/{symbol}/ticker", marketHandler.GetTicker)  // GET /api/v1/markets/BTC-USDT/ticker
 	})
 
 	return r
