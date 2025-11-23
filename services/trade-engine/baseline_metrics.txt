@@ -1,0 +1,20 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/mytrader/trade-engine/benchmarks
+cpu: Apple M5
+BenchmarkMatchingEngine_PlaceOrder_Market-10             	 1425792	      4345 ns/op	   11355 B/op	      97 allocs/op
+BenchmarkMatchingEngine_PlaceOrder_Limit_Immediate-10    	 1335963	      4490 ns/op	   11555 B/op	     105 allocs/op
+BenchmarkMatchingEngine_PlaceOrder_Limit_ToBook-10       	 4083024	      1901 ns/op	    1115 B/op	      33 allocs/op
+BenchmarkOrderBook_AddOrder-10                           	 5036092	      1295 ns/op	     791 B/op	      23 allocs/op
+BenchmarkOrderBook_RemoveOrder-10                        	 1000000	     61643 ns/op	     168 B/op	       7 allocs/op
+BenchmarkOrderBook_GetBestBid-10                         	1000000000	         4.089 ns/op	       0 B/op	       0 allocs/op
+BenchmarkOrderBook_GetBestAsk-10                         	1000000000	         3.882 ns/op	       0 B/op	       0 allocs/op
+BenchmarkOrderBook_GetDepth-10                           	 1411224	      4317 ns/op	    3489 B/op	     243 allocs/op
+BenchmarkOrderBook_UpdateOrder-10                        	16851782	       360.2 ns/op	     128 B/op	       5 allocs/op
+BenchmarkMatchingEngine_MultiLevel_5Levels-10            	  103880	     58258 ns/op	   69540 B/op	    2144 allocs/op
+BenchmarkMatchingEngine_MultiLevel_10Levels-10           	   52164	    115672 ns/op	  138881 B/op	    4280 allocs/op
+BenchmarkMatchingEngine_CancelOrder-10                   	 1000000	     61403 ns/op	     192 B/op	       8 allocs/op
+BenchmarkMatchingEngine_HFT_BuySell-10                   	 3634719	      1680 ns/op	    1804 B/op	      56 allocs/op
+BenchmarkMatchingEngine_MultiSymbol-10                   	 4135876	      1552 ns/op	    1108 B/op	      31 allocs/op
+BenchmarkMatchingEngine_RealisticMix-10                  	 2122836	      3134 ns/op	    2813 B/op	      72 allocs/op
+BenchmarkTrade_Creation-10                               	

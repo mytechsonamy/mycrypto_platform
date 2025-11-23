@@ -21,29 +21,31 @@ COMMENT ON COLUMN trades.is_buyer_maker IS 'True if buyer was maker (in order bo
 -- =============================================================================
 -- PART 2: ADDITIONAL PERFORMANCE INDEXES
 -- =============================================================================
+-- Note: CONCURRENTLY cannot be used with partitioned tables in CREATE INDEX
+-- These indexes will be created on the parent table and inherited by partitions
 
 -- Composite index for order lookup (both buyer and seller)
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_trades_buyer_order
+CREATE INDEX IF NOT EXISTS idx_trades_buyer_order
     ON trades(buy_order_id)
     WHERE buy_order_id IS NOT NULL;
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_trades_seller_order
+CREATE INDEX IF NOT EXISTS idx_trades_seller_order
     ON trades(sell_order_id)
     WHERE sell_order_id IS NOT NULL;
 
 -- Composite index for user trade history with fees
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_trades_buyer_user_executed
+CREATE INDEX IF NOT EXISTS idx_trades_buyer_user_executed
     ON trades(buyer_user_id, executed_at DESC);
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_trades_seller_user_executed
+CREATE INDEX IF NOT EXISTS idx_trades_seller_user_executed
     ON trades(seller_user_id, executed_at DESC);
 
 -- Composite index for volume analysis (symbol, time, volume data)
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_trades_symbol_time_volume
+CREATE INDEX IF NOT EXISTS idx_trades_symbol_time_volume
     ON trades(symbol, executed_at, quantity, price);
 
 -- Index for maker/taker analysis
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_trades_maker_flag
+CREATE INDEX IF NOT EXISTS idx_trades_maker_flag
     ON trades(is_buyer_maker, executed_at DESC);
 
 -- =============================================================================
@@ -456,31 +458,32 @@ CREATE STATISTICS IF NOT EXISTS trades_user_time_stats
 -- View: Partition information and sizes
 CREATE OR REPLACE VIEW v_trade_partition_info AS
 SELECT
-    schemaname,
-    tablename AS partition_name,
-    pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS size,
-    (SELECT COUNT(*) FROM pg_class WHERE relname = tablename) AS row_estimate,
-    obj_description((schemaname||'.'||tablename)::regclass) AS description
-FROM pg_tables
-WHERE tablename LIKE 'trades_%'
-  AND schemaname = 'public'
-ORDER BY tablename DESC;
+    pt.schemaname,
+    pt.tablename AS partition_name,
+    pg_size_pretty(pg_total_relation_size((pt.schemaname||'.'||pt.tablename)::regclass)) AS size,
+    COALESCE(c.reltuples::BIGINT, 0) AS row_estimate,
+    obj_description((pt.schemaname||'.'||pt.tablename)::regclass) AS description
+FROM pg_tables pt
+LEFT JOIN pg_class c ON c.relname = pt.tablename
+WHERE pt.tablename LIKE 'trades_%'
+  AND pt.schemaname = 'public'
+ORDER BY pt.tablename DESC;
 
 COMMENT ON VIEW v_trade_partition_info IS 'Monitor trade partition sizes and row counts';
 
 -- View: Trade Index Usage Statistics
 CREATE OR REPLACE VIEW v_trade_index_usage AS
 SELECT
-    schemaname,
-    tablename,
-    indexname,
-    idx_scan AS scans,
-    idx_tup_read AS tuples_read,
-    idx_tup_fetch AS tuples_fetched,
-    pg_size_pretty(pg_relation_size(indexrelid)) AS index_size
-FROM pg_stat_user_indexes
-WHERE tablename LIKE 'trades%'
-ORDER BY idx_scan DESC;
+    sui.schemaname,
+    sui.relname AS tablename,
+    sui.indexrelname AS indexname,
+    sui.idx_scan AS scans,
+    sui.idx_tup_read AS tuples_read,
+    sui.idx_tup_fetch AS tuples_fetched,
+    pg_size_pretty(pg_relation_size(sui.indexrelid)) AS index_size
+FROM pg_stat_user_indexes sui
+WHERE sui.relname LIKE 'trades%'
+ORDER BY sui.idx_scan DESC;
 
 COMMENT ON VIEW v_trade_index_usage IS 'Monitor trade index usage and effectiveness';
 

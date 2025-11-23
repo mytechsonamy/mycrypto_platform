@@ -45,13 +45,16 @@ const (
 	OrderStatusFilled          OrderStatus = "FILLED"
 	OrderStatusCancelled       OrderStatus = "CANCELLED"
 	OrderStatusRejected        OrderStatus = "REJECTED"
+	OrderStatusPendingTrigger  OrderStatus = "PENDING_TRIGGER" // For stop orders waiting to trigger
+	OrderStatusTriggered       OrderStatus = "TRIGGERED"        // For stop orders that have triggered
 )
 
 // IsValid validates the OrderStatus
 func (s OrderStatus) IsValid() bool {
 	switch s {
 	case OrderStatusPending, OrderStatusOpen, OrderStatusPartiallyFilled,
-		OrderStatusFilled, OrderStatusCancelled, OrderStatusRejected:
+		OrderStatusFilled, OrderStatusCancelled, OrderStatusRejected,
+		OrderStatusPendingTrigger, OrderStatusTriggered:
 		return true
 	default:
 		return false
@@ -90,12 +93,14 @@ type Order struct {
 	Price           *decimal.Decimal `json:"price,omitempty" gorm:"type:decimal(20,8)"`
 	StopPrice       *decimal.Decimal `json:"stop_price,omitempty" gorm:"type:decimal(20,8)"`
 	TimeInForce     TimeInForce      `json:"time_in_force" gorm:"type:varchar(10);default:'GTC'"`
+	PostOnly        bool             `json:"post_only" gorm:"default:false"`
 	ClientOrderID   *string          `json:"client_order_id,omitempty" gorm:"size:100;uniqueIndex:idx_client_order"`
 	ReservationID   *uuid.UUID       `json:"reservation_id,omitempty" gorm:"type:uuid"`
 	CreatedAt       time.Time        `json:"created_at" gorm:"not null"`
 	UpdatedAt       time.Time        `json:"updated_at" gorm:"not null"`
 	FilledAt        *time.Time       `json:"filled_at,omitempty"`
 	CancelledAt     *time.Time       `json:"cancelled_at,omitempty"`
+	TriggeredAt     *time.Time       `json:"triggered_at,omitempty"`
 }
 
 // TableName specifies the table name for the Order model
@@ -105,19 +110,21 @@ func (Order) TableName() string {
 
 // Domain errors
 var (
-	ErrInvalidQuantity   = errors.New("quantity must be greater than 0")
-	ErrInvalidPrice      = errors.New("price must be greater than 0 for limit orders")
-	ErrInvalidStopPrice  = errors.New("stop price must be greater than 0 for stop orders")
-	ErrInvalidSide       = errors.New("invalid order side")
-	ErrInvalidType       = errors.New("invalid order type")
-	ErrInvalidStatus     = errors.New("invalid order status")
-	ErrInvalidTimeInForce = errors.New("invalid time in force")
-	ErrInvalidSymbol     = errors.New("invalid symbol")
-	ErrMarketOrderPrice  = errors.New("market orders cannot have a price")
-	ErrLimitOrderNoPrice = errors.New("limit orders must have a price")
-	ErrStopOrderNoPrice  = errors.New("stop orders must have a stop price")
-	ErrOrderNotCancellable = errors.New("order cannot be cancelled in current status")
-	ErrOrderAlreadyFilled = errors.New("order is already filled")
+	ErrInvalidQuantity       = errors.New("quantity must be greater than 0")
+	ErrInvalidPrice          = errors.New("price must be greater than 0 for limit orders")
+	ErrInvalidStopPrice      = errors.New("stop price must be greater than 0 for stop orders")
+	ErrInvalidSide           = errors.New("invalid order side")
+	ErrInvalidType           = errors.New("invalid order type")
+	ErrInvalidStatus         = errors.New("invalid order status")
+	ErrInvalidTimeInForce    = errors.New("invalid time in force")
+	ErrInvalidSymbol         = errors.New("invalid symbol")
+	ErrMarketOrderPrice      = errors.New("market orders cannot have a price")
+	ErrLimitOrderNoPrice     = errors.New("limit orders must have a price")
+	ErrStopOrderNoPrice      = errors.New("stop orders must have a stop price")
+	ErrOrderNotCancellable   = errors.New("order cannot be cancelled in current status")
+	ErrOrderAlreadyFilled    = errors.New("order is already filled")
+	ErrPostOnlyMarketOrder   = errors.New("post-only is not allowed for market orders")
+	ErrPostOnlyWithIOCOrFOK  = errors.New("post-only cannot be combined with IOC or FOK")
 )
 
 // Validate validates the order fields
@@ -158,6 +165,10 @@ func (o *Order) Validate() error {
 		if o.Price != nil {
 			return ErrMarketOrderPrice
 		}
+		// Market orders cannot be post-only
+		if o.PostOnly {
+			return ErrPostOnlyMarketOrder
+		}
 	case OrderTypeLimit:
 		if o.Price == nil || o.Price.LessThanOrEqual(decimal.Zero) {
 			return ErrLimitOrderNoPrice
@@ -165,6 +176,13 @@ func (o *Order) Validate() error {
 	case OrderTypeStop:
 		if o.StopPrice == nil || o.StopPrice.LessThanOrEqual(decimal.Zero) {
 			return ErrStopOrderNoPrice
+		}
+	}
+
+	// Validate post-only constraints
+	if o.PostOnly {
+		if o.TimeInForce == TimeInForceIOC || o.TimeInForce == TimeInForceFOK {
+			return ErrPostOnlyWithIOCOrFOK
 		}
 	}
 
@@ -188,7 +206,10 @@ func (o *Order) IsPartiallyFilled() bool {
 
 // CanBeCancelled returns true if the order can be cancelled
 func (o *Order) CanBeCancelled() bool {
-	return o.Status == OrderStatusOpen || o.Status == OrderStatusPartiallyFilled || o.Status == OrderStatusPending
+	return o.Status == OrderStatusOpen ||
+		o.Status == OrderStatusPartiallyFilled ||
+		o.Status == OrderStatusPending ||
+		o.Status == OrderStatusPendingTrigger
 }
 
 // CanBeMatched returns true if the order can be matched

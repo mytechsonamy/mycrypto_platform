@@ -1,0 +1,9 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/mytrader/trade-engine/benchmarks
+cpu: Apple M5
+BenchmarkMatchingEngine_PlaceOrder_Market-10             	  587458	      4280 ns/op	   11352 B/op	      97 allocs/op
+BenchmarkMatchingEngine_PlaceOrder_Limit_Immediate-10    	  563145	      4540 ns/op	   11551 B/op	     105 allocs/op
+BenchmarkMatchingEngine_PlaceOrder_Limit_ToBook-10       	 1523776	      1520 ns/op	    1072 B/op	      33 allocs/op
+PASS
+ok  	github.com/mytrader/trade-engine/benchmarks	9.373s

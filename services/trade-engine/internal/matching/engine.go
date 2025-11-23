@@ -23,15 +23,16 @@ import (
 
 // Error definitions
 var (
-	ErrInvalidOrder        = errors.New("invalid order")
-	ErrInvalidQuantity     = errors.New("quantity must be greater than 0")
-	ErrInvalidPrice        = errors.New("price must be greater than 0 for limit orders")
-	ErrInvalidSymbol       = errors.New("invalid or empty symbol")
-	ErrUnsupportedOrderType = errors.New("unsupported order type")
-	ErrOrderNotFound       = errors.New("order not found")
-	ErrCannotCancelOrder   = errors.New("order cannot be cancelled in current status")
-	ErrFOKNotFilled        = errors.New("FOK order could not be filled completely")
+	ErrInvalidOrder          = errors.New("invalid order")
+	ErrInvalidQuantity       = errors.New("quantity must be greater than 0")
+	ErrInvalidPrice          = errors.New("price must be greater than 0 for limit orders")
+	ErrInvalidSymbol         = errors.New("invalid or empty symbol")
+	ErrUnsupportedOrderType  = errors.New("unsupported order type")
+	ErrOrderNotFound         = errors.New("order not found")
+	ErrCannotCancelOrder     = errors.New("order cannot be cancelled in current status")
+	ErrFOKNotFilled          = errors.New("FOK order could not be filled completely")
 	ErrInsufficientLiquidity = errors.New("insufficient liquidity to fill market order")
+	ErrPostOnlyWouldMatch    = errors.New("post-only order would match immediately")
 )
 
 // MatchingEngine manages order books for multiple trading symbols and executes trades
@@ -57,6 +58,9 @@ type MatchingEngine struct {
 	// Order books mapped by symbol (e.g., "BTC/USDT" -> OrderBook)
 	orderBooks map[string]*orderbook.OrderBook
 	mu         sync.RWMutex
+
+	// Stop order manager for managing stop orders
+	stopOrderManager *StopOrderManager
 
 	// Fee configuration (as decimal percentages)
 	makerFeeRate decimal.Decimal // Default: 0.0005 (0.05%)
@@ -84,9 +88,10 @@ type EngineStatistics struct {
 // NewMatchingEngine creates a new matching engine with default configuration
 func NewMatchingEngine() *MatchingEngine {
 	return &MatchingEngine{
-		orderBooks:   make(map[string]*orderbook.OrderBook),
-		makerFeeRate: decimal.NewFromFloat(0.0005), // 0.05%
-		takerFeeRate: decimal.NewFromFloat(0.0010), // 0.10%
+		orderBooks:       make(map[string]*orderbook.OrderBook),
+		stopOrderManager: NewStopOrderManager(),
+		makerFeeRate:     decimal.NewFromFloat(0.0005), // 0.05%
+		takerFeeRate:     decimal.NewFromFloat(0.0010), // 0.10%
 		stats: &EngineStatistics{
 			TotalVolume:    decimal.Zero,
 			TotalFees:      decimal.Zero,
@@ -148,7 +153,40 @@ func (me *MatchingEngine) PlaceOrder(order *domain.Order) ([]*domain.Trade, erro
 	// 3. Get or create order book for symbol
 	ob := me.getOrCreateOrderBook(order.Symbol)
 
-	// 4. Match order based on type
+	// 4. Handle stop orders (store them, don't match immediately)
+	if order.Type == domain.OrderTypeStop {
+		// Stop orders are stored in the stop order manager, not matched immediately
+		order.Status = domain.OrderStatusPendingTrigger
+		if err := me.stopOrderManager.AddStopOrder(order); err != nil {
+			order.Status = domain.OrderStatusRejected
+			if me.onOrderUpdate != nil {
+				me.onOrderUpdate(order)
+			}
+			return nil, err
+		}
+
+		// Trigger order update callback
+		if me.onOrderUpdate != nil {
+			me.onOrderUpdate(order)
+		}
+
+		// Return empty trades array (stop order doesn't execute yet)
+		return []*domain.Trade{}, nil
+	}
+
+	// 5. Check post-only constraint BEFORE matching
+	if order.PostOnly && order.Type == domain.OrderTypeLimit {
+		if me.checkPostOnlyWouldMatch(order, ob) {
+			// Post-only order would match immediately, reject it
+			order.Status = domain.OrderStatusRejected
+			if me.onOrderUpdate != nil {
+				me.onOrderUpdate(order)
+			}
+			return nil, ErrPostOnlyWouldMatch
+		}
+	}
+
+	// 6. Match order based on type
 	var trades []*domain.Trade
 	var err error
 
@@ -169,25 +207,31 @@ func (me *MatchingEngine) PlaceOrder(order *domain.Order) ([]*domain.Trade, erro
 		return trades, err
 	}
 
-	// 5. Update order status based on fill
+	// 7. Update order status based on fill
 	if order.IsFilled() {
 		order.Status = domain.OrderStatusFilled
 	} else if order.IsPartiallyFilled() {
 		order.Status = domain.OrderStatusPartiallyFilled
 	}
 
-	// 6. Update statistics
+	// 8. Update statistics
 	me.updateStatistics(trades, order)
 
-	// 7. Trigger order update callback
+	// 9. Trigger order update callback
 	if me.onOrderUpdate != nil {
 		me.onOrderUpdate(order)
+	}
+
+	// 10. Check if any stop orders should be triggered based on trade prices
+	if len(trades) > 0 {
+		lastTradePrice := trades[len(trades)-1].Price
+		me.triggerStopOrders(lastTradePrice, order.Symbol)
 	}
 
 	return trades, nil
 }
 
-// CancelOrder cancels an open order in the order book
+// CancelOrder cancels an open order in the order book or stop order manager
 //
 // Parameters:
 //   - orderID: UUID of the order to cancel
@@ -195,6 +239,26 @@ func (me *MatchingEngine) PlaceOrder(order *domain.Order) ([]*domain.Trade, erro
 //
 // Returns error if order not found or cannot be cancelled
 func (me *MatchingEngine) CancelOrder(orderID uuid.UUID, symbol string) error {
+	// First check if it's a stop order
+	stopOrder := me.stopOrderManager.GetStopOrder(orderID)
+	if stopOrder != nil {
+		// It's a stop order, remove from stop order manager
+		me.stopOrderManager.RemoveStopOrder(orderID)
+
+		// Update order status
+		if err := stopOrder.Cancel(); err != nil {
+			return err
+		}
+
+		// Trigger callback
+		if me.onOrderUpdate != nil {
+			me.onOrderUpdate(stopOrder)
+		}
+
+		return nil
+	}
+
+	// Not a stop order, try to find in order book
 	ob := me.getOrCreateOrderBook(symbol)
 
 	// Get order from order book
@@ -238,9 +302,13 @@ func (me *MatchingEngine) CancelOrder(orderID uuid.UUID, symbol string) error {
 //
 // For FOK (Fill-or-Kill) orders, the entire order must fill or it's rejected.
 //
+// OPTIMIZATION: Pre-allocates trade slice to reduce reallocations
+//
 // Complexity: O(k * log n) where k is matched orders, n is price levels
 func (me *MatchingEngine) matchMarketOrder(order *domain.Order, ob *orderbook.OrderBook) ([]*domain.Trade, error) {
-	trades := make([]*domain.Trade, 0)
+	// OPTIMIZATION: Pre-allocate trades slice with estimated capacity
+	// Most market orders match against 1-5 orders, rarely more than 20
+	trades := make([]*domain.Trade, 0, 5)
 	remaining := order.Quantity
 
 	// Determine opposite side to match against
@@ -249,6 +317,32 @@ func (me *MatchingEngine) matchMarketOrder(order *domain.Order, ob *orderbook.Or
 		getBestLevel = ob.GetBestAsk // Buy against sell orders
 	} else {
 		getBestLevel = ob.GetBestBid // Sell against buy orders
+	}
+
+	// For FOK orders, pre-check if sufficient liquidity exists
+	if order.TimeInForce == domain.TimeInForceFOK {
+		availableLiquidity := decimal.Zero
+		depth := ob.GetDepth(100) // Check up to 100 levels
+
+		var levels []orderbook.PriceLevelSnapshot
+		if order.Side == domain.OrderSideBuy {
+			levels = depth.Asks
+		} else {
+			levels = depth.Bids
+		}
+
+		for _, level := range levels {
+			vol, _ := decimal.NewFromString(level.Volume)
+			availableLiquidity = availableLiquidity.Add(vol)
+			if availableLiquidity.GreaterThanOrEqual(order.Quantity) {
+				break
+			}
+		}
+
+		if availableLiquidity.LessThan(order.Quantity) {
+			// Insufficient liquidity for FOK
+			return nil, ErrFOKNotFilled
+		}
 	}
 
 	// Keep matching until order filled or book exhausted
@@ -261,7 +355,10 @@ func (me *MatchingEngine) matchMarketOrder(order *domain.Order, ob *orderbook.Or
 		}
 
 		// Match against orders at this price level (FIFO order - time priority)
-		matchedOrders := level.Orders
+		// Make a copy since updating the book modifies the underlying slice
+		matchedOrders := make([]*domain.Order, len(level.Orders))
+		copy(matchedOrders, level.Orders)
+
 		if len(matchedOrders) == 0 {
 			break
 		}
@@ -298,12 +395,6 @@ func (me *MatchingEngine) matchMarketOrder(order *domain.Order, ob *orderbook.Or
 		}
 	}
 
-	// Check Fill-or-Kill constraint
-	if order.TimeInForce == domain.TimeInForceFOK && remaining.IsPositive() {
-		// FOK order could not fill completely - reject it
-		return nil, ErrFOKNotFilled
-	}
-
 	return trades, nil
 }
 
@@ -320,9 +411,13 @@ func (me *MatchingEngine) matchMarketOrder(order *domain.Order, ob *orderbook.Or
 //   - IOC (Immediate-or-Cancel): Match immediately, cancel unfilled portion
 //   - FOK (Fill-or-Kill): Fill completely or reject entire order
 //
+// OPTIMIZATION: Pre-allocates trade slice to reduce reallocations
+//
 // Complexity: O(k * log n) where k is matched orders, n is price levels
 func (me *MatchingEngine) matchLimitOrder(order *domain.Order, ob *orderbook.OrderBook) ([]*domain.Trade, error) {
-	trades := make([]*domain.Trade, 0)
+	// OPTIMIZATION: Pre-allocate trades slice
+	// Limit orders typically match 0-3 orders when crossing
+	trades := make([]*domain.Trade, 0, 3)
 	remaining := order.Quantity
 
 	// Determine matching conditions based on order side
@@ -343,6 +438,36 @@ func (me *MatchingEngine) matchLimitOrder(order *domain.Order, ob *orderbook.Ord
 		}
 	}
 
+	// For FOK orders, pre-check if we can fill completely
+	if order.TimeInForce == domain.TimeInForceFOK {
+		availableLiquidity := decimal.Zero
+		depth := ob.GetDepth(100)
+
+		var levels []orderbook.PriceLevelSnapshot
+		if order.Side == domain.OrderSideBuy {
+			levels = depth.Asks
+		} else {
+			levels = depth.Bids
+		}
+
+		for _, level := range levels {
+			levelPrice, _ := decimal.NewFromString(level.Price)
+			if !canMatch(levelPrice) {
+				break // Price doesn't cross, stop
+			}
+			vol, _ := decimal.NewFromString(level.Volume)
+			availableLiquidity = availableLiquidity.Add(vol)
+			if availableLiquidity.GreaterThanOrEqual(order.Quantity) {
+				break
+			}
+		}
+
+		if availableLiquidity.LessThan(order.Quantity) {
+			// Insufficient liquidity for FOK
+			return nil, ErrFOKNotFilled
+		}
+	}
+
 	// PHASE 1: TAKER - Try to match against existing orders
 	for remaining.IsPositive() {
 		level, err := getBestLevel()
@@ -352,7 +477,10 @@ func (me *MatchingEngine) matchLimitOrder(order *domain.Order, ob *orderbook.Ord
 		}
 
 		// Match against orders at this level (FIFO - time priority)
-		matchedOrders := level.Orders
+		// Make a copy since updating the book modifies the underlying slice
+		matchedOrders := make([]*domain.Order, len(level.Orders))
+		copy(matchedOrders, level.Orders)
+
 		if len(matchedOrders) == 0 {
 			break
 		}
@@ -395,20 +523,16 @@ func (me *MatchingEngine) matchLimitOrder(order *domain.Order, ob *orderbook.Ord
 			// Immediate-or-Cancel: Don't add to book, return partial fill
 			return trades, nil
 
-		case domain.TimeInForceFOK:
-			// Fill-or-Kill: Must fill completely
-			if len(trades) == 0 {
-				// No fills at all
-				return nil, ErrFOKNotFilled
-			}
-			// Partial fill - reject
-			return nil, ErrFOKNotFilled
-
 		case domain.TimeInForceGTC:
 			// Good-Till-Cancel: Add to book as maker
 			if err := ob.AddOrder(order); err != nil {
 				return trades, fmt.Errorf("failed to add order to book: %w", err)
 			}
+
+		case domain.TimeInForceFOK:
+			// FOK should have been handled in pre-check above
+			// This shouldn't happen since we validated upfront
+			return nil, ErrFOKNotFilled
 		}
 	}
 
@@ -416,6 +540,8 @@ func (me *MatchingEngine) matchLimitOrder(order *domain.Order, ob *orderbook.Ord
 }
 
 // createTrade creates a trade record from two matching orders
+//
+// OPTIMIZATION: Uses object pooling to reduce GC pressure
 //
 // Parameters:
 //   - incomingOrder: The aggressive order (taker)
@@ -430,13 +556,15 @@ func (me *MatchingEngine) createTrade(
 	price, quantity decimal.Decimal,
 	isIncomingMaker bool,
 ) *domain.Trade {
-	trade := &domain.Trade{
-		ID:         uuid.New(),
-		Symbol:     incomingOrder.Symbol,
-		Price:      price,
-		Quantity:   quantity,
-		ExecutedAt: time.Now(),
-	}
+	// OPTIMIZATION: Acquire trade object from pool instead of allocating
+	trade := AcquireTradeObject()
+
+	// Initialize trade fields
+	trade.ID = uuid.New()
+	trade.Symbol = incomingOrder.Symbol
+	trade.Price = price
+	trade.Quantity = quantity
+	trade.ExecutedAt = time.Now()
 
 	// Determine buyer and seller based on incoming order side
 	if incomingOrder.Side == domain.OrderSideBuy {
@@ -575,4 +703,74 @@ func (me *MatchingEngine) GetStatistics() *EngineStatistics {
 // GetOrderBook returns the order book for a symbol (for testing/debugging)
 func (me *MatchingEngine) GetOrderBook(symbol string) *orderbook.OrderBook {
 	return me.getOrCreateOrderBook(symbol)
+}
+
+// checkPostOnlyWouldMatch checks if a post-only order would immediately match
+//
+// Returns true if the order would match (should be rejected), false otherwise
+func (me *MatchingEngine) checkPostOnlyWouldMatch(order *domain.Order, ob *orderbook.OrderBook) bool {
+	if order.Side == domain.OrderSideBuy {
+		// Check if any sell orders at or below our buy price exist
+		bestAsk, err := ob.GetBestAsk()
+		if err != nil || bestAsk == nil {
+			return false // No ask orders, won't match
+		}
+		// Would match if best ask <= our buy price
+		return bestAsk.Price.LessThanOrEqual(*order.Price)
+	} else {
+		// Check if any buy orders at or above our sell price exist
+		bestBid, err := ob.GetBestBid()
+		if err != nil || bestBid == nil {
+			return false // No bid orders, won't match
+		}
+		// Would match if best bid >= our sell price
+		return bestBid.Price.GreaterThanOrEqual(*order.Price)
+	}
+}
+
+// triggerStopOrders checks if any stop orders should be triggered and processes them
+//
+// Parameters:
+//   - currentPrice: Current market price (from last trade)
+//   - symbol: Trading symbol
+func (me *MatchingEngine) triggerStopOrders(currentPrice decimal.Decimal, symbol string) {
+	// Get triggered stop orders
+	triggeredOrders := me.stopOrderManager.CheckTriggers(currentPrice)
+
+	// Process each triggered order
+	for _, order := range triggeredOrders {
+		// Only process orders for the current symbol
+		if order.Symbol != symbol {
+			continue
+		}
+
+		// Convert stop order to market order
+		order.Type = domain.OrderTypeMarket
+		order.Status = domain.OrderStatusOpen
+		order.Price = nil // Market orders don't have a price
+
+		// Set triggered timestamp
+		now := time.Now()
+		order.TriggeredAt = &now
+
+		// Place the triggered order as a market order
+		trades, err := me.PlaceOrder(order)
+		if err != nil {
+			// Log error but continue processing other triggered orders
+			// In production, this should be logged properly
+			continue
+		}
+
+		// Trigger callbacks for trades
+		for _, trade := range trades {
+			if me.onTrade != nil {
+				me.onTrade(trade)
+			}
+		}
+	}
+}
+
+// GetStopOrderManager returns the stop order manager (for testing/debugging)
+func (me *MatchingEngine) GetStopOrderManager() *StopOrderManager {
+	return me.stopOrderManager
 }

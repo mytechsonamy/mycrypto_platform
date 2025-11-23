@@ -45,12 +45,12 @@ DROP VIEW IF EXISTS v_recent_trades CASCADE;
 -- PART 6: DROP ADDITIONAL INDEXES
 -- =============================================================================
 
-DROP INDEX CONCURRENTLY IF EXISTS idx_trades_maker_flag;
-DROP INDEX CONCURRENTLY IF EXISTS idx_trades_symbol_time_volume;
-DROP INDEX CONCURRENTLY IF EXISTS idx_trades_seller_user_executed;
-DROP INDEX CONCURRENTLY IF EXISTS idx_trades_buyer_user_executed;
-DROP INDEX CONCURRENTLY IF EXISTS idx_trades_seller_order;
-DROP INDEX CONCURRENTLY IF EXISTS idx_trades_buyer_order;
+DROP INDEX IF EXISTS idx_trades_maker_flag;
+DROP INDEX IF EXISTS idx_trades_symbol_time_volume;
+DROP INDEX IF EXISTS idx_trades_seller_user_executed;
+DROP INDEX IF EXISTS idx_trades_buyer_user_executed;
+DROP INDEX IF EXISTS idx_trades_seller_order;
+DROP INDEX IF EXISTS idx_trades_buyer_order;
 
 -- =============================================================================
 -- PART 7: REMOVE COLUMNS FROM TRADES TABLE

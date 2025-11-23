@@ -1,0 +1,398 @@
+{
+  "info": {
+    "name": "Trade Engine E2E API Tests",
+    "description": "End-to-end integration tests for Trade Engine API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "1"
+  },
+  "item": [
+    {
+      "name": "Setup",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/markets/BTC-USDT/ticker",
+              "host": ["{{base_url}}"],
+              "path": ["markets", "BTC-USDT", "ticker"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC-001: Market Order Full Fill",
+      "item": [
+        {
+          "name": "User A - Place Limit Sell 1.0 BTC @ 50000",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{user_a_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTC-USDT\",\n  \"side\": \"SELL\",\n  \"type\": \"LIMIT\",\n  \"quantity\": \"1.0\",\n  \"price\": \"50000.00\",\n  \"time_in_force\": \"GTC\",\n  \"client_order_id\": \"tc001-sell-{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/orders",
+              "host": ["{{base_url}}"],
+              "path": ["orders"]
+            }
+          }
+        },
+        {
+          "name": "User B - Place Market Buy 1.0 BTC",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{user_b_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTC-USDT\",\n  \"side\": \"BUY\",\n  \"type\": \"MARKET\",\n  \"quantity\": \"1.0\",\n  \"client_order_id\": \"tc001-buy-{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/orders",
+              "host": ["{{base_url}}"],
+              "path": ["orders"]
+            }
+          }
+        },
+        {
+          "name": "Get Recent Trades",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/trades?symbol=BTC-USDT&limit=5",
+              "host": ["{{base_url}}"],
+              "path": ["trades"],
+              "query": [
+                {
+                  "key": "symbol",
+                  "value": "BTC-USDT"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC-002: Multi-Level Fill",
+      "item": [
+        {
+          "name": "User A - Place Limit Sell 0.5 BTC @ 50000",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{user_a_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTC-USDT\",\n  \"side\": \"SELL\",\n  \"type\": \"LIMIT\",\n  \"quantity\": \"0.5\",\n  \"price\": \"50000.00\",\n  \"time_in_force\": \"GTC\",\n  \"client_order_id\": \"tc002-sell1-{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/orders",
+              "host": ["{{base_url}}"],
+              "path": ["orders"]
+            }
+          }
+        },
+        {
+          "name": "User C - Place Limit Sell 0.5 BTC @ 50100",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{user_c_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTC-USDT\",\n  \"side\": \"SELL\",\n  \"type\": \"LIMIT\",\n  \"quantity\": \"0.5\",\n  \"price\": \"50100.00\",\n  \"time_in_force\": \"GTC\",\n  \"client_order_id\": \"tc002-sell2-{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/orders",
+              "host": ["{{base_url}}"],
+              "path": ["orders"]
+            }
+          }
+        },
+        {
+          "name": "User B - Place Market Buy 1.0 BTC",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{user_b_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTC-USDT\",\n  \"side\": \"BUY\",\n  \"type\": \"MARKET\",\n  \"quantity\": \"1.0\",\n  \"client_order_id\": \"tc002-buy-{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/orders",
+              "host": ["{{base_url}}"],
+              "path": ["orders"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "TC-003: Limit Order Immediate Match",
+      "item": [
+        {
+          "name": "User A - Place Limit Sell 2.0 BTC @ 49900",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{user_a_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTC-USDT\",\n  \"side\": \"SELL\",\n  \"type\": \"LIMIT\",\n  \"quantity\": \"2.0\",\n  \"price\": \"49900.00\",\n  \"time_in_force\": \"GTC\",\n  \"client_order_id\": \"tc003-sell-{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/orders",
+              "host": ["{{base_url}}"],
+              "path": ["orders"]
+            }
+          }
+        },
+        {
+          "name": "User B - Place Limit Buy 2.0 BTC @ 50000",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{user_b_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTC-USDT\",\n  \"side\": \"BUY\",\n  \"type\": \"LIMIT\",\n  \"quantity\": \"2.0\",\n  \"price\": \"50000.00\",\n  \"time_in_force\": \"GTC\",\n  \"client_order_id\": \"tc003-buy-{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/orders",
+              "host": ["{{base_url}}"],
+              "path": ["orders"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Market Data",
+      "item": [
+        {
+          "name": "Get Order Book",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/orderbook/BTC-USDT?depth=20",
+              "host": ["{{base_url}}"],
+              "path": ["orderbook", "BTC-USDT"],
+              "query": [
+                {
+                  "key": "depth",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Market Ticker",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/markets/BTC-USDT/ticker",
+              "host": ["{{base_url}}"],
+              "path": ["markets", "BTC-USDT", "ticker"]
+            }
+          }
+        },
+        {
+          "name": "Get Recent Trades",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/trades?symbol=BTC-USDT&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["trades"],
+              "query": [
+                {
+                  "key": "symbol",
+                  "value": "BTC-USDT"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error Scenarios",
+      "item": [
+        {
+          "name": "Invalid: Negative Quantity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{user_a_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTC-USDT\",\n  \"side\": \"BUY\",\n  \"type\": \"LIMIT\",\n  \"quantity\": \"-1.0\",\n  \"price\": \"50000.00\",\n  \"time_in_force\": \"GTC\",\n  \"client_order_id\": \"error-test-{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/orders",
+              "host": ["{{base_url}}"],
+              "path": ["orders"]
+            }
+          }
+        },
+        {
+          "name": "Invalid: Zero Price",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{user_a_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTC-USDT\",\n  \"side\": \"BUY\",\n  \"type\": \"LIMIT\",\n  \"quantity\": \"1.0\",\n  \"price\": \"0.00\",\n  \"time_in_force\": \"GTC\",\n  \"client_order_id\": \"error-test-{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/orders",
+              "host": ["{{base_url}}"],
+              "path": ["orders"]
+            }
+          }
+        },
+        {
+          "name": "Invalid: Bad Symbol",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "{{user_a_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"INVALID-XXX\",\n  \"side\": \"BUY\",\n  \"type\": \"LIMIT\",\n  \"quantity\": \"1.0\",\n  \"price\": \"50000.00\",\n  \"time_in_force\": \"GTC\",\n  \"client_order_id\": \"error-test-{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/orders",
+              "host": ["{{base_url}}"],
+              "path": ["orders"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "user_a_id",
+      "value": "550e8400-e29b-41d4-a716-446655440000",
+      "type": "string"
+    },
+    {
+      "key": "user_b_id",
+      "value": "660e8400-e29b-41d4-a716-446655440001",
+      "type": "string"
+    },
+    {
+      "key": "user_c_id",
+      "value": "770e8400-e29b-41d4-a716-446655440002",
+      "type": "string"
+    }
+  ]
+}

@@ -39,6 +39,7 @@ type PlaceOrderRequest struct {
 	Price         *string `json:"price,omitempty"`
 	StopPrice     *string `json:"stop_price,omitempty"`
 	TimeInForce   string  `json:"time_in_force" validate:"omitempty,oneof=GTC IOC FOK"`
+	PostOnly      bool    `json:"post_only"`
 	ClientOrderID *string `json:"client_order_id,omitempty" validate:"omitempty,max=100"`
 }
 
@@ -54,11 +55,35 @@ type OrderResponse struct {
 	Price           *string `json:"price,omitempty"`
 	StopPrice       *string `json:"stop_price,omitempty"`
 	TimeInForce     string  `json:"time_in_force"`
+	PostOnly        bool    `json:"post_only"`
 	ClientOrderID   *string `json:"client_order_id,omitempty"`
 	CreatedAt       string  `json:"created_at"`
 	UpdatedAt       string  `json:"updated_at"`
 	FilledAt        *string `json:"filled_at,omitempty"`
 	CancelledAt     *string `json:"cancelled_at,omitempty"`
+	TriggeredAt     *string `json:"triggered_at,omitempty"`
+}
+
+// PlaceOrderResponse represents the response from placing an order (includes trades)
+type PlaceOrderResponse struct {
+	Order  *OrderResponse   `json:"order"`
+	Trades []*TradeResponse `json:"trades,omitempty"`
+}
+
+// TradeResponse represents the HTTP response for a trade
+type TradeResponse struct {
+	ID             string `json:"id"`
+	Symbol         string `json:"symbol"`
+	Price          string `json:"price"`
+	Quantity       string `json:"quantity"`
+	BuyerOrderID   string `json:"buyer_order_id"`
+	SellerOrderID  string `json:"seller_order_id"`
+	BuyerUserID    string `json:"buyer_user_id"`
+	SellerUserID   string `json:"seller_user_id"`
+	BuyerFee       string `json:"buyer_fee"`
+	SellerFee      string `json:"seller_fee"`
+	IsBuyerMaker   bool   `json:"is_buyer_maker"`
+	ExecutedAt     string `json:"executed_at"`
 }
 
 // ErrorResponse represents an error response
@@ -112,14 +137,24 @@ func (h *OrderHandler) PlaceOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Place order
-	order, err := h.orderService.PlaceOrder(ctx, serviceReq)
+	resp, err := h.orderService.PlaceOrder(ctx, serviceReq)
 	if err != nil {
 		h.handleServiceError(w, err)
 		return
 	}
 
-	// Respond with created order
-	h.respondJSON(w, http.StatusCreated, h.toOrderResponse(order))
+	// Convert to HTTP response
+	orderResp := h.toOrderResponse(resp.Order)
+	trades := make([]*TradeResponse, len(resp.Trades))
+	for i, trade := range resp.Trades {
+		trades[i] = h.toTradeResponse(trade)
+	}
+
+	// Respond with created order and trades
+	h.respondJSON(w, http.StatusCreated, &PlaceOrderResponse{
+		Order:  orderResp,
+		Trades: trades,
+	})
 }
 
 // GetOrder godoc
@@ -309,6 +344,7 @@ func (h *OrderHandler) toServiceRequest(req *PlaceOrderRequest, userID uuid.UUID
 		Price:         price,
 		StopPrice:     stopPrice,
 		TimeInForce:   timeInForce,
+		PostOnly:      req.PostOnly,
 		ClientOrderID: req.ClientOrderID,
 	}, nil
 }
@@ -323,6 +359,7 @@ func (h *OrderHandler) toOrderResponse(order *domain.Order) *OrderResponse {
 		Quantity:       order.Quantity.String(),
 		FilledQuantity: order.FilledQuantity.String(),
 		TimeInForce:    string(order.TimeInForce),
+		PostOnly:       order.PostOnly,
 		ClientOrderID:  order.ClientOrderID,
 		CreatedAt:      order.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		UpdatedAt:      order.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
@@ -346,6 +383,11 @@ func (h *OrderHandler) toOrderResponse(order *domain.Order) *OrderResponse {
 	if order.CancelledAt != nil {
 		cancelledAtStr := order.CancelledAt.Format("2006-01-02T15:04:05Z07:00")
 		resp.CancelledAt = &cancelledAtStr
+	}
+
+	if order.TriggeredAt != nil {
+		triggeredAtStr := order.TriggeredAt.Format("2006-01-02T15:04:05Z07:00")
+		resp.TriggeredAt = &triggeredAtStr
 	}
 
 	return resp
@@ -433,5 +475,22 @@ func (h *OrderHandler) respondError(w http.ResponseWriter, status int, message s
 
 	if err := json.NewEncoder(w).Encode(errResp); err != nil {
 		h.logger.Error("Failed to encode error response", zap.Error(err))
+	}
+}
+
+func (h *OrderHandler) toTradeResponse(trade *domain.Trade) *TradeResponse {
+	return &TradeResponse{
+		ID:             trade.ID.String(),
+		Symbol:         trade.Symbol,
+		Price:          trade.Price.String(),
+		Quantity:       trade.Quantity.String(),
+		BuyerOrderID:   trade.BuyerOrderID.String(),
+		SellerOrderID:  trade.SellerOrderID.String(),
+		BuyerUserID:    trade.BuyerUserID.String(),
+		SellerUserID:   trade.SellerUserID.String(),
+		BuyerFee:       trade.BuyerFee.String(),
+		SellerFee:      trade.SellerFee.String(),
+		IsBuyerMaker:   trade.IsBuyerMaker,
+		ExecutedAt:     trade.ExecutedAt.Format("2006-01-02T15:04:05Z07:00"),
 	}
 }

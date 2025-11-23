@@ -56,12 +56,14 @@ func NewRouter(logger *zap.Logger, db *gorm.DB, redis *redis.Client, matchingEng
 
 	// Create services with matching engine
 	orderService := service.NewOrderService(orderRepo, tradeRepo, matchingEngine, walletClient, logger)
+	marketDataService := service.NewMarketDataService(tradeRepo, logger)
 
 	// Create handlers
 	orderHandler := NewOrderHandler(orderService, logger)
 	orderbookHandler := NewOrderBookHandler(matchingEngine, logger)
 	tradeHandler := NewTradeHandler(tradeRepo, logger)
 	marketHandler := NewMarketHandler(matchingEngine, tradeRepo, logger)
+	marketDataHandler := NewMarketDataHandler(marketDataService, logger)
 
 	// Create WebSocket handler
 	wsHandler := NewWebSocketHandler(connectionManager, logger)
@@ -108,6 +110,15 @@ func NewRouter(logger *zap.Logger, db *gorm.DB, redis *redis.Client, matchingEng
 
 		// Market data endpoints
 		r.Get("/markets/{symbol}/ticker", marketHandler.GetTicker)  // GET /api/v1/markets/BTC-USDT/ticker
+
+		// Market data - OHLCV candles
+		r.Get("/candles/{symbol}", marketDataHandler.GetCandles)  // GET /api/v1/candles/BTC-USDT
+
+		// Market data - Historical trades
+		r.Get("/historical/trades/{symbol}", marketDataHandler.GetHistoricalTrades)  // GET /api/v1/historical/trades/BTC-USDT
+
+		// Market data - 24h statistics
+		r.Get("/statistics/24h/{symbol}", marketDataHandler.Get24hStats)  // GET /api/v1/statistics/24h/BTC-USDT
 	})
 
 	return r
