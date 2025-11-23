@@ -1,0 +1,43 @@
+Flow 4: Cancel Order → Release Reserved Balance → Update Order Book → Notify User
+
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant G as API Gateway
+    participant TE as Trade Engine
+    participant ME as Matching Engine
+    participant DB as Postgres
+    participant K as Kafka
+    participant W as Wallet Service
+    participant N as Notification Service
+    participant WS as WebSocket
+
+    C->>G: DELETE /api/v1/orders/{order_id}
+    G->>TE: cancelOrder(order_id, user_id)
+
+    TE->>DB: SELECT order WHERE id = order_id AND user_id
+    DB-->>TE: order (status=OPEN/PARTIALLY_FILLED)
+
+    alt order can be cancelled
+        TE->>ME: removeFromOrderBook(order_id)
+        ME-->>TE: removed / updated
+
+        TE->>DB: UPDATE orders SET status=CANCELLED,<br/>cancelled_at=now()
+        DB-->>TE: success
+
+        TE->>W: POST /wallets/release (reserved_amount)
+        W-->>TE: 200 OK
+
+        TE->>K: publish ORDER_STATUS_CHANGED (CANCELLED)
+        TE-->>G: 200 OK
+        G-->>C: cancel result
+    else order already FILLED / CANCELLED / REJECTED
+        TE-->>G: 409 / 400 (cannot cancel)
+        G-->>C: error response
+    end
+
+    par Notify user
+        K-->>N: ORDER_STATUS_CHANGED (CANCELLED)
+        N->>WS: push ORDER_CANCELLED event
+        WS-->>C: WebSocket update
+    end

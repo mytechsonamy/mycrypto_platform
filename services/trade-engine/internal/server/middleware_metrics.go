@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/yourusername/mycrypto-platform/services/trade-engine/pkg/metrics"
+	"github.com/mytrader/trade-engine/pkg/metrics"
 )
 
 // MetricsResponseWriter wraps http.ResponseWriter to capture response metrics

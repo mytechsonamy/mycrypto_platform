@@ -1,0 +1,877 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>orderbook: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/mytrader/trade-engine/internal/orderbook/orderbook.go (93.5%)</option>
+				
+				<option value="file1">github.com/mytrader/trade-engine/internal/orderbook/price_level_tree.go (95.3%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package orderbook
+
+import (
+        "errors"
+        "sync"
+        "time"
+
+        "github.com/google/uuid"
+        "github.com/shopspring/decimal"
+        "github.com/mytrader/trade-engine/internal/domain"
+)
+
+var (
+        // ErrSymbolMismatch is returned when an order symbol doesn't match the order book
+        ErrSymbolMismatch = errors.New("order symbol does not match order book")
+        // ErrMarketOrderNotSupported is returned when trying to add a market order to the book
+        ErrMarketOrderNotSupported = errors.New("market orders cannot be added to order book")
+        // ErrOrderNotFound is returned when an order is not found in the book
+        ErrOrderNotFound = errors.New("order not found in order book")
+        // ErrEmptyOrderBook is returned when the order book has no orders
+        ErrEmptyOrderBook = errors.New("order book is empty")
+        // ErrInvalidQuantity is returned when trying to fill an invalid quantity
+        ErrInvalidQuantity = errors.New("invalid fill quantity")
+)
+
+// OrderBook represents an in-memory order book for a trading pair
+// It maintains sorted price levels for both buy and sell orders
+type OrderBook struct {
+        Symbol    string
+        Bids      *PriceLevelTree       // Buy side (max heap - highest price first)
+        Asks      *PriceLevelTree       // Sell side (min heap - lowest price first)
+        OrderMap  map[uuid.UUID]*OrderBookEntry // Fast O(1) lookup by order ID
+        mu        sync.RWMutex          // Read-write mutex for concurrency
+        UpdatedAt time.Time
+}
+
+// OrderBookEntry wraps an order with its location in the book
+type OrderBookEntry struct {
+        Order      *domain.Order
+        PriceLevel *PriceLevel
+}
+
+// PriceLevel represents all orders at a specific price point
+// Orders are maintained in FIFO order (time priority)
+type PriceLevel struct {
+        Price       decimal.Decimal
+        Orders      []*domain.Order  // FIFO queue (time priority)
+        TotalVolume decimal.Decimal  // Sum of all order quantities at this level
+        OrderCount  int
+}
+
+// NewOrderBook creates a new order book for a symbol
+func NewOrderBook(symbol string) *OrderBook <span class="cov8" title="1">{
+        return &amp;OrderBook{
+                Symbol:    symbol,
+                Bids:      NewPriceLevelTree(domain.OrderSideBuy),
+                Asks:      NewPriceLevelTree(domain.OrderSideSell),
+                OrderMap:  make(map[uuid.UUID]*OrderBookEntry),
+                UpdatedAt: time.Now(),
+        }
+}</span>
+
+// AddOrder adds an order to the order book
+// Complexity: O(log n) due to AVL tree insertion
+func (ob *OrderBook) AddOrder(order *domain.Order) error <span class="cov8" title="1">{
+        ob.mu.Lock()
+        defer ob.mu.Unlock()
+
+        // Validate order
+        if order.Symbol != ob.Symbol </span><span class="cov8" title="1">{
+                return ErrSymbolMismatch
+        }</span>
+
+        <span class="cov8" title="1">if order.Type == domain.OrderTypeMarket || order.Price == nil </span><span class="cov8" title="1">{
+                return ErrMarketOrderNotSupported
+        }</span>
+
+        // Check if order already exists (idempotency)
+        <span class="cov8" title="1">if _, exists := ob.OrderMap[order.ID]; exists </span><span class="cov8" title="1">{
+                return nil // Order already in book, no-op
+        }</span>
+
+        // Get or create price level
+        <span class="cov8" title="1">var tree *PriceLevelTree
+        if order.Side == domain.OrderSideBuy </span><span class="cov8" title="1">{
+                tree = ob.Bids
+        }</span> else<span class="cov8" title="1"> {
+                tree = ob.Asks
+        }</span>
+
+        <span class="cov8" title="1">priceLevel := tree.GetOrCreateLevel(*order.Price)
+
+        // Add order to price level (FIFO - append to end)
+        priceLevel.Orders = append(priceLevel.Orders, order)
+        priceLevel.TotalVolume = priceLevel.TotalVolume.Add(order.RemainingQuantity())
+        priceLevel.OrderCount++
+
+        // Add to order map for fast lookup
+        ob.OrderMap[order.ID] = &amp;OrderBookEntry{
+                Order:      order,
+                PriceLevel: priceLevel,
+        }
+
+        ob.UpdatedAt = time.Now()
+
+        return nil</span>
+}
+
+// RemoveOrder removes an order from the order book
+// Complexity: O(log n) for tree operations + O(k) for removing from FIFO queue
+// where k is the number of orders at that price level (typically small)
+func (ob *OrderBook) RemoveOrder(orderID uuid.UUID) error <span class="cov8" title="1">{
+        ob.mu.Lock()
+        defer ob.mu.Unlock()
+
+        entry, exists := ob.OrderMap[orderID]
+        if !exists </span><span class="cov8" title="1">{
+                return ErrOrderNotFound
+        }</span>
+
+        <span class="cov8" title="1">priceLevel := entry.PriceLevel
+        order := entry.Order
+
+        // Remove order from price level's FIFO queue
+        for i, o := range priceLevel.Orders </span><span class="cov8" title="1">{
+                if o.ID == orderID </span><span class="cov8" title="1">{
+                        // Remove from slice (preserve order)
+                        priceLevel.Orders = append(priceLevel.Orders[:i], priceLevel.Orders[i+1:]...)
+                        break</span>
+                }
+        }
+
+        <span class="cov8" title="1">priceLevel.TotalVolume = priceLevel.TotalVolume.Sub(order.RemainingQuantity())
+        priceLevel.OrderCount--
+
+        // If price level is empty, remove it from tree
+        if priceLevel.OrderCount == 0 </span><span class="cov8" title="1">{
+                var tree *PriceLevelTree
+                if order.Side == domain.OrderSideBuy </span><span class="cov8" title="1">{
+                        tree = ob.Bids
+                }</span> else<span class="cov0" title="0"> {
+                        tree = ob.Asks
+                }</span>
+                <span class="cov8" title="1">tree.RemoveLevel(priceLevel.Price)</span>
+        }
+
+        // Remove from order map
+        <span class="cov8" title="1">delete(ob.OrderMap, orderID)
+
+        ob.UpdatedAt = time.Now()
+
+        return nil</span>
+}
+
+// UpdateOrder updates an order's filled quantity (partial fill)
+// Complexity: O(log n) if order becomes fully filled and needs removal
+func (ob *OrderBook) UpdateOrder(orderID uuid.UUID, filledQty decimal.Decimal) error <span class="cov8" title="1">{
+        ob.mu.Lock()
+        defer ob.mu.Unlock()
+
+        if filledQty.LessThanOrEqual(decimal.Zero) </span><span class="cov0" title="0">{
+                return ErrInvalidQuantity
+        }</span>
+
+        <span class="cov8" title="1">entry, exists := ob.OrderMap[orderID]
+        if !exists </span><span class="cov0" title="0">{
+                return ErrOrderNotFound
+        }</span>
+
+        <span class="cov8" title="1">order := entry.Order
+        priceLevel := entry.PriceLevel
+
+        // Calculate volume change
+        oldRemaining := order.RemainingQuantity()
+
+        // Update the order's filled quantity
+        err := order.Fill(filledQty)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">newRemaining := order.RemainingQuantity()
+        volumeChange := oldRemaining.Sub(newRemaining)
+
+        // Update price level volume
+        priceLevel.TotalVolume = priceLevel.TotalVolume.Sub(volumeChange)
+
+        // If fully filled, remove from book
+        if order.IsFilled() </span><span class="cov8" title="1">{
+                // Remove from price level
+                for i, o := range priceLevel.Orders </span><span class="cov8" title="1">{
+                        if o.ID == orderID </span><span class="cov8" title="1">{
+                                priceLevel.Orders = append(priceLevel.Orders[:i], priceLevel.Orders[i+1:]...)
+                                break</span>
+                        }
+                }
+                <span class="cov8" title="1">priceLevel.OrderCount--
+
+                // If price level is empty, remove it from tree
+                if priceLevel.OrderCount == 0 </span><span class="cov8" title="1">{
+                        var tree *PriceLevelTree
+                        if order.Side == domain.OrderSideBuy </span><span class="cov8" title="1">{
+                                tree = ob.Bids
+                        }</span> else<span class="cov0" title="0"> {
+                                tree = ob.Asks
+                        }</span>
+                        <span class="cov8" title="1">tree.RemoveLevel(priceLevel.Price)</span>
+                }
+
+                // Remove from order map
+                <span class="cov8" title="1">delete(ob.OrderMap, orderID)</span>
+        }
+
+        <span class="cov8" title="1">ob.UpdatedAt = time.Now()
+
+        return nil</span>
+}
+
+// GetBestBid returns the highest bid price and total volume
+// Complexity: O(1) - uses cached best pointer
+func (ob *OrderBook) GetBestBid() (*PriceLevel, error) <span class="cov8" title="1">{
+        ob.mu.RLock()
+        defer ob.mu.RUnlock()
+
+        if ob.Bids.Best == nil </span><span class="cov8" title="1">{
+                return nil, ErrEmptyOrderBook
+        }</span>
+
+        <span class="cov8" title="1">return ob.Bids.Best.Level, nil</span>
+}
+
+// GetBestAsk returns the lowest ask price and total volume
+// Complexity: O(1) - uses cached best pointer
+func (ob *OrderBook) GetBestAsk() (*PriceLevel, error) <span class="cov8" title="1">{
+        ob.mu.RLock()
+        defer ob.mu.RUnlock()
+
+        if ob.Asks.Best == nil </span><span class="cov8" title="1">{
+                return nil, ErrEmptyOrderBook
+        }</span>
+
+        <span class="cov8" title="1">return ob.Asks.Best.Level, nil</span>
+}
+
+// GetSpread returns the difference between best ask and best bid
+// Complexity: O(1)
+func (ob *OrderBook) GetSpread() (decimal.Decimal, error) <span class="cov8" title="1">{
+        ob.mu.RLock()
+        defer ob.mu.RUnlock()
+
+        if ob.Bids.Best == nil || ob.Asks.Best == nil </span><span class="cov8" title="1">{
+                return decimal.Zero, ErrEmptyOrderBook
+        }</span>
+
+        <span class="cov8" title="1">return ob.Asks.Best.Level.Price.Sub(ob.Bids.Best.Level.Price), nil</span>
+}
+
+// GetMidPrice returns the mid-market price
+// Complexity: O(1)
+func (ob *OrderBook) GetMidPrice() (decimal.Decimal, error) <span class="cov8" title="1">{
+        ob.mu.RLock()
+        defer ob.mu.RUnlock()
+
+        if ob.Bids.Best == nil || ob.Asks.Best == nil </span><span class="cov0" title="0">{
+                return decimal.Zero, ErrEmptyOrderBook
+        }</span>
+
+        <span class="cov8" title="1">bestBid := ob.Bids.Best.Level.Price
+        bestAsk := ob.Asks.Best.Level.Price
+
+        return bestBid.Add(bestAsk).Div(decimal.NewFromInt(2)), nil</span>
+}
+
+// GetDepth returns order book depth up to N levels on each side
+// Complexity: O(n) where n is the number of levels requested
+func (ob *OrderBook) GetDepth(levels int) *OrderBookDepth <span class="cov8" title="1">{
+        ob.mu.RLock()
+        defer ob.mu.RUnlock()
+
+        depth := &amp;OrderBookDepth{
+                Symbol:    ob.Symbol,
+                Timestamp: time.Now(),
+                Bids:      ob.Bids.GetTopLevels(levels),
+                Asks:      ob.Asks.GetTopLevels(levels),
+        }
+
+        return depth
+}</span>
+
+// GetOrdersAtPrice returns all orders at a specific price level
+// Complexity: O(1) for lookup + O(k) for copying orders where k is orders at that price
+func (ob *OrderBook) GetOrdersAtPrice(side domain.OrderSide, price decimal.Decimal) []*domain.Order <span class="cov8" title="1">{
+        ob.mu.RLock()
+        defer ob.mu.RUnlock()
+
+        var tree *PriceLevelTree
+        if side == domain.OrderSideBuy </span><span class="cov8" title="1">{
+                tree = ob.Bids
+        }</span> else<span class="cov0" title="0"> {
+                tree = ob.Asks
+        }</span>
+
+        <span class="cov8" title="1">priceStr := price.String()
+        node, exists := tree.Levels[priceStr]
+        if !exists </span><span class="cov0" title="0">{
+                return []*domain.Order{}
+        }</span>
+
+        // Return a copy to avoid race conditions
+        <span class="cov8" title="1">orders := make([]*domain.Order, len(node.Level.Orders))
+        copy(orders, node.Level.Orders)
+        return orders</span>
+}
+
+// GetOrder returns an order by ID
+// Complexity: O(1)
+func (ob *OrderBook) GetOrder(orderID uuid.UUID) (*domain.Order, error) <span class="cov8" title="1">{
+        ob.mu.RLock()
+        defer ob.mu.RUnlock()
+
+        entry, exists := ob.OrderMap[orderID]
+        if !exists </span><span class="cov8" title="1">{
+                return nil, ErrOrderNotFound
+        }</span>
+
+        <span class="cov8" title="1">return entry.Order, nil</span>
+}
+
+// GetOrderCount returns the total number of orders in the book
+// Complexity: O(1)
+func (ob *OrderBook) GetOrderCount() int <span class="cov8" title="1">{
+        ob.mu.RLock()
+        defer ob.mu.RUnlock()
+
+        return len(ob.OrderMap)
+}</span>
+
+// GetSnapshot returns a full snapshot of the order book
+// This is useful for WebSocket broadcasting
+func (ob *OrderBook) GetSnapshot() *OrderBookSnapshot <span class="cov8" title="1">{
+        ob.mu.RLock()
+        defer ob.mu.RUnlock()
+
+        return &amp;OrderBookSnapshot{
+                Symbol:     ob.Symbol,
+                Timestamp:  time.Now(),
+                Bids:       ob.Bids.GetAllLevels(),
+                Asks:       ob.Asks.GetAllLevels(),
+                OrderCount: len(ob.OrderMap),
+        }
+}</span>
+
+// OrderBookDepth represents order book depth snapshot
+type OrderBookDepth struct {
+        Symbol    string
+        Timestamp time.Time
+        Bids      []PriceLevelSnapshot // Sorted: highest to lowest
+        Asks      []PriceLevelSnapshot // Sorted: lowest to highest
+}
+
+// OrderBookSnapshot represents a full order book snapshot
+type OrderBookSnapshot struct {
+        Symbol     string
+        Timestamp  time.Time
+        Bids       []PriceLevelSnapshot
+        Asks       []PriceLevelSnapshot
+        OrderCount int
+}
+
+// PriceLevelSnapshot represents a price level for external consumption
+type PriceLevelSnapshot struct {
+        Price      string `json:"price"`
+        Volume     string `json:"volume"`
+        OrderCount int    `json:"order_count"`
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package orderbook
+
+import (
+        "sync"
+
+        "github.com/shopspring/decimal"
+        "github.com/mytrader/trade-engine/internal/domain"
+)
+
+// PriceLevelTree is a balanced AVL tree of price levels
+// For buy side: max heap (highest price first)
+// For sell side: min heap (lowest price first)
+type PriceLevelTree struct {
+        Root   *PriceLevelNode
+        Levels map[string]*PriceLevelNode // price string -&gt; node (fast lookup)
+        Best   *PriceLevelNode            // Cached best price (O(1) access)
+        Side   domain.OrderSide
+        mu     sync.RWMutex
+}
+
+// PriceLevelNode represents a node in the AVL tree
+type PriceLevelNode struct {
+        Level  *PriceLevel
+        Left   *PriceLevelNode
+        Right  *PriceLevelNode
+        Height int // For AVL tree balancing
+}
+
+// NewPriceLevelTree creates a new price level tree
+func NewPriceLevelTree(side domain.OrderSide) *PriceLevelTree <span class="cov8" title="1">{
+        return &amp;PriceLevelTree{
+                Levels: make(map[string]*PriceLevelNode),
+                Side:   side,
+        }
+}</span>
+
+// GetOrCreateLevel gets an existing price level or creates a new one
+// Complexity: O(log n) for tree insertion, O(1) for existing level
+func (t *PriceLevelTree) GetOrCreateLevel(price decimal.Decimal) *PriceLevel <span class="cov8" title="1">{
+        t.mu.Lock()
+        defer t.mu.Unlock()
+
+        priceStr := price.String()
+        node, exists := t.Levels[priceStr]
+        if exists </span><span class="cov8" title="1">{
+                return node.Level
+        }</span>
+
+        // Create new price level
+        <span class="cov8" title="1">level := &amp;PriceLevel{
+                Price:       price,
+                Orders:      make([]*domain.Order, 0, 10), // Pre-allocate capacity
+                TotalVolume: decimal.Zero,
+                OrderCount:  0,
+        }
+
+        // Insert into tree
+        newNode := &amp;PriceLevelNode{
+                Level:  level,
+                Height: 1,
+        }
+
+        t.Root = t.insert(t.Root, newNode)
+        t.Levels[priceStr] = newNode
+
+        // Update best price if needed
+        t.updateBest()
+
+        return level</span>
+}
+
+// RemoveLevel removes a price level from the tree
+// Complexity: O(log n)
+func (t *PriceLevelTree) RemoveLevel(price decimal.Decimal) <span class="cov8" title="1">{
+        t.mu.Lock()
+        defer t.mu.Unlock()
+
+        priceStr := price.String()
+        if _, exists := t.Levels[priceStr]; !exists </span><span class="cov8" title="1">{
+                return
+        }</span>
+
+        <span class="cov8" title="1">t.Root = t.remove(t.Root, price)
+        delete(t.Levels, priceStr)
+
+        // Update best price
+        t.updateBest()</span>
+}
+
+// GetTopLevels returns top N price levels
+// Complexity: O(n) where n is the number of levels requested
+func (t *PriceLevelTree) GetTopLevels(n int) []PriceLevelSnapshot <span class="cov8" title="1">{
+        t.mu.RLock()
+        defer t.mu.RUnlock()
+
+        result := make([]PriceLevelSnapshot, 0, n)
+        count := 0
+
+        // In-order traversal (for SELL) or reverse in-order (for BUY)
+        var traverse func(*PriceLevelNode)
+        traverse = func(node *PriceLevelNode) </span><span class="cov8" title="1">{
+                if node == nil || count &gt;= n </span><span class="cov8" title="1">{
+                        return
+                }</span>
+
+                <span class="cov8" title="1">if t.Side == domain.OrderSideBuy </span><span class="cov8" title="1">{
+                        // Reverse in-order (highest to lowest)
+                        traverse(node.Right)
+                        if count &lt; n </span><span class="cov8" title="1">{
+                                result = append(result, PriceLevelSnapshot{
+                                        Price:      node.Level.Price.String(),
+                                        Volume:     node.Level.TotalVolume.String(),
+                                        OrderCount: node.Level.OrderCount,
+                                })
+                                count++
+                        }</span>
+                        <span class="cov8" title="1">traverse(node.Left)</span>
+                } else<span class="cov8" title="1"> {
+                        // In-order (lowest to highest)
+                        traverse(node.Left)
+                        if count &lt; n </span><span class="cov8" title="1">{
+                                result = append(result, PriceLevelSnapshot{
+                                        Price:      node.Level.Price.String(),
+                                        Volume:     node.Level.TotalVolume.String(),
+                                        OrderCount: node.Level.OrderCount,
+                                })
+                                count++
+                        }</span>
+                        <span class="cov8" title="1">traverse(node.Right)</span>
+                }
+        }
+
+        <span class="cov8" title="1">traverse(t.Root)
+        return result</span>
+}
+
+// GetAllLevels returns all price levels
+// Complexity: O(n) where n is total number of levels
+func (t *PriceLevelTree) GetAllLevels() []PriceLevelSnapshot <span class="cov8" title="1">{
+        t.mu.RLock()
+        defer t.mu.RUnlock()
+
+        result := make([]PriceLevelSnapshot, 0, len(t.Levels))
+
+        // In-order traversal (for SELL) or reverse in-order (for BUY)
+        var traverse func(*PriceLevelNode)
+        traverse = func(node *PriceLevelNode) </span><span class="cov8" title="1">{
+                if node == nil </span><span class="cov8" title="1">{
+                        return
+                }</span>
+
+                <span class="cov8" title="1">if t.Side == domain.OrderSideBuy </span><span class="cov8" title="1">{
+                        // Reverse in-order (highest to lowest)
+                        traverse(node.Right)
+                        result = append(result, PriceLevelSnapshot{
+                                Price:      node.Level.Price.String(),
+                                Volume:     node.Level.TotalVolume.String(),
+                                OrderCount: node.Level.OrderCount,
+                        })
+                        traverse(node.Left)
+                }</span> else<span class="cov8" title="1"> {
+                        // In-order (lowest to highest)
+                        traverse(node.Left)
+                        result = append(result, PriceLevelSnapshot{
+                                Price:      node.Level.Price.String(),
+                                Volume:     node.Level.TotalVolume.String(),
+                                OrderCount: node.Level.OrderCount,
+                        })
+                        traverse(node.Right)
+                }</span>
+        }
+
+        <span class="cov8" title="1">traverse(t.Root)
+        return result</span>
+}
+
+// updateBest updates the cached best price
+// Complexity: O(log n) worst case, typically O(1) with balanced tree
+func (t *PriceLevelTree) updateBest() <span class="cov8" title="1">{
+        if t.Root == nil </span><span class="cov8" title="1">{
+                t.Best = nil
+                return
+        }</span>
+
+        <span class="cov8" title="1">if t.Side == domain.OrderSideBuy </span><span class="cov8" title="1">{
+                // Find rightmost (highest price)
+                node := t.Root
+                for node.Right != nil </span><span class="cov8" title="1">{
+                        node = node.Right
+                }</span>
+                <span class="cov8" title="1">t.Best = node</span>
+        } else<span class="cov8" title="1"> {
+                // Find leftmost (lowest price)
+                node := t.Root
+                for node.Left != nil </span><span class="cov8" title="1">{
+                        node = node.Left
+                }</span>
+                <span class="cov8" title="1">t.Best = node</span>
+        }
+}
+
+// AVL Tree Operations
+
+// insert inserts a new node into the AVL tree
+// Complexity: O(log n)
+func (t *PriceLevelTree) insert(node, newNode *PriceLevelNode) *PriceLevelNode <span class="cov8" title="1">{
+        if node == nil </span><span class="cov8" title="1">{
+                return newNode
+        }</span>
+
+        <span class="cov8" title="1">if newNode.Level.Price.LessThan(node.Level.Price) </span><span class="cov8" title="1">{
+                node.Left = t.insert(node.Left, newNode)
+        }</span> else<span class="cov8" title="1"> if newNode.Level.Price.GreaterThan(node.Level.Price) </span><span class="cov8" title="1">{
+                node.Right = t.insert(node.Right, newNode)
+        }</span> else<span class="cov0" title="0"> {
+                // Equal prices should not happen in practice
+                return node
+        }</span>
+
+        // Update height
+        <span class="cov8" title="1">node.Height = 1 + max(height(node.Left), height(node.Right))
+
+        // Balance the tree
+        return t.balance(node)</span>
+}
+
+// remove removes a node from the AVL tree
+// Complexity: O(log n)
+func (t *PriceLevelTree) remove(node *PriceLevelNode, price decimal.Decimal) *PriceLevelNode <span class="cov8" title="1">{
+        if node == nil </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">if price.LessThan(node.Level.Price) </span><span class="cov8" title="1">{
+                node.Left = t.remove(node.Left, price)
+        }</span> else<span class="cov8" title="1"> if price.GreaterThan(node.Level.Price) </span><span class="cov8" title="1">{
+                node.Right = t.remove(node.Right, price)
+        }</span> else<span class="cov8" title="1"> {
+                // Node found - remove it
+                if node.Left == nil </span><span class="cov8" title="1">{
+                        return node.Right
+                }</span> else<span class="cov8" title="1"> if node.Right == nil </span><span class="cov8" title="1">{
+                        return node.Left
+                }</span>
+
+                // Node has two children - find inorder successor (smallest in right subtree)
+                <span class="cov8" title="1">minRight := t.findMin(node.Right)
+                node.Level = minRight.Level
+                node.Right = t.remove(node.Right, minRight.Level.Price)</span>
+        }
+
+        <span class="cov8" title="1">if node == nil </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+
+        // Update height
+        <span class="cov8" title="1">node.Height = 1 + max(height(node.Left), height(node.Right))
+
+        // Balance the tree
+        return t.balance(node)</span>
+}
+
+// balance performs AVL tree balancing
+// Complexity: O(1) for rotations
+func (t *PriceLevelTree) balance(node *PriceLevelNode) *PriceLevelNode <span class="cov8" title="1">{
+        if node == nil </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+
+        <span class="cov8" title="1">balanceFactor := height(node.Left) - height(node.Right)
+
+        // Left heavy
+        if balanceFactor &gt; 1 </span><span class="cov8" title="1">{
+                if height(node.Left.Left) &gt;= height(node.Left.Right) </span><span class="cov8" title="1">{
+                        // Left-Left case
+                        return t.rotateRight(node)
+                }</span> else<span class="cov8" title="1"> {
+                        // Left-Right case
+                        node.Left = t.rotateLeft(node.Left)
+                        return t.rotateRight(node)
+                }</span>
+        }
+
+        // Right heavy
+        <span class="cov8" title="1">if balanceFactor &lt; -1 </span><span class="cov8" title="1">{
+                if height(node.Right.Right) &gt;= height(node.Right.Left) </span><span class="cov8" title="1">{
+                        // Right-Right case
+                        return t.rotateLeft(node)
+                }</span> else<span class="cov8" title="1"> {
+                        // Right-Left case
+                        node.Right = t.rotateRight(node.Right)
+                        return t.rotateLeft(node)
+                }</span>
+        }
+
+        <span class="cov8" title="1">return node</span>
+}
+
+// rotateLeft performs left rotation
+// Complexity: O(1)
+func (t *PriceLevelTree) rotateLeft(node *PriceLevelNode) *PriceLevelNode <span class="cov8" title="1">{
+        newRoot := node.Right
+        node.Right = newRoot.Left
+        newRoot.Left = node
+
+        // Update heights
+        node.Height = 1 + max(height(node.Left), height(node.Right))
+        newRoot.Height = 1 + max(height(newRoot.Left), height(newRoot.Right))
+
+        return newRoot
+}</span>
+
+// rotateRight performs right rotation
+// Complexity: O(1)
+func (t *PriceLevelTree) rotateRight(node *PriceLevelNode) *PriceLevelNode <span class="cov8" title="1">{
+        newRoot := node.Left
+        node.Left = newRoot.Right
+        newRoot.Right = node
+
+        // Update heights
+        node.Height = 1 + max(height(node.Left), height(node.Right))
+        newRoot.Height = 1 + max(height(newRoot.Left), height(newRoot.Right))
+
+        return newRoot
+}</span>
+
+// findMin finds the minimum node in a subtree (leftmost)
+// Complexity: O(log n)
+func (t *PriceLevelTree) findMin(node *PriceLevelNode) *PriceLevelNode <span class="cov8" title="1">{
+        for node.Left != nil </span><span class="cov8" title="1">{
+                node = node.Left
+        }</span>
+        <span class="cov8" title="1">return node</span>
+}
+
+// height returns the height of a node
+// Complexity: O(1)
+func height(node *PriceLevelNode) int <span class="cov8" title="1">{
+        if node == nil </span><span class="cov8" title="1">{
+                return 0
+        }</span>
+        <span class="cov8" title="1">return node.Height</span>
+}
+
+// max returns the maximum of two integers
+func max(a, b int) int <span class="cov8" title="1">{
+        if a &gt; b </span><span class="cov8" title="1">{
+                return a
+        }</span>
+        <span class="cov8" title="1">return b</span>
+}
+
+// GetHeight returns the height of the tree (for testing)
+func (t *PriceLevelTree) GetHeight() int <span class="cov8" title="1">{
+        t.mu.RLock()
+        defer t.mu.RUnlock()
+        return height(t.Root)
+}</span>
+
+// GetLevelCount returns the number of price levels in the tree
+func (t *PriceLevelTree) GetLevelCount() int <span class="cov8" title="1">{
+        t.mu.RLock()
+        defer t.mu.RUnlock()
+        return len(t.Levels)
+}</span>
+
+// Verify checks if the tree is a valid AVL tree (for testing)
+func (t *PriceLevelTree) Verify() bool <span class="cov8" title="1">{
+        t.mu.RLock()
+        defer t.mu.RUnlock()
+        return t.verifyNode(t.Root)
+}</span>
+
+func (t *PriceLevelTree) verifyNode(node *PriceLevelNode) bool <span class="cov8" title="1">{
+        if node == nil </span><span class="cov8" title="1">{
+                return true
+        }</span>
+
+        // Check AVL balance factor
+        <span class="cov8" title="1">balanceFactor := height(node.Left) - height(node.Right)
+        if balanceFactor &lt; -1 || balanceFactor &gt; 1 </span><span class="cov0" title="0">{
+                return false
+        }</span>
+
+        // Check BST property
+        <span class="cov8" title="1">if node.Left != nil &amp;&amp; node.Left.Level.Price.GreaterThanOrEqual(node.Level.Price) </span><span class="cov0" title="0">{
+                return false
+        }</span>
+        <span class="cov8" title="1">if node.Right != nil &amp;&amp; node.Right.Level.Price.LessThanOrEqual(node.Level.Price) </span><span class="cov0" title="0">{
+                return false
+        }</span>
+
+        // Recursively verify children
+        <span class="cov8" title="1">return t.verifyNode(node.Left) &amp;&amp; t.verifyNode(node.Right)</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

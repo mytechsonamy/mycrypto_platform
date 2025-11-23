@@ -1,0 +1,118 @@
+# Trade Engine Service Configuration Example
+# Copy this file to config.yaml and adjust values as needed
+# Environment variables with TRADE_ENGINE_ prefix will override these values
+
+server:
+  # HTTP API port
+  http_port: 8080
+  # WebSocket connection port
+  websocket_port: 8081
+  # Request read timeout
+  read_timeout: 30s
+  # Response write timeout
+  write_timeout: 30s
+  # Graceful shutdown timeout
+  shutdown_timeout: 30s
+
+database:
+  # PostgreSQL host (from Docker: "postgres", from host: "localhost")
+  host: localhost
+  # PostgreSQL port
+  port: 5433
+  # Database name
+  database: trade_engine_db
+  # Database user
+  user: trade_engine_user
+  # Database password
+  password: trade_engine_pass
+  # Connection pool settings
+  max_open_conns: 25
+  max_idle_conns: 5
+  conn_max_lifetime: 5m
+  # Enable SSL (set to "require" for production)
+  ssl_mode: disable
+
+redis:
+  # Redis host (from Docker: "redis", from host: "localhost")
+  host: localhost
+  # Redis port
+  port: 6380
+  # Redis password (empty for development)
+  password: ""
+  # Redis database number
+  db: 0
+  # Connection pool settings
+  max_retries: 3
+  pool_size: 10
+  # Connection timeouts
+  dial_timeout: 5s
+  read_timeout: 3s
+  write_timeout: 3s
+
+rabbitmq:
+  # RabbitMQ host (from Docker: "rabbitmq", from host: "localhost")
+  host: localhost
+  # RabbitMQ AMQP port
+  port: 5673
+  # RabbitMQ user
+  user: admin
+  # RabbitMQ password
+  password: changeme
+  # Virtual host
+  vhost: /
+  # Connection timeout
+  timeout: 10s
+  # Heartbeat interval
+  heartbeat: 60s
+
+pgbouncer:
+  # Use PgBouncer for connection pooling (set to "localhost:6433" for production)
+  enabled: false
+  host: localhost
+  port: 6433
+  pool_mode: transaction
+  max_client_conn: 100
+
+logging:
+  # Log level: debug, info, warn, error, fatal
+  level: info
+  # Log format: json, text
+  format: json
+  # Log output: stdout, stderr, file
+  output: stdout
+  # Log file path (if output: file)
+  file_path: ./logs/trade-engine.log
+  # Max log file size in MB
+  max_size: 100
+  # Max log file age in days
+  max_age: 30
+  # Max number of backups to retain
+  max_backups: 5
+
+# Trade Engine specific settings
+matching:
+  # Order matching timeout
+  timeout: 1s
+  # Max orders to process per batch
+  batch_size: 1000
+
+order_book:
+  # Order book snapshot interval
+  snapshot_interval: 5s
+  # Cache order book in Redis
+  cache_enabled: true
+  # Order book cache TTL
+  cache_ttl: 60s
+
+websocket:
+  # WebSocket message read timeout
+  read_timeout: 10s
+  # WebSocket message write timeout
+  write_timeout: 10s
+  # Ping interval to keep connection alive
+  ping_interval: 30s
+  # Maximum message size
+  max_message_size: 65536
+
+environment: development
+service_version: 1.0.0

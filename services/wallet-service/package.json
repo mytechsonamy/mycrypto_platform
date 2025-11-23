@@ -60,6 +60,7 @@
     "class-validator": "^0.14.2",
     "ecpair": "^3.0.0",
     "ethers": "^6.15.0",
+    "ibantools": "^4.5.1",
     "ioredis": "^5.8.2",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",

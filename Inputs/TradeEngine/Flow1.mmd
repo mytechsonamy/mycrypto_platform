@@ -1,0 +1,56 @@
+Flow 1 Place Limit Order → Match → Trade → Ledger Update → WebSocket Notification
+
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant G as API Gateway
+    participant TE as Trade Engine
+    participant ME as Matching Engine<br/>(per-symbol)
+    participant DB as Postgres (orders/trades)
+    participant K as Kafka (trade.events<br/>order.events)
+    participant W as Wallet Service
+    participant N as Notification Service
+    participant WS as WebSocket Channel
+
+    C->>G: POST /api/v1/orders (LIMIT)
+    G->>TE: placeOrder(request, JWT claims)
+
+    TE->>TE: validate(order params, TIF, tick size)
+    TE->>W: POST /wallets/reserve (user, asset, amount)
+    W-->>TE: 200 OK (reserve_id)
+
+    TE->>DB: INSERT INTO orders (status=PENDING)
+    DB-->>TE: order_id
+
+    TE->>ME: send order to symbol processor (BTC/USDT)
+    ME->>ME: matchLimitOrder(order, orderBook)
+
+    alt Trade created
+        ME->>DB: INSERT trades (batch)
+        DB-->>ME: success
+
+        ME->>DB: UPDATE orders (FILLED / PARTIALLY_FILLED)
+        DB-->>ME: success
+
+        ME->>K: publish TRADE_EXECUTED (trade.events)
+        ME->>K: publish ORDER_STATUS_CHANGED (order.events)
+    else No immediate match
+        ME->>DB: UPDATE orders (status=OPEN)
+        DB-->>ME: success
+        ME->>K: publish ORDER_STATUS_CHANGED (OPEN)
+    end
+
+    ME-->>TE: result (order state, trades)
+
+    TE-->>G: 201 Created (order_id, status)
+    G-->>C: HTTP response
+
+    par Ledger update (async)
+        K-->>W: TRADE_EXECUTED event
+        W->>W: update ledger_entries (debit/credit)
+        W->>DB: UPDATE user_wallets
+    and Notifications (async)
+        K-->>N: ORDER_STATUS_CHANGED, TRADE_EXECUTED
+        N->>WS: push ORDER_UPDATE / TRADE messages
+        WS-->>C: WebSocket events (<100ms)
+    end

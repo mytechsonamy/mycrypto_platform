@@ -1,0 +1,62 @@
+Flow 2: Place Stop Order → Price Monitor → Trigger → Market Order → Trade
+
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant G as API Gateway
+    participant TE as Trade Engine
+    participant ME as Matching Engine
+    participant MDS as Market Data Service
+    participant DB as Postgres
+    participant K as Kafka
+    participant W as Wallet Service
+    participant N as Notification Service
+    participant WS as WebSocket
+
+    C->>G: POST /api/v1/orders (STOP)
+    G->>TE: placeOrder(STOP)
+
+    TE->>TE: validate(stop_price, qty)
+    TE->>W: POST /wallets/reserve (for notional/qty)
+    W-->>TE: 200 OK
+
+    TE->>DB: INSERT orders (type=STOP, status=PENDING)
+    DB-->>TE: order_id
+
+    TE->>ME: addToStopWatchlist(symbol, stop_price, side)
+    ME-->>TE: ack
+
+    TE-->>G: 201 Created (status=PENDING_STOP)
+    G-->>C: HTTP response
+
+    %% Later: price feed
+
+    MDS-->>TE: price tick (symbol, last_price)
+    TE->>ME: checkStopTriggers(symbol, last_price)
+
+    alt stop condition met
+        ME->>DB: UPDATE order (status=TRIGGERED)
+        DB-->>ME: success
+
+        ME->>ME: convert to MARKET order
+        ME->>ME: matchMarketOrder()
+
+        ME->>DB: INSERT trades
+        DB-->>ME: success
+        ME->>DB: UPDATE order (FILLED / PARTIALLY_FILLED)
+        DB-->>ME: success
+
+        ME->>K: publish TRADE_EXECUTED
+        ME->>K: publish ORDER_STATUS_CHANGED
+    else not reached
+        ME-->>TE: no-op
+    end
+
+    par Ledger update (async)
+        K-->>W: TRADE_EXECUTED
+        W->>W: update ledger + reserved→available transfer
+    and User notification
+        K-->>N: ORDER_STATUS_CHANGED, TRADE_EXECUTED
+        N->>WS: push ORDER_UPDATE / TRADE
+        WS-->>C: WebSocket events
+    end

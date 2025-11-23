@@ -1,0 +1,57 @@
+Flow 3: Place Market Order → Immediate Match → Partial Fill → Remaining Quantity → Notification
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant G as API Gateway
+    participant TE as Trade Engine
+    participant ME as Matching Engine
+    participant DB as Postgres
+    participant K as Kafka
+    participant W as Wallet Service
+    participant N as Notification Service
+    participant WS as WebSocket
+
+    C->>G: POST /api/v1/orders (MARKET BUY 3 BTC)
+    G->>TE: placeOrder(MARKET)
+
+    TE->>TE: validate(quantity, side)
+    TE->>W: reserve estimated notional (using last price + buffer)
+    W-->>TE: 200 OK
+
+    TE->>DB: INSERT order (type=MARKET, status=PENDING)
+    DB-->>TE: order_id
+
+    TE->>ME: sendMarketOrder(order)
+
+    %% Partial fill scenario
+    ME->>ME: match with best ask (order A: 1 BTC)
+    ME->>ME: match with next ask (order B: 1.5 BTC)
+    note over ME: Filled: 2.5 BTC<br/>Remaining: 0.5 BTC<br/>(insufficient liquidity)
+
+    ME->>DB: INSERT trades (A, B)
+    DB-->>ME: success
+
+    ME->>DB: UPDATE order (status=PARTIALLY_FILLED,<br/>filled_qty=2.5)
+    DB-->>ME: success
+
+    ME->>K: publish TRADE_EXECUTED (2 trades)
+    ME->>K: publish ORDER_STATUS_CHANGED (PARTIALLY_FILLED)
+
+    ME-->>TE: result (filled=2.5, remaining=0.5)
+
+    TE-->>G: 201 Created (status=PARTIALLY_FILLED)
+    G-->>C: response
+
+    par Ledger update
+        K-->>W: TRADE_EXECUTED x2
+        W->>W: update ledger for each fill
+        W->>W: release unused reserved amount
+    and WebSocket notification
+        K-->>N: ORDER_STATUS_CHANGED, TRADE_EXECUTED
+        N->>WS: push
+        WS-->>C: 
+            - ORDER_PARTIALLY_FILLED
+            - TRADE events
+    end
+
+    note over C: UI shows partially filled<br/>+ updated balances

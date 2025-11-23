@@ -1,0 +1,43 @@
+Flow 5: Admin Halt Symbol → Cancel Pending Orders → Notify All Users
+
+sequenceDiagram
+    autonumber
+    participant A as Admin User
+    participant AP as Admin Panel (Client)
+    participant G as API Gateway
+    participant ADM as Admin Service
+    participant TE as Trade Engine
+    participant DB as Postgres
+    participant K as Kafka
+    participant N as Notification Service
+    participant WS as WebSocket (many clients)
+
+    A->>AP: Halt BTC/USDT (reason=SYSTEM_ISSUE)
+    AP->>G: POST /admin/symbols/BTCUSDT/status (HALTED)
+    G->>ADM: updateSymbolStatus(HALTED)
+    ADM->>TE: applyMarketHalt(symbol=BTC/USDT)
+
+    TE->>DB: UPDATE symbols SET status=HALTED
+    DB-->>TE: success
+
+    %% Cancel pending orders for that symbol
+    TE->>DB: SELECT orders WHERE symbol=BTC/USDT<br/>AND status IN (OPEN, PENDING)
+    DB-->>TE: orders list
+
+    loop for each order
+        TE->>DB: UPDATE order SET status=CANCELLED
+        DB-->>TE: success
+
+        TE->>K: publish ORDER_STATUS_CHANGED (CANCELLED)
+    end
+
+    %% Broadcast market halt event
+    TE->>K: publish MARKET_STATUS_CHANGED (HALTED, symbol)
+
+    K-->>N: MARKET_STATUS_CHANGED, ORDER_STATUS_CHANGED*
+    N->>WS: broadcast:
+        - MARKET_HALTED (BTC/USDT)
+        - ORDER_CANCELLED for affected users
+
+    WS-->>Many Clients: WebSocket messages
+    note over WS: Tüm BTC/USDT izleyen<br/>ve ilgili order sahipleri<br/>bilgilendirilir
