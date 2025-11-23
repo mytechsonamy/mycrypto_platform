@@ -378,8 +378,11 @@ describe('WithdrawalRequestService', () => {
       mockFeeCalculationService.calculateWithdrawalFees.mockResolvedValue(mockFees);
       mockFeeCalculationService.requiresAdminApproval.mockReturnValue(false);
 
-      // First call returns null (no wallet)
-      mockQueryRunner.manager.findOne.mockResolvedValue(null);
+      // First call returns null (no wallet), subsequent calls return the created wallet
+      mockQueryRunner.manager.findOne
+        .mockResolvedValueOnce(null)  // First check: no wallet exists
+        .mockResolvedValue(newWallet);  // After creation: wallet with balance
+
       // Mock the wallet creation and save
       mockQueryRunner.manager.create.mockImplementation((entity, data) => {
         if (entity === UserWallet) {
@@ -388,10 +391,6 @@ describe('WithdrawalRequestService', () => {
         return { id: 'generated-id', ...data };
       });
       mockQueryRunner.manager.save.mockImplementation((entity) => {
-        if (entity.currency && entity.userId) {
-          // It's a wallet, return it with proper balance for checking
-          return Promise.resolve({ ...newWallet, ...entity });
-        }
         return Promise.resolve(entity);
       });
 
@@ -506,6 +505,15 @@ describe('WithdrawalRequestService', () => {
     });
 
     it('should unlock funds when cancelling', async () => {
+      const freshWithdrawal = {
+        id: 'withdrawal-123',
+        userId: testUserId,
+        currency: 'BTC',
+        amount: '0.5',
+        totalAmount: '0.5006',
+        status: 'PENDING',
+      };
+
       const freshMockWallet = {
         userId: testUserId,
         currency: 'BTC',
@@ -513,7 +521,7 @@ describe('WithdrawalRequestService', () => {
         lockedBalance: '0.50060000',
       };
 
-      mockWithdrawalRepository.findOne.mockResolvedValue(mockWithdrawal);
+      mockWithdrawalRepository.findOne.mockResolvedValue(freshWithdrawal);
       mockQueryRunner.manager.findOne.mockResolvedValue(freshMockWallet);
 
       await service.cancelWithdrawal(testUserId, 'withdrawal-123');
@@ -529,6 +537,15 @@ describe('WithdrawalRequestService', () => {
     });
 
     it('should create ledger entry for unlock', async () => {
+      const freshWithdrawal = {
+        id: 'withdrawal-123',
+        userId: testUserId,
+        currency: 'BTC',
+        amount: '0.5',
+        totalAmount: '0.5006',
+        status: 'PENDING',
+      };
+
       const freshMockWallet = {
         userId: testUserId,
         currency: 'BTC',
@@ -536,7 +553,7 @@ describe('WithdrawalRequestService', () => {
         lockedBalance: '0.50060000',
       };
 
-      mockWithdrawalRepository.findOne.mockResolvedValue(mockWithdrawal);
+      mockWithdrawalRepository.findOne.mockResolvedValue(freshWithdrawal);
       mockQueryRunner.manager.findOne.mockResolvedValue(freshMockWallet);
 
       await service.cancelWithdrawal(testUserId, 'withdrawal-123');
