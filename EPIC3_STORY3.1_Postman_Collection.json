@@ -1,0 +1,696 @@
+{
+  "info": {
+    "name": "EPIC3 - Trading - Story 3.1 - Order Book API",
+    "description": "Comprehensive test collection for Order Book Real-Time Display feature",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "Folder 1: Orderbook API - Happy Path",
+      "item": [
+        {
+          "name": "TC-001: GET /orderbook/BTC_TRY (Default Depth)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/market/orderbook/BTC_TRY",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "orderbook",
+                "BTC_TRY"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Success - Default Depth",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:8080/api/v1/market/orderbook/BTC_TRY",
+                  "protocol": "http",
+                  "host": [
+                    "localhost"
+                  ],
+                  "port": "8080",
+                  "path": [
+                    "api",
+                    "v1",
+                    "market",
+                    "orderbook",
+                    "BTC_TRY"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"symbol\": \"BTC_TRY\",\n  \"bids\": [\n    { \"price\": \"1500000.00\", \"volume\": \"0.5\", \"count\": 2 },\n    { \"price\": \"1499900.00\", \"volume\": \"1.2\", \"count\": 3 }\n  ],\n  \"asks\": [\n    { \"price\": \"1500100.00\", \"volume\": \"0.3\", \"count\": 1 },\n    { \"price\": \"1500200.00\", \"volume\": \"2.0\", \"count\": 4 }\n  ],\n  \"spread\": \"100.00\",\n  \"timestamp\": \"2025-11-24T14:30:45Z\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// TC-001: GET /orderbook/BTC_TRY with default depth",
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has required fields', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('symbol');",
+                  "    pm.expect(jsonData).to.have.property('bids');",
+                  "    pm.expect(jsonData).to.have.property('asks');",
+                  "    pm.expect(jsonData).to.have.property('timestamp');",
+                  "    pm.expect(jsonData).to.have.property('spread');",
+                  "});",
+                  "",
+                  "pm.test('Symbol is BTC_TRY', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.symbol).to.equal('BTC_TRY');",
+                  "});",
+                  "",
+                  "pm.test('Bids and asks are arrays', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(Array.isArray(jsonData.bids)).to.be.true;",
+                  "    pm.expect(Array.isArray(jsonData.asks)).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Response time is less than 100ms', function() {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(100);",
+                  "});",
+                  "",
+                  "pm.test('Timestamp is ISO 8601 format', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.timestamp).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$/);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-002: GET /orderbook/ETH_TRY",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/market/orderbook/ETH_TRY",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "orderbook",
+                "ETH_TRY"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Symbol is ETH_TRY', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.symbol).to.equal('ETH_TRY');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-003: GET /orderbook/USDT_TRY",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/market/orderbook/USDT_TRY",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "orderbook",
+                "USDT_TRY"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Symbol is USDT_TRY', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.symbol).to.equal('USDT_TRY');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Folder 2: Orderbook API - Depth Parameter",
+      "item": [
+        {
+          "name": "TC-006: GET /orderbook/BTC_TRY?depth=20",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/market/orderbook/BTC_TRY?depth=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "orderbook",
+                "BTC_TRY"
+              ],
+              "query": [
+                {
+                  "key": "depth",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Depth is limited to 20 or less', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.bids.length).to.be.lte(20);",
+                  "    pm.expect(jsonData.asks.length).to.be.lte(20);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-007: GET /orderbook/BTC_TRY?depth=100",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/market/orderbook/BTC_TRY?depth=100",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "orderbook",
+                "BTC_TRY"
+              ],
+              "query": [
+                {
+                  "key": "depth",
+                  "value": "100"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Depth is limited to 100 or less', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.bids.length).to.be.lte(100);",
+                  "    pm.expect(jsonData.asks.length).to.be.lte(100);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Folder 3: Orderbook API - Error Cases",
+      "item": [
+        {
+          "name": "TC-010: GET /orderbook/INVALID_SYMBOL (400 error)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/market/orderbook/INVALID_SYMBOL",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "orderbook",
+                "INVALID_SYMBOL"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400 or 404', function() {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "pm.test('Response contains error message', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('error');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-013: GET /orderbook with SQL injection attempt",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/market/orderbook/BTC_TRY'; DROP TABLE orderbook; --",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "orderbook",
+                "BTC_TRY'; DROP TABLE orderbook; --"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('SQL injection is blocked (400 or treated as invalid symbol)', function() {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "pm.test('No SQL errors in response', function() {",
+                  "    var responseText = pm.response.text();",
+                  "    pm.expect(responseText.toLowerCase()).not.to.include('sql');",
+                  "    pm.expect(responseText.toLowerCase()).not.to.include('syntax error');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Folder 4: Orderbook API - Performance Baseline",
+      "item": [
+        {
+          "name": "TC-014: Performance Test - Single Request Latency",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/market/orderbook/BTC_TRY",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "orderbook",
+                "BTC_TRY"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response time is less than 100ms', function() {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(100);",
+                  "});",
+                  "",
+                  "pm.test('Response time is less than 150ms (acceptable max)', function() {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(150);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Folder 5: Orderbook API - Caching Behavior",
+      "item": [
+        {
+          "name": "TC-016: Cache Miss - First Request",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/market/orderbook/BTC_TRY",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "orderbook",
+                "BTC_TRY"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('First request succeeds', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Store timestamp for later comparison",
+                  "var jsonData = pm.response.json();",
+                  "pm.globals.set('orderbook_timestamp_1', jsonData.timestamp);",
+                  "pm.globals.set('response_time_1', pm.response.responseTime);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-017: Cache Hit - Second Request (Immediate)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/market/orderbook/BTC_TRY",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "orderbook",
+                "BTC_TRY"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Second request succeeds', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Second request is faster than first (cache hit)', function() {",
+                  "    var responseTime2 = pm.response.responseTime;",
+                  "    var responseTime1 = pm.globals.get('response_time_1');",
+                  "    pm.expect(responseTime2).to.be.below(responseTime1);",
+                  "});",
+                  "",
+                  "pm.test('Response time for cached request is less than 30ms', function() {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(30);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Folder 6: Orderbook API - Data Validation",
+      "item": [
+        {
+          "name": "TC-004: Verify All Required Fields Present",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/market/orderbook/BTC_TRY",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "orderbook",
+                "BTC_TRY"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('All required top-level fields present', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('symbol');",
+                  "    pm.expect(jsonData).to.have.property('bids');",
+                  "    pm.expect(jsonData).to.have.property('asks');",
+                  "    pm.expect(jsonData).to.have.property('spread');",
+                  "    pm.expect(jsonData).to.have.property('timestamp');",
+                  "});",
+                  "",
+                  "pm.test('Each bid has price, volume, count', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    jsonData.bids.forEach(function(bid) {",
+                  "        pm.expect(bid).to.have.property('price');",
+                  "        pm.expect(bid).to.have.property('volume');",
+                  "        pm.expect(bid).to.have.property('count');",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('Each ask has price, volume, count', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    jsonData.asks.forEach(function(ask) {",
+                  "        pm.expect(ask).to.have.property('price');",
+                  "        pm.expect(ask).to.have.property('volume');",
+                  "        pm.expect(ask).to.have.property('count');",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-005: Verify Spread Calculation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/market/orderbook/BTC_TRY",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "orderbook",
+                "BTC_TRY"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Spread is calculated correctly', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.bids.length > 0 && jsonData.asks.length > 0) {",
+                  "        var bestBid = parseFloat(jsonData.bids[0].price);",
+                  "        var bestAsk = parseFloat(jsonData.asks[0].price);",
+                  "        var expectedSpread = bestAsk - bestBid;",
+                  "        var actualSpread = parseFloat(jsonData.spread);",
+                  "        pm.expect(Math.abs(actualSpread - expectedSpread)).to.be.below(0.01);",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Spread is positive (asks >= bids)', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(parseFloat(jsonData.spread)).to.be.gte(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-Sorting: Verify Bid/Ask Ordering",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/market/orderbook/BTC_TRY?depth=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "orderbook",
+                "BTC_TRY"
+              ],
+              "query": [
+                {
+                  "key": "depth",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Bids are sorted descending by price', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    for (var i = 0; i < jsonData.bids.length - 1; i++) {",
+                  "        var current = parseFloat(jsonData.bids[i].price);",
+                  "        var next = parseFloat(jsonData.bids[i + 1].price);",
+                  "        pm.expect(current).to.be.gte(next);",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Asks are sorted ascending by price', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    for (var i = 0; i < jsonData.asks.length - 1; i++) {",
+                  "        var current = parseFloat(jsonData.asks[i].price);",
+                  "        var next = parseFloat(jsonData.asks[i + 1].price);",
+                  "        pm.expect(current).to.be.lte(next);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "api_version",
+      "value": "v1",
+      "type": "string"
+    }
+  ]
+}

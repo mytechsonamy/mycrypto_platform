@@ -5,6 +5,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { KycModule } from './kyc/kyc.module';
 import { TradingModule } from './trading/trading.module';
+import { MarketModule } from './market/market.module';
 import { HealthController } from './common/health.controller';
 
 @Module({
@@ -48,6 +49,7 @@ import { HealthController } from './common/health.controller';
     AuthModule,
     KycModule,
     TradingModule,
+    MarketModule,
   ],
   controllers: [HealthController],
 })

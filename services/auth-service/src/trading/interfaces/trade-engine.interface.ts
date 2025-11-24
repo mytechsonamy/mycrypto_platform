@@ -39,6 +39,15 @@ export interface Trade {
   executed_at: string;
 }
 
+export interface PublicTrade {
+  trade_id: string;
+  symbol: string;
+  price: string;
+  quantity: string;
+  executed_at: string;
+  is_buyer_maker: boolean;
+}
+
 export interface OrderBookLevel {
   price: string;
   quantity: string;
