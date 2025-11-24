@@ -1,0 +1,575 @@
+{
+  "info": {
+    "name": "EPIC3 Story 3.1 Day 2 - Depth Chart & Highlighting API Tests",
+    "description": "Comprehensive Postman collection for Day 2 integration testing - Depth Chart API, User Highlighting, Performance Baselines, and Error Scenarios",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "2.0.0"
+  },
+  "item": [
+    {
+      "name": "Folder 1: Depth Chart API - Happy Path",
+      "item": [
+        {
+          "name": "TS-001: GET /depth-chart (BTC_TRY) - Structure & Data",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/orderbook/BTC_TRY/depth-chart",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "orderbook", "BTC_TRY", "depth-chart"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// TS-001: Depth Chart API Structure & Data Validation",
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has required depth chart fields', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('symbol');",
+                  "    pm.expect(jsonData).to.have.property('bids');",
+                  "    pm.expect(jsonData).to.have.property('asks');",
+                  "    pm.expect(jsonData).to.have.property('spread');",
+                  "    pm.expect(jsonData).to.have.property('maxBidVolume');",
+                  "    pm.expect(jsonData).to.have.property('maxAskVolume');",
+                  "    pm.expect(jsonData).to.have.property('timestamp');",
+                  "});",
+                  "",
+                  "pm.test('Symbol is BTC_TRY', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.symbol).to.equal('BTC_TRY');",
+                  "});",
+                  "",
+                  "pm.test('Bids array has required structure', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(Array.isArray(jsonData.bids)).to.be.true;",
+                  "    if (jsonData.bids.length > 0) {",
+                  "        var bid = jsonData.bids[0];",
+                  "        pm.expect(bid).to.have.property('price');",
+                  "        pm.expect(bid).to.have.property('volume');",
+                  "        pm.expect(bid).to.have.property('cumulative');",
+                  "        pm.expect(bid).to.have.property('percentage');",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Asks array has required structure', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(Array.isArray(jsonData.asks)).to.be.true;",
+                  "    if (jsonData.asks.length > 0) {",
+                  "        var ask = jsonData.asks[0];",
+                  "        pm.expect(ask).to.have.property('price');",
+                  "        pm.expect(ask).to.have.property('volume');",
+                  "        pm.expect(ask).to.have.property('cumulative');",
+                  "        pm.expect(ask).to.have.property('percentage');",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Spread has value and percentage', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.spread).to.have.property('value');",
+                  "    pm.expect(jsonData.spread).to.have.property('percentage');",
+                  "});",
+                  "",
+                  "pm.test('Response time is less than 50ms (p99 target)', function() {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(50);",
+                  "});",
+                  "",
+                  "pm.test('Timestamp is ISO 8601 format', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.timestamp).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$/);",
+                  "});",
+                  "",
+                  "pm.test('Bids are limited to 50 levels', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.bids.length).to.be.lte(50);",
+                  "});",
+                  "",
+                  "pm.test('Asks are limited to 50 levels', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.asks.length).to.be.lte(50);",
+                  "});",
+                  "",
+                  "// Store response for next test comparison",
+                  "var jsonData = pm.response.json();",
+                  "pm.globals.set('depth_chart_first_response', JSON.stringify(jsonData));",
+                  "pm.globals.set('first_request_time', pm.response.responseTime);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TS-001B: Verify Cumulative Volumes Are Correct",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/orderbook/BTC_TRY/depth-chart",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "orderbook", "BTC_TRY", "depth-chart"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Cumulative volumes are calculated correctly', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    ",
+                  "    // Check bids cumulative volumes",
+                  "    var bidCumulative = 0;",
+                  "    jsonData.bids.forEach(function(bid, index) {",
+                  "        bidCumulative += parseFloat(bid.volume);",
+                  "        var expectedCumulative = parseFloat(bid.cumulative);",
+                  "        // Allow for floating point precision issues",
+                  "        pm.expect(Math.abs(bidCumulative - expectedCumulative)).to.be.below(0.01);",
+                  "    });",
+                  "    ",
+                  "    // Check asks cumulative volumes",
+                  "    var askCumulative = 0;",
+                  "    jsonData.asks.forEach(function(ask, index) {",
+                  "        askCumulative += parseFloat(ask.volume);",
+                  "        var expectedCumulative = parseFloat(ask.cumulative);",
+                  "        pm.expect(Math.abs(askCumulative - expectedCumulative)).to.be.below(0.01);",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('Percentage values are correct', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    var maxBidVolume = parseFloat(jsonData.maxBidVolume);",
+                  "    var maxAskVolume = parseFloat(jsonData.maxAskVolume);",
+                  "    ",
+                  "    // Check bid percentages",
+                  "    jsonData.bids.forEach(function(bid) {",
+                  "        var expectedPercent = (parseFloat(bid.volume) / maxBidVolume) * 100;",
+                  "        pm.expect(Math.abs(bid.percentage - expectedPercent)).to.be.below(1);",
+                  "    });",
+                  "    ",
+                  "    // Check ask percentages",
+                  "    jsonData.asks.forEach(function(ask) {",
+                  "        var expectedPercent = (parseFloat(ask.volume) / maxAskVolume) * 100;",
+                  "        pm.expect(Math.abs(ask.percentage - expectedPercent)).to.be.below(1);",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('Spread is correctly calculated', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.bids.length > 0 && jsonData.asks.length > 0) {",
+                  "        var bestBid = parseFloat(jsonData.bids[0].price);",
+                  "        var bestAsk = parseFloat(jsonData.asks[0].price);",
+                  "        var expectedSpread = bestAsk - bestBid;",
+                  "        var actualSpread = parseFloat(jsonData.spread.value);",
+                  "        pm.expect(Math.abs(actualSpread - expectedSpread)).to.be.below(0.01);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TS-002A: GET /depth-chart (ETH_TRY)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/orderbook/ETH_TRY/depth-chart",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "orderbook", "ETH_TRY", "depth-chart"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Symbol is ETH_TRY', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.symbol).to.equal('ETH_TRY');",
+                  "});",
+                  "",
+                  "pm.test('Response structure is valid', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('bids');",
+                  "    pm.expect(jsonData).to.have.property('asks');",
+                  "    pm.expect(jsonData).to.have.property('spread');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TS-002B: GET /depth-chart (USDT_TRY)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/orderbook/USDT_TRY/depth-chart",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "orderbook", "USDT_TRY", "depth-chart"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Symbol is USDT_TRY', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.symbol).to.equal('USDT_TRY');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Folder 2: Performance Baseline - Latency Testing",
+      "item": [
+        {
+          "name": "TS-011A: Single Request Latency (<50ms target)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/orderbook/BTC_TRY/depth-chart",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "orderbook", "BTC_TRY", "depth-chart"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Response time is less than 50ms', function() {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(50);",
+                  "});",
+                  "",
+                  "pm.test('Response time is less than 75ms (acceptable)', function() {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(75);",
+                  "});",
+                  "",
+                  "// Log response time",
+                  "console.log('Response Time: ' + pm.response.responseTime + 'ms');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TS-011B: Cached Response Latency (<20ms target)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/orderbook/BTC_TRY/depth-chart",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "orderbook", "BTC_TRY", "depth-chart"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Cached response time is less than 20ms', function() {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(20);",
+                  "});",
+                  "",
+                  "pm.test('Response faster than first request', function() {",
+                  "    var currentTime = pm.response.responseTime;",
+                  "    var firstTime = pm.globals.get('first_request_time');",
+                  "    if (firstTime) {",
+                  "        pm.expect(currentTime).to.be.below(firstTime);",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Folder 3: User Order Highlighting API",
+      "item": [
+        {
+          "name": "TS-005A: GET /user-highlighted-prices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/trading/user-highlighted-prices",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "trading", "user-highlighted-prices"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is array of price strings', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(Array.isArray(jsonData.prices)).to.be.true;",
+                  "    ",
+                  "    // Each price should be a string",
+                  "    if (jsonData.prices.length > 0) {",
+                  "        jsonData.prices.forEach(function(price) {",
+                  "            pm.expect(typeof price).to.equal('string');",
+                  "        });",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Response time is less than 20ms', function() {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(20);",
+                  "});",
+                  "",
+                  "// Store prices for next test",
+                  "var jsonData = pm.response.json();",
+                  "pm.globals.set('user_highlighted_prices', JSON.stringify(jsonData.prices));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TS-006A: Highlighting Service Performance (50 rapid calls)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/trading/user-highlighted-prices",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "trading", "user-highlighted-prices"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// This request should be run 50 times",
+                  "// Use Postman's iteration feature or run via Newman",
+                  "",
+                  "pm.test('Response time is less than 20ms', function() {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(20);",
+                  "});",
+                  "",
+                  "pm.test('Status code is 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Folder 4: Error Scenarios",
+      "item": [
+        {
+          "name": "TS-012A: Invalid Symbol for Depth Chart",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/orderbook/INVALID_SYMBOL/depth-chart",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "orderbook", "INVALID_SYMBOL", "depth-chart"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400 or 404', function() {",
+                  "    pm.expect([400, 404]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "pm.test('Response contains error message', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('error');",
+                  "    pm.expect(jsonData.error.toLowerCase()).to.include('symbol');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TS-012B: Unauthorized Access (Missing Auth Token)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/trading/user-highlighted-prices",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "trading", "user-highlighted-prices"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 401 Unauthorized', function() {",
+                  "    pm.expect(pm.response.code).to.equal(401);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates missing authentication', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('error');"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Folder 5: Cache Hit Verification",
+      "item": [
+        {
+          "name": "TS-002A: First Request (Cache Miss)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/orderbook/BTC_TRY/depth-chart",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "orderbook", "BTC_TRY", "depth-chart"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('First request returns valid data', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Store response time for comparison",
+                  "pm.globals.set('cache_miss_time', pm.response.responseTime);",
+                  "console.log('Cache Miss Time: ' + pm.response.responseTime + 'ms');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TS-002B: Second Request (Cache Hit)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/orderbook/BTC_TRY/depth-chart",
+              "protocol": "http",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "orderbook", "BTC_TRY", "depth-chart"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Second request is faster (cache hit)', function() {",
+                  "    var cacheMissTime = pm.globals.get('cache_miss_time');",
+                  "    var cacheHitTime = pm.response.responseTime;",
+                  "    ",
+                  "    if (cacheMissTime) {",
+                  "        console.log('Cache Hit Time: ' + cacheHitTime + 'ms');",
+                  "        console.log('Speedup: ' + (cacheMissTime / cacheHitTime) + 'x');",
+                  "        pm.expect(cacheHitTime).to.be.below(cacheMissTime);",
+                  "    }",
+                  "});",
+                  "",
+                  "pm.test('Cache hit time is under 20ms', function() {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(20);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
