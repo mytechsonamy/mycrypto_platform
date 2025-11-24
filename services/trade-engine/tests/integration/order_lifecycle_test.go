@@ -56,9 +56,10 @@ func (s *OrderLifecycleTestSuite) TestOrderLifecycle_PlaceLimitOrder_Success() {
 	defer cancel()
 
 	userID := uuid.New()
-	price := decimal.NewFromString("50000.00000000")
-	require.NoError(s.T(), nil) // Just a placeholder
-	quantity := decimal.NewFromString("1.50000000")
+	price, err := decimal.NewFromString("50000.00000000")
+	require.NoError(s.T(), err)
+	quantity, err := decimal.NewFromString("1.50000000")
+	require.NoError(s.T(), err)
 
 	// Step 1: Place order
 	order := &domain.Order{
@@ -74,8 +75,8 @@ func (s *OrderLifecycleTestSuite) TestOrderLifecycle_PlaceLimitOrder_Success() {
 		UpdatedAt: time.Now(),
 	}
 
-	err := s.testEnv.OrderRepository.Create(ctx, order)
-	require.NoError(s.T(), err, "Failed to create order")
+	orderCreateErr := s.testEnv.OrderRepository.Create(ctx, order)
+	require.NoError(s.T(), orderCreateErr, "Failed to create order")
 	assert.NotEqual(s.T(), uuid.Nil, order.ID)
 
 	// Step 2: Verify order in database
