@@ -19,6 +19,8 @@ import {
   OrderSide,
   OrderType,
 } from '../../types/trading.types';
+import { DepthChartData, ZoomLevel } from '../../types/depth-chart.types';
+import { calculateDepthData } from '../../utils/depthChartUtils';
 import {
   placeOrder as placeOrderApi,
   cancelOrder as cancelOrderApi,
@@ -36,6 +38,13 @@ export interface OrderHistoryFilters {
   endDate?: number;
 }
 
+// User order highlighting state
+export interface UserOrderHighlight {
+  prices: string[];
+  volumes: Record<string, string>;
+  orderCounts: Record<string, number>;
+}
+
 // Trading state interface
 export interface TradingState {
   selectedSymbol: TradingPair;
@@ -46,6 +55,12 @@ export interface TradingState {
     spreadPercent: string;
     lastUpdateId: number;
   };
+  depthChart: {
+    data: DepthChartData;
+    zoomLevel: ZoomLevel;
+    panOffset: number;
+  };
+  userHighlightedPrices: UserOrderHighlight;
   ticker: {
     lastPrice: string;
     priceChange: string;
@@ -99,6 +114,20 @@ const initialState: TradingState = {
     spread: '0',
     spreadPercent: '0',
     lastUpdateId: 0,
+  },
+  depthChart: {
+    data: {
+      bids: [],
+      asks: [],
+      spread: { value: '0', percentage: '0' },
+    },
+    zoomLevel: 1,
+    panOffset: 0,
+  },
+  userHighlightedPrices: {
+    prices: [],
+    volumes: {},
+    orderCounts: {},
   },
   ticker: null,
   recentTrades: [],
@@ -595,6 +624,59 @@ const tradingSlice = createSlice({
       const orderId = action.payload;
       state.openOrders = state.openOrders.filter(order => order.orderId !== orderId);
     },
+
+    // Set depth chart data (updates depth chart when order book changes)
+    updateDepthChartData: (state) => {
+      const { bids, asks, spread, spreadPercent } = state.orderBook;
+      state.depthChart.data = calculateDepthData(bids, asks, spread, spreadPercent);
+    },
+
+    // Set depth chart zoom level
+    setDepthChartZoom: (state, action: PayloadAction<ZoomLevel>) => {
+      state.depthChart.zoomLevel = action.payload;
+    },
+
+    // Set depth chart pan offset
+    setDepthChartPanOffset: (state, action: PayloadAction<number>) => {
+      state.depthChart.panOffset = action.payload;
+    },
+
+    // Set user highlighted prices (from user's open orders)
+    setUserHighlightedPrices: (state, action: PayloadAction<UserOrderHighlight>) => {
+      state.userHighlightedPrices = action.payload;
+    },
+
+    // Update user highlighted prices based on open orders
+    updateUserHighlightedPrices: (state) => {
+      const prices: string[] = [];
+      const volumes: Record<string, string> = {};
+      const orderCounts: Record<string, number> = {};
+
+      state.openOrders.forEach((order) => {
+        const price = order.price;
+        if (!prices.includes(price)) {
+          prices.push(price);
+        }
+
+        // Aggregate volumes at each price level
+        if (volumes[price]) {
+          volumes[price] = (
+            parseFloat(volumes[price]) + parseFloat(order.quantity) - parseFloat(order.executedQty)
+          ).toFixed(8);
+        } else {
+          volumes[price] = (parseFloat(order.quantity) - parseFloat(order.executedQty)).toFixed(8);
+        }
+
+        // Count orders at each price level
+        orderCounts[price] = (orderCounts[price] || 0) + 1;
+      });
+
+      state.userHighlightedPrices = {
+        prices,
+        volumes,
+        orderCounts,
+      };
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -732,6 +814,11 @@ export const {
   clearOrderPlacementError,
   clearOrderCancellationError,
   removeOrder,
+  updateDepthChartData,
+  setDepthChartZoom,
+  setDepthChartPanOffset,
+  setUserHighlightedPrices,
+  updateUserHighlightedPrices,
 } = tradingSlice.actions;
 
 // Export reducer
@@ -764,3 +851,8 @@ export const selectTradeHistorySummary = (state: { trading: TradingState }) => s
 export const selectTradeHistoryTotal = (state: { trading: TradingState }) => state.trading.tradeHistoryTotal;
 export const selectTradeHistoryLoading = (state: { trading: TradingState }) => state.trading.tradeHistoryFetch.loading;
 export const selectTradeHistoryError = (state: { trading: TradingState }) => state.trading.tradeHistoryFetch.error;
+export const selectDepthChart = (state: { trading: TradingState }) => state.trading.depthChart;
+export const selectDepthChartData = (state: { trading: TradingState }) => state.trading.depthChart.data;
+export const selectDepthChartZoom = (state: { trading: TradingState }) => state.trading.depthChart.zoomLevel;
+export const selectDepthChartPanOffset = (state: { trading: TradingState }) => state.trading.depthChart.panOffset;
+export const selectUserHighlightedPrices = (state: { trading: TradingState }) => state.trading.userHighlightedPrices;

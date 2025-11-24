@@ -33,6 +33,10 @@ import {
   setError,
   setAggregateLevel,
   setWsConnected,
+  updateDepthChartData,
+  setDepthChartZoom,
+  setDepthChartPanOffset,
+  updateUserHighlightedPrices,
   selectSelectedSymbol,
   selectOrderBook,
   selectTicker,
@@ -41,6 +45,11 @@ import {
   selectTradingError,
   selectAggregateLevel,
   selectWsConnected,
+  selectDepthChartData,
+  selectDepthChartZoom,
+  selectDepthChartPanOffset,
+  selectUserHighlightedPrices,
+  selectOpenOrders,
 } from '../store/slices/tradingSlice';
 import {
   TradingPair,
@@ -50,7 +59,8 @@ import {
 } from '../types/trading.types';
 import { getOrderBook, getTicker, getRecentTrades } from '../api/tradingApi';
 import websocketService from '../services/websocket.service';
-import OrderBookComponent from '../components/Trading/OrderBook/OrderBookComponent';
+import OrderBookComponent, { UserOrderData } from '../components/Trading/OrderBook/OrderBookComponent';
+import { DepthChartComponent } from '../components/Trading/DepthChart';
 import MarketOrderForm from '../components/Trading/OrderForms/MarketOrderForm';
 import LimitOrderForm from '../components/Trading/OrderForms/LimitOrderForm';
 import MarketDataPanel from '../components/Trading/MarketData/MarketDataPanel';
@@ -59,6 +69,7 @@ import TickerComponent from '../components/Trading/Ticker/TickerComponent';
 import RecentTradesComponent from '../components/Trading/RecentTrades/RecentTradesComponent';
 import OrderHistoryComponent from '../components/Trading/OrderHistory/OrderHistoryComponent';
 import TradeHistoryComponent from '../components/Trading/TradeHistory/TradeHistoryComponent';
+import { ZoomLevel } from '../types/depth-chart.types';
 
 const TradingPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -70,6 +81,11 @@ const TradingPage: React.FC = () => {
   const error = useAppSelector(selectTradingError);
   const aggregateLevel = useAppSelector(selectAggregateLevel);
   const wsConnected = useAppSelector(selectWsConnected);
+  const depthChartData = useAppSelector(selectDepthChartData);
+  const depthChartZoom = useAppSelector(selectDepthChartZoom);
+  const depthChartPanOffset = useAppSelector(selectDepthChartPanOffset);
+  const userHighlightedPrices = useAppSelector(selectUserHighlightedPrices);
+  const openOrders = useAppSelector(selectOpenOrders);
 
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -180,6 +196,40 @@ const TradingPage: React.FC = () => {
   const handleAggregateChange = (level: AggregateLevel) => {
     dispatch(setAggregateLevel(level));
   };
+
+  // Handle depth chart zoom change
+  const handleDepthChartZoomChange = (zoom: ZoomLevel) => {
+    dispatch(setDepthChartZoom(zoom));
+  };
+
+  // Handle depth chart pan offset change
+  const handleDepthChartPanOffsetChange = (offset: number) => {
+    dispatch(setDepthChartPanOffset(offset));
+  };
+
+  // Update depth chart data when order book changes
+  useEffect(() => {
+    if (orderBook.bids.length > 0 || orderBook.asks.length > 0) {
+      dispatch(updateDepthChartData());
+    }
+  }, [orderBook.bids, orderBook.asks, dispatch]);
+
+  // Update user highlighted prices when open orders change
+  useEffect(() => {
+    dispatch(updateUserHighlightedPrices());
+  }, [openOrders, dispatch]);
+
+  // Prepare user order data for OrderBookComponent
+  const userOrderData: Record<string, UserOrderData> = Object.keys(userHighlightedPrices.volumes).reduce(
+    (acc, price) => {
+      acc[price] = {
+        volume: userHighlightedPrices.volumes[price],
+        count: userHighlightedPrices.orderCounts[price],
+      };
+      return acc;
+    },
+    {} as Record<string, UserOrderData>
+  );
 
   // Handle order placed - refresh order status panel
   const handleOrderPlaced = () => {
@@ -305,6 +355,22 @@ const TradingPage: React.FC = () => {
         />
       </Box>
 
+      {/* Depth Chart Component - Visualize order book depth */}
+      <Box sx={{ mb: 2 }}>
+        <DepthChartComponent
+          data={depthChartData}
+          symbol={selectedSymbol}
+          loading={loading && !initialLoadComplete}
+          error={error}
+          zoomLevel={depthChartZoom}
+          onZoomChange={handleDepthChartZoomChange}
+          panOffset={depthChartPanOffset}
+          onPanOffsetChange={handleDepthChartPanOffsetChange}
+          aggregateLevel={aggregateLevel}
+          onAggregateChange={handleAggregateChange}
+        />
+      </Box>
+
       {/* Main trading layout */}
       <Grid container spacing={2}>
         {/* Left: Order Book */}
@@ -319,6 +385,8 @@ const TradingPage: React.FC = () => {
             error={error}
             aggregateLevel={aggregateLevel}
             onAggregateChange={handleAggregateChange}
+            userOrders={userHighlightedPrices.prices}
+            userOrderData={userOrderData}
           />
         </Grid>
 

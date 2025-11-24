@@ -3,6 +3,7 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom, timeout, catchError, retry, timer } from 'rxjs';
 import { AxiosError } from 'axios';
+import { CircuitBreaker } from '../../common/utils/circuit-breaker';
 import {
   PlaceOrderRequest,
   TradeEngineResponse,
@@ -18,9 +19,14 @@ import {
 @Injectable()
 export class TradeEngineClient {
   private readonly baseUrl: string;
-  private readonly timeout: number = 10000; // 10 second timeout
+  private readonly timeout: number = 5000; // 5 second timeout (as per requirements)
   private readonly maxRetries: number = 3;
   private readonly logger = new Logger(TradeEngineClient.name);
+  private readonly circuitBreaker: CircuitBreaker;
+
+  // Cache for fallback data
+  private orderbookCache: Map<string, { data: OrderBook; timestamp: number }> = new Map();
+  private readonly CACHE_STALE_TIME = 300000; // 5 minutes
 
   constructor(
     private readonly httpService: HttpService,
@@ -28,6 +34,14 @@ export class TradeEngineClient {
   ) {
     this.baseUrl = this.configService.get<string>('TRADE_ENGINE_API_URL') || 'http://localhost:8080/api/v1';
     this.logger.log(`Trade Engine Client initialized with base URL: ${this.baseUrl}`);
+
+    // Initialize circuit breaker with 3 failures threshold
+    this.circuitBreaker = new CircuitBreaker({
+      failureThreshold: 3,
+      resetTimeout: 60000, // 1 minute
+      monitoringPeriod: 60000,
+      name: 'TradeEngineClient',
+    });
   }
 
   /**
@@ -96,46 +110,125 @@ export class TradeEngineClient {
   }
 
   /**
-   * Get order book for a symbol
+   * Generate correlation ID for request tracing
+   */
+  private generateCorrelationId(): string {
+    return `te_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Get order book for a symbol with circuit breaker and fallback
    * Aligns with GET /market-data/orderbook/{symbol} from OpenAPI spec
    */
   async getOrderBook(symbol: string, depth: number = 20): Promise<TradeEngineResponse<OrderBook>> {
     const startTime = Date.now();
+    const correlationId = this.generateCorrelationId();
+    const cacheKey = `${symbol}:${depth}`;
+
     try {
       // Validate depth parameter
       if (depth < 1 || depth > 100) {
         throw new BadRequestException('Depth must be between 1 and 100');
       }
 
-      this.logger.debug(`Fetching order book for ${symbol} with depth ${depth}`);
+      this.logger.debug(`Fetching order book for ${symbol} with depth ${depth} [correlation_id: ${correlationId}]`);
 
-      const response = await firstValueFrom(
-        this.httpService.get<TradeEngineResponse<OrderBook>>(
-          `${this.baseUrl}/market-data/orderbook/${symbol}`,
-          {
-            params: { depth },
-            timeout: this.timeout,
-          },
-        ).pipe(
-          timeout(this.timeout),
-          retry({
-            count: this.maxRetries,
-            delay: (error, retryCount) => this.retryWithBackoff(retryCount - 1, error),
-          }),
-          catchError((error: AxiosError) => {
-            throw this.handleError(error, 'getOrderBook');
-          }),
-        ),
+      // Execute with circuit breaker protection
+      const result = await this.circuitBreaker.execute(
+        async () => {
+          const response = await firstValueFrom(
+            this.httpService.get<TradeEngineResponse<OrderBook>>(
+              `${this.baseUrl}/market-data/orderbook/${symbol}`,
+              {
+                params: { depth },
+                headers: {
+                  'X-Correlation-ID': correlationId,
+                  'X-Request-Source': 'auth-service',
+                },
+                timeout: this.timeout,
+              },
+            ).pipe(
+              timeout(this.timeout),
+              retry({
+                count: this.maxRetries,
+                delay: (error, retryCount) => this.retryWithBackoff(retryCount - 1, error),
+              }),
+              catchError((error: AxiosError) => {
+                throw this.handleError(error, 'getOrderBook');
+              }),
+            ),
+          );
+
+          // Cache successful response for fallback
+          this.orderbookCache.set(cacheKey, {
+            data: response.data.data,
+            timestamp: Date.now(),
+          });
+
+          const duration = Date.now() - startTime;
+          this.logger.debug(`Order book fetched for ${symbol} (${duration}ms) [correlation_id: ${correlationId}]`);
+          return response.data;
+        },
+        // Fallback function - return cached data
+        async () => {
+          this.logger.warn(`Trade Engine unavailable, using cached data for ${symbol} [correlation_id: ${correlationId}]`);
+          return this.getFallbackOrderbook(symbol, cacheKey);
+        }
       );
 
-      const duration = Date.now() - startTime;
-      this.logger.debug(`Order book fetched for ${symbol} (${duration}ms)`);
-      return response.data;
+      return result;
     } catch (error) {
       const duration = Date.now() - startTime;
-      this.logger.error(`Failed to fetch order book for ${symbol} after ${duration}ms: ${error.message}`);
-      throw error;
+      this.logger.error(`Failed to fetch order book for ${symbol} after ${duration}ms [correlation_id: ${correlationId}]: ${error.message}`);
+
+      // Try fallback as last resort
+      try {
+        return this.getFallbackOrderbook(symbol, cacheKey);
+      } catch (fallbackError) {
+        throw error; // Throw original error if fallback also fails
+      }
     }
+  }
+
+  /**
+   * Get fallback orderbook from cache
+   */
+  private getFallbackOrderbook(symbol: string, cacheKey: string): TradeEngineResponse<OrderBook> {
+    const cached = this.orderbookCache.get(cacheKey);
+
+    if (!cached) {
+      // No cached data available, return empty orderbook
+      this.logger.warn(`No cached orderbook available for ${symbol}, returning empty orderbook`);
+      return {
+        success: true,
+        data: {
+          symbol,
+          bids: [],
+          asks: [],
+          timestamp: new Date().toISOString(),
+        },
+        meta: {
+          timestamp: new Date().toISOString(),
+          request_id: this.generateCorrelationId(),
+        },
+      };
+    }
+
+    const cacheAge = Date.now() - cached.timestamp;
+    const isCacheStale = cacheAge > this.CACHE_STALE_TIME;
+
+    if (isCacheStale) {
+      this.logger.warn(`Cached orderbook for ${symbol} is stale (${Math.round(cacheAge / 1000)}s old)`);
+    }
+
+    return {
+      success: true,
+      data: cached.data,
+      meta: {
+        timestamp: new Date().toISOString(),
+        request_id: this.generateCorrelationId(),
+      },
+    };
   }
 
   /**
@@ -414,6 +507,35 @@ export class TradeEngineClient {
       return '';
     }
     return token;
+  }
+
+  /**
+   * Get circuit breaker metrics for monitoring
+   */
+  getCircuitBreakerMetrics() {
+    return this.circuitBreaker.getMetrics();
+  }
+
+  /**
+   * Get circuit breaker state
+   */
+  getCircuitBreakerState() {
+    return this.circuitBreaker.getState();
+  }
+
+  /**
+   * Check if circuit breaker is open
+   */
+  isCircuitOpen(): boolean {
+    return this.circuitBreaker.isOpen();
+  }
+
+  /**
+   * Manually reset circuit breaker (for admin/testing purposes)
+   */
+  resetCircuitBreaker(): void {
+    this.circuitBreaker.reset();
+    this.logger.log('Circuit breaker manually reset');
   }
 
   /**

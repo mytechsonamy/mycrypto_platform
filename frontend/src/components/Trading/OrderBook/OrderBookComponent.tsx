@@ -18,10 +18,16 @@ import {
   Alert,
   ButtonGroup,
   Button,
+  Tooltip,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
 import { OrderBookLevel, AggregateLevel, AGGREGATE_LEVELS } from '../../../types/trading.types';
+
+export interface UserOrderData {
+  volume: string;
+  count: number;
+}
 
 export interface OrderBookProps {
   bids: OrderBookLevel[];
@@ -34,6 +40,7 @@ export interface OrderBookProps {
   aggregateLevel?: AggregateLevel;
   onAggregateChange?: (aggregate: AggregateLevel) => void;
   userOrders?: string[]; // Array of price levels where user has orders
+  userOrderData?: Record<string, UserOrderData>; // Detailed user order info per price
 }
 
 const OrderBookComponent: React.FC<OrderBookProps> = ({
@@ -47,6 +54,7 @@ const OrderBookComponent: React.FC<OrderBookProps> = ({
   aggregateLevel = 0.1,
   onAggregateChange,
   userOrders = [],
+  userOrderData = {},
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -92,19 +100,23 @@ const OrderBookComponent: React.FC<OrderBookProps> = ({
     const [price, quantity, total] = level;
     const depthPercent = calculateDepthPercent(total, maxTotal);
     const isUserOrder = userOrders.includes(price);
+    const userOrder = userOrderData[price];
     const bgColor = side === 'bid' ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)';
-    const userOrderBg = 'rgba(52, 152, 219, 0.2)';
+    const userOrderBg = 'rgba(255, 235, 59, 0.15)'; // Light yellow for user orders
+    const userOrderBorder = isUserOrder ? `2px solid ${theme.palette.warning.main}` : 'none';
 
-    return (
+    const rowContent = (
       <TableRow
         key={price}
         sx={{
           position: 'relative',
-          cursor: 'pointer',
+          cursor: isUserOrder ? 'help' : 'pointer',
           '&:hover': {
             bgcolor: side === 'bid' ? 'rgba(46, 204, 113, 0.2)' : 'rgba(231, 76, 60, 0.2)',
           },
           bgcolor: isUserOrder ? userOrderBg : 'transparent',
+          borderLeft: side === 'bid' ? userOrderBorder : 'none',
+          borderRight: side === 'ask' ? userOrderBorder : 'none',
         }}
       >
         {/* Depth visualization background */}
@@ -127,7 +139,7 @@ const OrderBookComponent: React.FC<OrderBookProps> = ({
             position: 'relative',
             zIndex: 1,
             color: side === 'bid' ? theme.palette.success.main : theme.palette.error.main,
-            fontWeight: 600,
+            fontWeight: isUserOrder ? 700 : 600,
             fontSize: { xs: '0.75rem', sm: '0.875rem' },
             py: 0.5,
             px: { xs: 0.5, sm: 1 },
@@ -163,6 +175,34 @@ const OrderBookComponent: React.FC<OrderBookProps> = ({
         </TableCell>
       </TableRow>
     );
+
+    // If user has orders at this price, wrap in tooltip
+    if (isUserOrder && userOrder) {
+      return (
+        <Tooltip
+          key={price}
+          title={
+            <Box sx={{ p: 0.5 }}>
+              <Typography variant="caption" fontWeight={600}>
+                Emirleriniz
+              </Typography>
+              <Typography variant="caption" display="block">
+                {userOrder.count} emir
+              </Typography>
+              <Typography variant="caption" display="block">
+                Toplam: {formatQuantity(userOrder.volume)}
+              </Typography>
+            </Box>
+          }
+          placement={side === 'bid' ? 'left' : 'right'}
+          arrow
+        >
+          {rowContent}
+        </Tooltip>
+      );
+    }
+
+    return rowContent;
   };
 
   if (loading) {

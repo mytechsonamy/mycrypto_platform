@@ -1,0 +1,155 @@
+{
+  "file_name": "MyCrypto Platform - Frontend Design",
+  "colors": {
+    "Primary Blue": "#006FFF",
+    "Electric Purple": "#7C3AED",
+    "Vibrant Cyan": "#00D9FF",
+    "Success Green": "#10B981",
+    "Danger Red": "#FF4757",
+    "Warning Orange": "#F59E0B",
+    "Info Blue": "#3B82F6",
+    "Dark BG": "#0F1419",
+    "Card BG": "#1A1F29",
+    "Border": "#2D3748",
+    "Text Primary": "#F8F9FA",
+    "Text Secondary": "#A8ADB5",
+    "Placeholder": "#666B77"
+  },
+  "typography": {
+    "H1": {
+      "size": 32,
+      "weight": 700,
+      "lineHeight": 1.2
+    },
+    "H2": {
+      "size": 24,
+      "weight": 700,
+      "lineHeight": 1.3
+    },
+    "H3": {
+      "size": 18,
+      "weight": 600,
+      "lineHeight": 1.4
+    },
+    "Body Large": {
+      "size": 16,
+      "weight": 400,
+      "lineHeight": 1.5
+    },
+    "Body Regular": {
+      "size": 14,
+      "weight": 400,
+      "lineHeight": 1.5
+    },
+    "Body Small": {
+      "size": 12,
+      "weight": 400,
+      "lineHeight": 1.4
+    }
+  },
+  "sections": {
+    "[00] Design System": {
+      "description": "Design System & Brand Guidelines",
+      "pages": [
+        "Color Palette",
+        "Typography Scales",
+        "Spacing System",
+        "Shadow & Elevation",
+        "Component Guidelines"
+      ]
+    },
+    "[01] Authentication": {
+      "description": "Login, Register, 2FA, Email Verification, Password Reset, KYC",
+      "screens": [
+        "Login (Desktop)",
+        "Login (Mobile)",
+        "Register (Desktop)",
+        "Register (Mobile)",
+        "2FA Setup",
+        "2FA Verification Modal",
+        "Email Verification",
+        "Forgot Password",
+        "Reset Password",
+        "KYC Submission",
+        "KYC Status"
+      ]
+    },
+    "[02] Wallet": {
+      "description": "Wallet Management - Dashboard, Deposit, Withdrawal",
+      "screens": [
+        "Wallet Dashboard (Desktop)",
+        "Wallet Dashboard (Mobile)",
+        "TRY Deposit Flow",
+        "Crypto Deposit",
+        "TRY Withdrawal",
+        "Crypto Withdrawal",
+        "Transaction History",
+        "Transaction Detail"
+      ]
+    },
+    "[03] Trading": {
+      "description": "Trading Interface - Order Book, Orders, History",
+      "screens": [
+        "Trading Dashboard (Desktop)",
+        "Trading Dashboard (Mobile)",
+        "Order Book",
+        "Market Data Panel",
+        "Recent Trades",
+        "Order Entry Panel",
+        "Limit Order Form",
+        "Open Orders",
+        "Order History",
+        "Trade History",
+        "Order Confirmation Modal",
+        "Order Status"
+      ]
+    },
+    "[04] Alerts": {
+      "description": "Price Alerts System",
+      "screens": [
+        "Price Alerts Page",
+        "Create Alert Form",
+        "Alert Confirmation",
+        "Alert History"
+      ]
+    },
+    "[05] Info": {
+      "description": "Information Pages",
+      "screens": [
+        "Fee Structure",
+        "Trading Fees",
+        "Deposit/Withdrawal Fees"
+      ]
+    },
+    "[06] Components": {
+      "description": "Reusable Component Library",
+      "components": [
+        "Buttons (Primary, Secondary, Danger)",
+        "Input Fields",
+        "Toggles & Checkboxes",
+        "Select Dropdowns",
+        "Modals & Dialogs",
+        "Toast Notifications",
+        "Status Badges",
+        "Cards & Containers",
+        "Tabs & Navigation",
+        "Loaders & States",
+        "Data Tables"
+      ]
+    }
+  },
+  "breakpoints": {
+    "Desktop": 1920,
+    "Tablet": 768,
+    "Mobile": 375
+  },
+  "component_states": [
+    "Default",
+    "Hover",
+    "Active",
+    "Disabled",
+    "Error",
+    "Success",
+    "Loading"
+  ]
+}

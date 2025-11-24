@@ -1,0 +1,390 @@
+CREATE TABLE
+psql:<stdin>:14: ERROR:  syntax error at or near "RAISE"
+LINE 1: RAISE NOTICE 'Partition orders_2025_11 created or already ex...
+        ^
+=============================================================================;
+CURRENT DATA STATE;
+=============================================================================;
+         metric          | value 
+-------------------------+-------
+ Total Orders            | 500
+ Active Orders           | 500
+ BTC_TRY Active Orders   | 0
+ Unique Prices (BTC_TRY) | 0
+(4 rows)
+
+;
+=============================================================================;
+EXISTING INDEXES ON ORDERS TABLE;
+=============================================================================;
+           indexname            |                                                            indexdef                                                             
+--------------------------------+---------------------------------------------------------------------------------------------------------------------------------
+ idx_orders_client_order_id     | CREATE INDEX idx_orders_client_order_id ON ONLY public.orders USING btree (client_order_id) WHERE (client_order_id IS NOT NULL)
+ idx_orders_created_at          | CREATE INDEX idx_orders_created_at ON ONLY public.orders USING btree (created_at DESC)
+ idx_orders_status              | CREATE INDEX idx_orders_status ON ONLY public.orders USING btree (status)
+ idx_orders_symbol              | CREATE INDEX idx_orders_symbol ON ONLY public.orders USING btree (symbol)
+ idx_orders_symbol_status       | CREATE INDEX idx_orders_symbol_status ON ONLY public.orders USING btree (symbol, status)
+ idx_orders_user_id             | CREATE INDEX idx_orders_user_id ON ONLY public.orders USING btree (user_id)
+ idx_orders_user_status_created | CREATE INDEX idx_orders_user_status_created ON ONLY public.orders USING btree (user_id, status, created_at DESC)
+ orders_pkey                    | CREATE UNIQUE INDEX orders_pkey ON ONLY public.orders USING btree (order_id, created_at)
+(8 rows)
+
+;
+=============================================================================;
+QUERY 1: BID SIDE DEPTH CHART (Top 50 Levels);
+=============================================================================;
+                                                                                                                   QUERY PLAN                                                                                                                   
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=16.10..16.42 rows=13 width=59) (actual time=0.017..0.018 rows=0 loops=1)
+   Output: orders.price, (sum((orders.quantity - orders.filled_quantity))), (count(*))
+   Buffers: shared hit=3
+   ->  GroupAggregate  (cost=16.10..16.42 rows=13 width=59) (actual time=0.017..0.018 rows=0 loops=1)
+         Output: orders.price, sum((orders.quantity - orders.filled_quantity)), count(*)
+         Group Key: orders.price
+         Buffers: shared hit=3
+         ->  Sort  (cost=16.10..16.13 rows=13 width=57) (actual time=0.017..0.018 rows=0 loops=1)
+               Output: orders.price, orders.quantity, orders.filled_quantity
+               Sort Key: orders.price DESC
+               Sort Method: quicksort  Memory: 25kB
+               Buffers: shared hit=3
+               ->  Append  (cost=0.00..15.86 rows=13 width=57) (actual time=0.013..0.013 rows=0 loops=1)
+                     Buffers: shared hit=3
+                     ->  Seq Scan on public.orders_2024_11 orders_1  (cost=0.00..0.00 rows=1 width=60) (actual time=0.001..0.001 rows=0 loops=1)
+                           Output: orders_1.price, orders_1.quantity, orders_1.filled_quantity
+                           Filter: ((orders_1.price IS NOT NULL) AND (orders_1.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_1.symbol)::text = 'BTC_TRY'::text) AND (orders_1.side = 'BUY'::order_side_enum))
+                     ->  Seq Scan on public.orders_2024_12 orders_2  (cost=0.00..0.00 rows=1 width=60) (actual time=0.001..0.001 rows=0 loops=1)
+                           Output: orders_2.price, orders_2.quantity, orders_2.filled_quantity
+                           Filter: ((orders_2.price IS NOT NULL) AND (orders_2.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_2.symbol)::text = 'BTC_TRY'::text) AND (orders_2.side = 'BUY'::order_side_enum))
+                     ->  Seq Scan on public.orders_2025_01 orders_3  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                           Output: orders_3.price, orders_3.quantity, orders_3.filled_quantity
+                           Filter: ((orders_3.price IS NOT NULL) AND (orders_3.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_3.symbol)::text = 'BTC_TRY'::text) AND (orders_3.side = 'BUY'::order_side_enum))
+                     ->  Seq Scan on public.orders_2025_02 orders_4  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                           Output: orders_4.price, orders_4.quantity, orders_4.filled_quantity
+                           Filter: ((orders_4.price IS NOT NULL) AND (orders_4.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_4.symbol)::text = 'BTC_TRY'::text) AND (orders_4.side = 'BUY'::order_side_enum))
+                     ->  Seq Scan on public.orders_2025_03 orders_5  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                           Output: orders_5.price, orders_5.quantity, orders_5.filled_quantity
+                           Filter: ((orders_5.price IS NOT NULL) AND (orders_5.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_5.symbol)::text = 'BTC_TRY'::text) AND (orders_5.side = 'BUY'::order_side_enum))
+                     ->  Seq Scan on public.orders_2025_04 orders_6  (cost=0.00..0.00 rows=1 width=60) (actual time=0.001..0.001 rows=0 loops=1)
+                           Output: orders_6.price, orders_6.quantity, orders_6.filled_quantity
+                           Filter: ((orders_6.price IS NOT NULL) AND (orders_6.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_6.symbol)::text = 'BTC_TRY'::text) AND (orders_6.side = 'BUY'::order_side_enum))
+                     ->  Seq Scan on public.orders_2025_05 orders_7  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                           Output: orders_7.price, orders_7.quantity, orders_7.filled_quantity
+                           Filter: ((orders_7.price IS NOT NULL) AND (orders_7.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_7.symbol)::text = 'BTC_TRY'::text) AND (orders_7.side = 'BUY'::order_side_enum))
+                     ->  Seq Scan on public.orders_2025_06 orders_8  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                           Output: orders_8.price, orders_8.quantity, orders_8.filled_quantity
+                           Filter: ((orders_8.price IS NOT NULL) AND (orders_8.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_8.symbol)::text = 'BTC_TRY'::text) AND (orders_8.side = 'BUY'::order_side_enum))
+                     ->  Seq Scan on public.orders_2025_07 orders_9  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                           Output: orders_9.price, orders_9.quantity, orders_9.filled_quantity
+                           Filter: ((orders_9.price IS NOT NULL) AND (orders_9.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_9.symbol)::text = 'BTC_TRY'::text) AND (orders_9.side = 'BUY'::order_side_enum))
+                     ->  Seq Scan on public.orders_2025_08 orders_10  (cost=0.00..0.00 rows=1 width=60) (actual time=0.001..0.001 rows=0 loops=1)
+                           Output: orders_10.price, orders_10.quantity, orders_10.filled_quantity
+                           Filter: ((orders_10.price IS NOT NULL) AND (orders_10.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_10.symbol)::text = 'BTC_TRY'::text) AND (orders_10.side = 'BUY'::order_side_enum))
+                     ->  Seq Scan on public.orders_2025_09 orders_11  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                           Output: orders_11.price, orders_11.quantity, orders_11.filled_quantity
+                           Filter: ((orders_11.price IS NOT NULL) AND (orders_11.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_11.symbol)::text = 'BTC_TRY'::text) AND (orders_11.side = 'BUY'::order_side_enum))
+                     ->  Index Scan using orders_2025_10_symbol_idx on public.orders_2025_10 orders_12  (cost=0.15..7.63 rows=1 width=23) (actual time=0.004..0.004 rows=0 loops=1)
+                           Output: orders_12.price, orders_12.quantity, orders_12.filled_quantity
+                           Index Cond: ((orders_12.symbol)::text = 'BTC_TRY'::text)
+                           Filter: ((orders_12.price IS NOT NULL) AND (orders_12.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND (orders_12.side = 'BUY'::order_side_enum))
+                           Buffers: shared hit=1
+                     ->  Index Scan using orders_2025_11_symbol_idx on public.orders_2025_11 orders_13  (cost=0.14..8.17 rows=1 width=60) (actual time=0.002..0.002 rows=0 loops=1)
+                           Output: orders_13.price, orders_13.quantity, orders_13.filled_quantity
+                           Index Cond: ((orders_13.symbol)::text = 'BTC_TRY'::text)
+                           Filter: ((orders_13.price IS NOT NULL) AND (orders_13.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND (orders_13.side = 'BUY'::order_side_enum))
+                           Buffers: shared hit=2
+ Planning:
+   Buffers: shared hit=217
+ Planning Time: 0.645 ms
+ Execution Time: 0.061 ms
+(61 rows)
+
+;
+=============================================================================;
+QUERY 2: ASK SIDE DEPTH CHART (Top 50 Levels);
+=============================================================================;
+                                                                                                                   QUERY PLAN                                                                                                                    
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=16.10..16.42 rows=13 width=59) (actual time=0.015..0.016 rows=0 loops=1)
+   Output: orders.price, (sum((orders.quantity - orders.filled_quantity))), (count(*))
+   Buffers: shared hit=3
+   ->  GroupAggregate  (cost=16.10..16.42 rows=13 width=59) (actual time=0.015..0.015 rows=0 loops=1)
+         Output: orders.price, sum((orders.quantity - orders.filled_quantity)), count(*)
+         Group Key: orders.price
+         Buffers: shared hit=3
+         ->  Sort  (cost=16.10..16.13 rows=13 width=57) (actual time=0.015..0.015 rows=0 loops=1)
+               Output: orders.price, orders.quantity, orders.filled_quantity
+               Sort Key: orders.price
+               Sort Method: quicksort  Memory: 25kB
+               Buffers: shared hit=3
+               ->  Append  (cost=0.00..15.86 rows=13 width=57) (actual time=0.012..0.012 rows=0 loops=1)
+                     Buffers: shared hit=3
+                     ->  Seq Scan on public.orders_2024_11 orders_1  (cost=0.00..0.00 rows=1 width=60) (actual time=0.001..0.001 rows=0 loops=1)
+                           Output: orders_1.price, orders_1.quantity, orders_1.filled_quantity
+                           Filter: ((orders_1.price IS NOT NULL) AND (orders_1.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_1.symbol)::text = 'BTC_TRY'::text) AND (orders_1.side = 'SELL'::order_side_enum))
+                     ->  Seq Scan on public.orders_2024_12 orders_2  (cost=0.00..0.00 rows=1 width=60) (actual time=0.001..0.001 rows=0 loops=1)
+                           Output: orders_2.price, orders_2.quantity, orders_2.filled_quantity
+                           Filter: ((orders_2.price IS NOT NULL) AND (orders_2.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_2.symbol)::text = 'BTC_TRY'::text) AND (orders_2.side = 'SELL'::order_side_enum))
+                     ->  Seq Scan on public.orders_2025_01 orders_3  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                           Output: orders_3.price, orders_3.quantity, orders_3.filled_quantity
+                           Filter: ((orders_3.price IS NOT NULL) AND (orders_3.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_3.symbol)::text = 'BTC_TRY'::text) AND (orders_3.side = 'SELL'::order_side_enum))
+                     ->  Seq Scan on public.orders_2025_02 orders_4  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                           Output: orders_4.price, orders_4.quantity, orders_4.filled_quantity
+                           Filter: ((orders_4.price IS NOT NULL) AND (orders_4.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_4.symbol)::text = 'BTC_TRY'::text) AND (orders_4.side = 'SELL'::order_side_enum))
+                     ->  Seq Scan on public.orders_2025_03 orders_5  (cost=0.00..0.00 rows=1 width=60) (actual time=0.001..0.001 rows=0 loops=1)
+                           Output: orders_5.price, orders_5.quantity, orders_5.filled_quantity
+                           Filter: ((orders_5.price IS NOT NULL) AND (orders_5.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_5.symbol)::text = 'BTC_TRY'::text) AND (orders_5.side = 'SELL'::order_side_enum))
+                     ->  Seq Scan on public.orders_2025_04 orders_6  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                           Output: orders_6.price, orders_6.quantity, orders_6.filled_quantity
+                           Filter: ((orders_6.price IS NOT NULL) AND (orders_6.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_6.symbol)::text = 'BTC_TRY'::text) AND (orders_6.side = 'SELL'::order_side_enum))
+                     ->  Seq Scan on public.orders_2025_05 orders_7  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                           Output: orders_7.price, orders_7.quantity, orders_7.filled_quantity
+                           Filter: ((orders_7.price IS NOT NULL) AND (orders_7.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_7.symbol)::text = 'BTC_TRY'::text) AND (orders_7.side = 'SELL'::order_side_enum))
+                     ->  Seq Scan on public.orders_2025_06 orders_8  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                           Output: orders_8.price, orders_8.quantity, orders_8.filled_quantity
+                           Filter: ((orders_8.price IS NOT NULL) AND (orders_8.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_8.symbol)::text = 'BTC_TRY'::text) AND (orders_8.side = 'SELL'::order_side_enum))
+                     ->  Seq Scan on public.orders_2025_07 orders_9  (cost=0.00..0.00 rows=1 width=60) (actual time=0.001..0.001 rows=0 loops=1)
+                           Output: orders_9.price, orders_9.quantity, orders_9.filled_quantity
+                           Filter: ((orders_9.price IS NOT NULL) AND (orders_9.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_9.symbol)::text = 'BTC_TRY'::text) AND (orders_9.side = 'SELL'::order_side_enum))
+                     ->  Seq Scan on public.orders_2025_08 orders_10  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                           Output: orders_10.price, orders_10.quantity, orders_10.filled_quantity
+                           Filter: ((orders_10.price IS NOT NULL) AND (orders_10.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_10.symbol)::text = 'BTC_TRY'::text) AND (orders_10.side = 'SELL'::order_side_enum))
+                     ->  Seq Scan on public.orders_2025_09 orders_11  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                           Output: orders_11.price, orders_11.quantity, orders_11.filled_quantity
+                           Filter: ((orders_11.price IS NOT NULL) AND (orders_11.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_11.symbol)::text = 'BTC_TRY'::text) AND (orders_11.side = 'SELL'::order_side_enum))
+                     ->  Index Scan using orders_2025_10_symbol_idx on public.orders_2025_10 orders_12  (cost=0.15..7.63 rows=1 width=23) (actual time=0.003..0.003 rows=0 loops=1)
+                           Output: orders_12.price, orders_12.quantity, orders_12.filled_quantity
+                           Index Cond: ((orders_12.symbol)::text = 'BTC_TRY'::text)
+                           Filter: ((orders_12.price IS NOT NULL) AND (orders_12.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND (orders_12.side = 'SELL'::order_side_enum))
+                           Buffers: shared hit=1
+                     ->  Index Scan using orders_2025_11_symbol_idx on public.orders_2025_11 orders_13  (cost=0.14..8.17 rows=1 width=60) (actual time=0.002..0.002 rows=0 loops=1)
+                           Output: orders_13.price, orders_13.quantity, orders_13.filled_quantity
+                           Index Cond: ((orders_13.symbol)::text = 'BTC_TRY'::text)
+                           Filter: ((orders_13.price IS NOT NULL) AND (orders_13.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND (orders_13.side = 'SELL'::order_side_enum))
+                           Buffers: shared hit=2
+ Planning:
+   Buffers: shared hit=97
+ Planning Time: 0.331 ms
+ Execution Time: 0.049 ms
+(61 rows)
+
+;
+=============================================================================;
+QUERY 3: COMBINED DEPTH CHART (Both Sides with CTE);
+=============================================================================;
+                                                                                                                         QUERY PLAN                                                                                                                          
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Append  (cost=16.10..33.24 rows=26 width=91) (actual time=0.030..0.032 rows=0 loops=1)
+   Buffers: shared hit=6
+   ->  Subquery Scan on bid_levels  (cost=16.10..16.55 rows=13 width=91) (actual time=0.016..0.017 rows=0 loops=1)
+         Output: 'BID'::text, bid_levels.price, bid_levels.volume, bid_levels.order_count
+         Buffers: shared hit=3
+         ->  Limit  (cost=16.10..16.42 rows=13 width=59) (actual time=0.016..0.017 rows=0 loops=1)
+               Output: orders.price, (sum((orders.quantity - orders.filled_quantity))), (count(*))
+               Buffers: shared hit=3
+               ->  GroupAggregate  (cost=16.10..16.42 rows=13 width=59) (actual time=0.016..0.016 rows=0 loops=1)
+                     Output: orders.price, sum((orders.quantity - orders.filled_quantity)), count(*)
+                     Group Key: orders.price
+                     Buffers: shared hit=3
+                     ->  Sort  (cost=16.10..16.13 rows=13 width=57) (actual time=0.015..0.016 rows=0 loops=1)
+                           Output: orders.price, orders.quantity, orders.filled_quantity
+                           Sort Key: orders.price DESC
+                           Sort Method: quicksort  Memory: 25kB
+                           Buffers: shared hit=3
+                           ->  Append  (cost=0.00..15.86 rows=13 width=57) (actual time=0.012..0.012 rows=0 loops=1)
+                                 Buffers: shared hit=3
+                                 ->  Seq Scan on public.orders_2024_11 orders_1  (cost=0.00..0.00 rows=1 width=60) (actual time=0.001..0.001 rows=0 loops=1)
+                                       Output: orders_1.price, orders_1.quantity, orders_1.filled_quantity
+                                       Filter: ((orders_1.price IS NOT NULL) AND (orders_1.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_1.symbol)::text = 'BTC_TRY'::text) AND (orders_1.side = 'BUY'::order_side_enum))
+                                 ->  Seq Scan on public.orders_2024_12 orders_2  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                                       Output: orders_2.price, orders_2.quantity, orders_2.filled_quantity
+                                       Filter: ((orders_2.price IS NOT NULL) AND (orders_2.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_2.symbol)::text = 'BTC_TRY'::text) AND (orders_2.side = 'BUY'::order_side_enum))
+                                 ->  Seq Scan on public.orders_2025_01 orders_3  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                                       Output: orders_3.price, orders_3.quantity, orders_3.filled_quantity
+                                       Filter: ((orders_3.price IS NOT NULL) AND (orders_3.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_3.symbol)::text = 'BTC_TRY'::text) AND (orders_3.side = 'BUY'::order_side_enum))
+                                 ->  Seq Scan on public.orders_2025_02 orders_4  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                                       Output: orders_4.price, orders_4.quantity, orders_4.filled_quantity
+                                       Filter: ((orders_4.price IS NOT NULL) AND (orders_4.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_4.symbol)::text = 'BTC_TRY'::text) AND (orders_4.side = 'BUY'::order_side_enum))
+                                 ->  Seq Scan on public.orders_2025_03 orders_5  (cost=0.00..0.00 rows=1 width=60) (actual time=0.001..0.001 rows=0 loops=1)
+                                       Output: orders_5.price, orders_5.quantity, orders_5.filled_quantity
+                                       Filter: ((orders_5.price IS NOT NULL) AND (orders_5.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_5.symbol)::text = 'BTC_TRY'::text) AND (orders_5.side = 'BUY'::order_side_enum))
+                                 ->  Seq Scan on public.orders_2025_04 orders_6  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                                       Output: orders_6.price, orders_6.quantity, orders_6.filled_quantity
+                                       Filter: ((orders_6.price IS NOT NULL) AND (orders_6.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_6.symbol)::text = 'BTC_TRY'::text) AND (orders_6.side = 'BUY'::order_side_enum))
+                                 ->  Seq Scan on public.orders_2025_05 orders_7  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                                       Output: orders_7.price, orders_7.quantity, orders_7.filled_quantity
+                                       Filter: ((orders_7.price IS NOT NULL) AND (orders_7.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_7.symbol)::text = 'BTC_TRY'::text) AND (orders_7.side = 'BUY'::order_side_enum))
+                                 ->  Seq Scan on public.orders_2025_06 orders_8  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                                       Output: orders_8.price, orders_8.quantity, orders_8.filled_quantity
+                                       Filter: ((orders_8.price IS NOT NULL) AND (orders_8.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_8.symbol)::text = 'BTC_TRY'::text) AND (orders_8.side = 'BUY'::order_side_enum))
+                                 ->  Seq Scan on public.orders_2025_07 orders_9  (cost=0.00..0.00 rows=1 width=60) (actual time=0.001..0.001 rows=0 loops=1)
+                                       Output: orders_9.price, orders_9.quantity, orders_9.filled_quantity
+                                       Filter: ((orders_9.price IS NOT NULL) AND (orders_9.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_9.symbol)::text = 'BTC_TRY'::text) AND (orders_9.side = 'BUY'::order_side_enum))
+                                 ->  Seq Scan on public.orders_2025_08 orders_10  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                                       Output: orders_10.price, orders_10.quantity, orders_10.filled_quantity
+                                       Filter: ((orders_10.price IS NOT NULL) AND (orders_10.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_10.symbol)::text = 'BTC_TRY'::text) AND (orders_10.side = 'BUY'::order_side_enum))
+                                 ->  Seq Scan on public.orders_2025_09 orders_11  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                                       Output: orders_11.price, orders_11.quantity, orders_11.filled_quantity
+                                       Filter: ((orders_11.price IS NOT NULL) AND (orders_11.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_11.symbol)::text = 'BTC_TRY'::text) AND (orders_11.side = 'BUY'::order_side_enum))
+                                 ->  Index Scan using orders_2025_10_symbol_idx on public.orders_2025_10 orders_12  (cost=0.15..7.63 rows=1 width=23) (actual time=0.005..0.005 rows=0 loops=1)
+                                       Output: orders_12.price, orders_12.quantity, orders_12.filled_quantity
+                                       Index Cond: ((orders_12.symbol)::text = 'BTC_TRY'::text)
+                                       Filter: ((orders_12.price IS NOT NULL) AND (orders_12.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND (orders_12.side = 'BUY'::order_side_enum))
+                                       Buffers: shared hit=1
+                                 ->  Index Scan using orders_2025_11_symbol_idx on public.orders_2025_11 orders_13  (cost=0.14..8.17 rows=1 width=60) (actual time=0.002..0.002 rows=0 loops=1)
+                                       Output: orders_13.price, orders_13.quantity, orders_13.filled_quantity
+                                       Index Cond: ((orders_13.symbol)::text = 'BTC_TRY'::text)
+                                       Filter: ((orders_13.price IS NOT NULL) AND (orders_13.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND (orders_13.side = 'BUY'::order_side_enum))
+                                       Buffers: shared hit=2
+   ->  Subquery Scan on ask_levels  (cost=16.10..16.55 rows=13 width=91) (actual time=0.014..0.015 rows=0 loops=1)
+         Output: 'ASK'::text, ask_levels.price, ask_levels.volume, ask_levels.order_count
+         Buffers: shared hit=3
+         ->  Limit  (cost=16.10..16.42 rows=13 width=59) (actual time=0.014..0.015 rows=0 loops=1)
+               Output: orders_14.price, (sum((orders_14.quantity - orders_14.filled_quantity))), (count(*))
+               Buffers: shared hit=3
+               ->  GroupAggregate  (cost=16.10..16.42 rows=13 width=59) (actual time=0.014..0.015 rows=0 loops=1)
+                     Output: orders_14.price, sum((orders_14.quantity - orders_14.filled_quantity)), count(*)
+                     Group Key: orders_14.price
+                     Buffers: shared hit=3
+                     ->  Sort  (cost=16.10..16.13 rows=13 width=57) (actual time=0.014..0.015 rows=0 loops=1)
+                           Output: orders_14.price, orders_14.quantity, orders_14.filled_quantity
+                           Sort Key: orders_14.price
+                           Sort Method: quicksort  Memory: 25kB
+                           Buffers: shared hit=3
+                           ->  Append  (cost=0.00..15.86 rows=13 width=57) (actual time=0.011..0.011 rows=0 loops=1)
+                                 Buffers: shared hit=3
+                                 ->  Seq Scan on public.orders_2024_11 orders_15  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                                       Output: orders_15.price, orders_15.quantity, orders_15.filled_quantity
+                                       Filter: ((orders_15.price IS NOT NULL) AND (orders_15.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_15.symbol)::text = 'BTC_TRY'::text) AND (orders_15.side = 'SELL'::order_side_enum))
+                                 ->  Seq Scan on public.orders_2024_12 orders_16  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                                       Output: orders_16.price, orders_16.quantity, orders_16.filled_quantity
+                                       Filter: ((orders_16.price IS NOT NULL) AND (orders_16.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_16.symbol)::text = 'BTC_TRY'::text) AND (orders_16.side = 'SELL'::order_side_enum))
+                                 ->  Seq Scan on public.orders_2025_01 orders_17  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                                       Output: orders_17.price, orders_17.quantity, orders_17.filled_quantity
+                                       Filter: ((orders_17.price IS NOT NULL) AND (orders_17.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_17.symbol)::text = 'BTC_TRY'::text) AND (orders_17.side = 'SELL'::order_side_enum))
+                                 ->  Seq Scan on public.orders_2025_02 orders_18  (cost=0.00..0.00 rows=1 width=60) (actual time=0.001..0.001 rows=0 loops=1)
+                                       Output: orders_18.price, orders_18.quantity, orders_18.filled_quantity
+                                       Filter: ((orders_18.price IS NOT NULL) AND (orders_18.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_18.symbol)::text = 'BTC_TRY'::text) AND (orders_18.side = 'SELL'::order_side_enum))
+                                 ->  Seq Scan on public.orders_2025_03 orders_19  (cost=0.00..0.00 rows=1 width=60) (actual time=0.002..0.002 rows=0 loops=1)
+                                       Output: orders_19.price, orders_19.quantity, orders_19.filled_quantity
+                                       Filter: ((orders_19.price IS NOT NULL) AND (orders_19.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_19.symbol)::text = 'BTC_TRY'::text) AND (orders_19.side = 'SELL'::order_side_enum))
+                                 ->  Seq Scan on public.orders_2025_04 orders_20  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                                       Output: orders_20.price, orders_20.quantity, orders_20.filled_quantity
+                                       Filter: ((orders_20.price IS NOT NULL) AND (orders_20.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_20.symbol)::text = 'BTC_TRY'::text) AND (orders_20.side = 'SELL'::order_side_enum))
+                                 ->  Seq Scan on public.orders_2025_05 orders_21  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                                       Output: orders_21.price, orders_21.quantity, orders_21.filled_quantity
+                                       Filter: ((orders_21.price IS NOT NULL) AND (orders_21.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_21.symbol)::text = 'BTC_TRY'::text) AND (orders_21.side = 'SELL'::order_side_enum))
+                                 ->  Seq Scan on public.orders_2025_06 orders_22  (cost=0.00..0.00 rows=1 width=60) (actual time=0.001..0.001 rows=0 loops=1)
+                                       Output: orders_22.price, orders_22.quantity, orders_22.filled_quantity
+                                       Filter: ((orders_22.price IS NOT NULL) AND (orders_22.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_22.symbol)::text = 'BTC_TRY'::text) AND (orders_22.side = 'SELL'::order_side_enum))
+                                 ->  Seq Scan on public.orders_2025_07 orders_23  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                                       Output: orders_23.price, orders_23.quantity, orders_23.filled_quantity
+                                       Filter: ((orders_23.price IS NOT NULL) AND (orders_23.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_23.symbol)::text = 'BTC_TRY'::text) AND (orders_23.side = 'SELL'::order_side_enum))
+                                 ->  Seq Scan on public.orders_2025_08 orders_24  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                                       Output: orders_24.price, orders_24.quantity, orders_24.filled_quantity
+                                       Filter: ((orders_24.price IS NOT NULL) AND (orders_24.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_24.symbol)::text = 'BTC_TRY'::text) AND (orders_24.side = 'SELL'::order_side_enum))
+                                 ->  Seq Scan on public.orders_2025_09 orders_25  (cost=0.00..0.00 rows=1 width=60) (actual time=0.000..0.000 rows=0 loops=1)
+                                       Output: orders_25.price, orders_25.quantity, orders_25.filled_quantity
+                                       Filter: ((orders_25.price IS NOT NULL) AND (orders_25.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND ((orders_25.symbol)::text = 'BTC_TRY'::text) AND (orders_25.side = 'SELL'::order_side_enum))
+                                 ->  Index Scan using orders_2025_10_symbol_idx on public.orders_2025_10 orders_26  (cost=0.15..7.63 rows=1 width=23) (actual time=0.003..0.003 rows=0 loops=1)
+                                       Output: orders_26.price, orders_26.quantity, orders_26.filled_quantity
+                                       Index Cond: ((orders_26.symbol)::text = 'BTC_TRY'::text)
+                                       Filter: ((orders_26.price IS NOT NULL) AND (orders_26.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND (orders_26.side = 'SELL'::order_side_enum))
+                                       Buffers: shared hit=1
+                                 ->  Index Scan using orders_2025_11_symbol_idx on public.orders_2025_11 orders_27  (cost=0.14..8.17 rows=1 width=60) (actual time=0.003..0.003 rows=0 loops=1)
+                                       Output: orders_27.price, orders_27.quantity, orders_27.filled_quantity
+                                       Index Cond: ((orders_27.symbol)::text = 'BTC_TRY'::text)
+                                       Filter: ((orders_27.price IS NOT NULL) AND (orders_27.status = ANY ('{OPEN,PARTIALLY_FILLED}'::order_status_enum[])) AND (orders_27.side = 'SELL'::order_side_enum))
+                                       Buffers: shared hit=2
+ Planning:
+   Buffers: shared hit=194
+ Planning Time: 0.623 ms
+ Execution Time: 0.110 ms
+(126 rows)
+
+;
+=============================================================================;
+INDEX USAGE STATISTICS;
+=============================================================================;
+psql:<stdin>:173: ERROR:  column "tablename" specified in USING clause does not exist in left table
+;
+=============================================================================;
+CACHE HIT RATIOS;
+=============================================================================;
+;
+=============================================================================;
+TABLE AND INDEX SIZES;
+=============================================================================;
+psql:<stdin>:213: ERROR:  column "tablename" does not exist
+LINE 4:         tablename,
+                ^
+ schemaname |   tablename    | total_size | table_size | indexes_size 
+------------+----------------+------------+------------+--------------
+ public     | orders_2025_10 | 328 kB     | 72 kB      | 232 kB
+ public     | orders_2025_03 | 64 kB      | 0 bytes    | 64 kB
+ public     | orders_2024_11 | 64 kB      | 0 bytes    | 64 kB
+ public     | orders_2024_12 | 64 kB      | 0 bytes    | 64 kB
+ public     | orders_2025_01 | 64 kB      | 0 bytes    | 64 kB
+ public     | orders_2025_02 | 64 kB      | 0 bytes    | 64 kB
+ public     | orders_2025_04 | 64 kB      | 0 bytes    | 64 kB
+ public     | orders_2025_05 | 64 kB      | 0 bytes    | 64 kB
+ public     | orders_2025_06 | 64 kB      | 0 bytes    | 64 kB
+ public     | orders_2025_07 | 64 kB      | 0 bytes    | 64 kB
+ public     | orders_2025_08 | 64 kB      | 0 bytes    | 64 kB
+ public     | orders_2025_09 | 64 kB      | 0 bytes    | 64 kB
+ public     | orders_2025_11 | 64 kB      | 0 bytes    | 64 kB
+ public     | orders         | 0 bytes    | 0 bytes    | 0 bytes
+(14 rows)
+
+;
+=============================================================================;
+BENCHMARK: AVERAGE EXECUTION TIME (10 Runs);
+=============================================================================;
+psql:<stdin>:311: NOTICE:  BID Query Benchmark (10 runs):
+psql:<stdin>:311: NOTICE:    Min: 0.026000 ms
+psql:<stdin>:311: NOTICE:    Max: 0.860000 ms
+psql:<stdin>:311: NOTICE:    Avg: 0.114 ms
+psql:<stdin>:311: NOTICE:    Median: 0.027 ms
+psql:<stdin>:311: NOTICE:  
+psql:<stdin>:311: NOTICE:  ASK Query Benchmark (10 runs):
+psql:<stdin>:311: NOTICE:    Min: 0.026000 ms
+psql:<stdin>:311: NOTICE:    Max: 0.462000 ms
+psql:<stdin>:311: NOTICE:    Avg: 0.075 ms
+psql:<stdin>:311: NOTICE:    Median: 0.0315 ms
+DO
+;
+=============================================================================;
+SAMPLE RESULTS: Top 10 BID Levels;
+=============================================================================;
+ price | volume | order_count 
+-------+--------+-------------
+(0 rows)
+
+;
+=============================================================================;
+SAMPLE RESULTS: Top 10 ASK Levels;
+=============================================================================;
+ price | volume | order_count 
+-------+--------+-------------
+(0 rows)
+
+;
+=============================================================================;
+PERFORMANCE ANALYSIS COMPLETE;
+=============================================================================;
+Review the EXPLAIN ANALYZE output above to determine:;
+1. Are indexes being used? (Look for "Index Scan" vs "Seq Scan");
+2. Is execution time < 50ms? (Look for "Execution Time");
+3. Are there unnecessary sorts? (Look for "Sort" nodes);
+4. What is the buffer hit rate? (Look for "Buffers: shared hit=X read=Y");
+;
+Optimization criteria:;
+- Target: < 50ms execution time;
+- Index usage: Should use idx_orders_symbol_status or better;
+- Cache hit ratio: Should be > 95%;
+- Buffer usage: Minimize disk reads;
+;
+Next steps:;
+1. If sequential scans found: Create partial index on (symbol, side, status, price);
+2. If execution time > 50ms: Consider covering index with INCLUDE clause;
+3. If cache hit ratio < 95%: Increase shared_buffers or warm up cache;
+=============================================================================;

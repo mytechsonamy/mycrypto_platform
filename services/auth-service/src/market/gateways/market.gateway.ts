@@ -11,6 +11,7 @@ import {
 import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { MarketService } from '../services/market.service';
+import { UserOrderHighlightService } from '../services/user-order-highlight.service';
 
 interface OrderbookSubscription {
   symbol: string;
@@ -39,9 +40,13 @@ export class MarketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
   private readonly logger = new Logger(MarketGateway.name);
   private clientSubscriptions: Map<string, Set<string>> = new Map(); // clientId -> Set<symbol>
   private updateIntervals: Map<string, NodeJS.Timeout> = new Map(); // symbol -> interval
+  private userOrderSubscriptions: Map<string, string> = new Map(); // clientId -> userId
   private readonly UPDATE_INTERVAL_MS = 100; // Batch updates every 100ms
 
-  constructor(private readonly marketService: MarketService) {}
+  constructor(
+    private readonly marketService: MarketService,
+    private readonly userOrderHighlightService: UserOrderHighlightService,
+  ) {}
 
   afterInit(server: Server) {
     this.logger.log('WebSocket Gateway initialized');
@@ -70,6 +75,9 @@ export class MarketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
       });
       this.clientSubscriptions.delete(client.id);
     }
+
+    // Clean up user order subscriptions
+    this.userOrderSubscriptions.delete(client.id);
   }
 
   /**
@@ -146,6 +154,106 @@ export class MarketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
       type: 'pong',
       timestamp: new Date().toISOString(),
     });
+  }
+
+  /**
+   * Handle user order highlighting subscription
+   * Client sends: { userId: 'user-uuid' }
+   */
+  @SubscribeMessage('subscribe_user_orders')
+  async handleSubscribeUserOrders(
+    @MessageBody() data: { userId: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    try {
+      const { userId } = data;
+
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
+
+      this.logger.log(`Client ${client.id} subscribing to user_orders for ${userId}`);
+
+      // Store user subscription
+      this.userOrderSubscriptions.set(client.id, userId);
+
+      // Send initial highlighted prices
+      await this.sendUserOrderPrices(client, userId);
+
+      // Send subscription confirmation
+      client.emit('subscribed', {
+        type: 'subscription_confirmed',
+        channel: `user_orders:${userId}`,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      this.logger.error(`User order subscription error for client ${client.id}: ${error.message}`);
+      client.emit('error', {
+        type: 'subscription_error',
+        message: error.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * Handle user order highlighting unsubscription
+   */
+  @SubscribeMessage('unsubscribe_user_orders')
+  handleUnsubscribeUserOrders(@ConnectedSocket() client: Socket) {
+    const userId = this.userOrderSubscriptions.get(client.id);
+
+    if (userId) {
+      this.logger.log(`Client ${client.id} unsubscribing from user_orders for ${userId}`);
+      this.userOrderSubscriptions.delete(client.id);
+
+      client.emit('unsubscribed', {
+        type: 'unsubscription_confirmed',
+        channel: `user_orders:${userId}`,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * Send user order prices to client
+   */
+  private async sendUserOrderPrices(client: Socket, userId: string) {
+    try {
+      const prices = await this.userOrderHighlightService.getHighlightedPrices(userId);
+      const event = this.userOrderHighlightService.buildUserOrderPricesEvent(userId, prices);
+
+      client.emit('user_order_prices', event);
+    } catch (error) {
+      this.logger.error(`Failed to send user order prices for ${userId}: ${error.message}`);
+      client.emit('error', {
+        type: 'user_order_prices_error',
+        userId,
+        message: error.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * Broadcast user order price updates (call when orders change)
+   */
+  async broadcastUserOrderUpdate(userId: string) {
+    try {
+      const prices = await this.userOrderHighlightService.getHighlightedPrices(userId);
+      const event = this.userOrderHighlightService.buildUserOrderPricesEvent(userId, prices);
+
+      // Find all clients subscribed to this user's orders
+      this.userOrderSubscriptions.forEach((subscribedUserId, clientId) => {
+        if (subscribedUserId === userId) {
+          this.server.to(clientId).emit('user_order_prices', event);
+        }
+      });
+
+      this.logger.debug(`Broadcasted user order update for ${userId} to subscribed clients`);
+    } catch (error) {
+      this.logger.error(`Failed to broadcast user order update for ${userId}: ${error.message}`);
+    }
   }
 
   /**

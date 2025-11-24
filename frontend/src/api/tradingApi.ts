@@ -22,25 +22,33 @@ import {
   TradeHistoryFilters,
 } from '../types/trading.types';
 
-// API base URL - configured via environment variables
+// API base URLs - configured via environment variables
 const API_BASE_URL = process.env.REACT_APP_TRADING_API_URL || 'http://localhost:8080/api/v1';
+const TRADE_ENGINE_URL = process.env.REACT_APP_TRADE_ENGINE_URL || API_BASE_URL;
+
+// Fallback to cached data on error (last known state)
+let cachedOrderBook: OrderBookResponse | null = null;
+let cachedTicker: TickerResponse | null = null;
+let cachedTrades: TradesResponse | null = null;
 
 // Create axios instance with default config
 const tradingApiClient: AxiosInstance = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: TRADE_ENGINE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000,
+  timeout: 5000, // 5 second timeout as per requirements
 });
 
-// Request interceptor for adding auth tokens
+// Request interceptor for adding auth tokens and timing
 tradingApiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Add request start time for performance monitoring
+    (config as any)._requestStartTime = Date.now();
     return config;
   },
   (error) => {
@@ -48,13 +56,24 @@ tradingApiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor for error handling
+// Response interceptor for error handling with fallback support
 tradingApiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError<ApiErrorResponse>) => {
+    // Log slow requests (>1s) for monitoring
+    if (error.config) {
+      const requestStartTime = (error.config as any)._requestStartTime;
+      if (requestStartTime && Date.now() - requestStartTime > 1000) {
+        console.warn(`Slow request detected: ${error.config.url} took ${Date.now() - requestStartTime}ms`);
+      }
+    }
+
     if (!error.response) {
-      // Network error
-      return Promise.reject(new Error('Bağlantı hatası. Lütfen internet bağlantınızı kontrol edin.'));
+      // Network error or timeout
+      if (error.code === 'ECONNABORTED') {
+        return Promise.reject(new Error('İstek zaman aşımına uğradı. Trade Engine servisine ulaşılamıyor.'));
+      }
+      return Promise.reject(new Error('Bağlantı hatası. Trade Engine servisi kullanılamıyor.'));
     }
 
     const { status, data } = error.response;
@@ -74,7 +93,7 @@ tradingApiClient.interceptors.response.use(
       case 500:
       case 502:
       case 503:
-        return Promise.reject(new Error('Sunucu hatası. Lütfen daha sonra tekrar deneyin.'));
+        return Promise.reject(new Error('Trade Engine servisi şu anda kullanılamıyor. Lütfen daha sonra tekrar deneyin.'));
       default:
         return Promise.reject(new Error(data?.message || 'Beklenmeyen bir hata oluştu.'));
     }
@@ -181,8 +200,16 @@ export const getOrderBook = async (
       `/orderbook/${symbol}`,
       { params: { depth } }
     );
-    return response.data.data;
+    const data = response.data.data;
+    // Cache successful response
+    cachedOrderBook = data;
+    return data;
   } catch (error) {
+    // Fallback to cached data on error
+    if (cachedOrderBook) {
+      console.warn('Trade Engine unavailable, using cached order book data');
+      return cachedOrderBook;
+    }
     throw error;
   }
 };
@@ -201,8 +228,16 @@ export const getTicker = async (symbol: TradingPair): Promise<TickerResponse> =>
     const response = await tradingApiClient.get<ApiResponse<TickerResponse>>(
       `/ticker/${symbol}`
     );
-    return response.data.data;
+    const data = response.data.data;
+    // Cache successful response
+    cachedTicker = data;
+    return data;
   } catch (error) {
+    // Fallback to cached data on error
+    if (cachedTicker) {
+      console.warn('Trade Engine unavailable, using cached ticker data');
+      return cachedTicker;
+    }
     throw error;
   }
 };
@@ -226,8 +261,16 @@ export const getRecentTrades = async (
       `/trades/${symbol}`,
       { params: { limit } }
     );
-    return response.data.data;
+    const data = response.data.data;
+    // Cache successful response
+    cachedTrades = data;
+    return data;
   } catch (error) {
+    // Fallback to cached data on error
+    if (cachedTrades) {
+      console.warn('Trade Engine unavailable, using cached trades data');
+      return cachedTrades;
+    }
     throw error;
   }
 };
