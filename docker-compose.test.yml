@@ -1,0 +1,411 @@
+version: '3.8'
+
+# Integration Test Environment
+# Purpose: Full-stack testing of MyCrypto Exchange Platform
+# Usage: docker-compose -f docker-compose.test.yml up
+
+services:
+  # PostgreSQL - Test Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: test_postgres
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test_password_secure
+      POSTGRES_DB: exchange_test
+      POSTGRES_INITDB_ARGS: '-c shared_preload_libraries=pg_stat_statements'
+    ports:
+      - "5433:5432"  # Non-standard port to avoid conflicts with dev DB
+    volumes:
+      - test_postgres_data:/var/lib/postgresql/data
+      - ./services/trade-engine/migrations:/docker-entrypoint-initdb.d:ro
+      - ./scripts/init-test-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test -d exchange_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - test_network
+    labels:
+      - "app=exchange-test"
+      - "component=database"
+
+  # Redis - Test Cache & Session Store
+  redis:
+    image: redis:7-alpine
+    container_name: test_redis
+    ports:
+      - "6380:6379"  # Non-standard port
+    volumes:
+      - test_redis_data:/data
+    command: redis-server --appendonly yes --requirepass test_redis_password
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "test_redis_password", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    networks:
+      - test_network
+    labels:
+      - "app=exchange-test"
+      - "component=cache"
+
+  # RabbitMQ - Test Message Broker
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: test_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: test_user
+      RABBITMQ_DEFAULT_PASS: test_password
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "5673:5672"      # AMQP port (non-standard)
+      - "15673:15672"    # Management UI
+    volumes:
+      - test_rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - test_network
+    labels:
+      - "app=exchange-test"
+      - "component=message-queue"
+
+  # Trade Engine - Go API
+  trade-engine:
+    build:
+      context: ./services/trade-engine
+      dockerfile: Dockerfile
+      target: production  # Use production target
+    container_name: test_trade_engine
+    environment:
+      # Core Configuration
+      ENV: test
+      LOG_LEVEL: info
+      PORT: 8080
+      API_HOST: 0.0.0.0
+
+      # Database
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: test
+      DB_PASSWORD: test_password_secure
+      DB_NAME: exchange_test
+      DB_SSLMODE: disable
+
+      # Redis Cache
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: test_redis_password
+      REDIS_DB: 0
+
+      # RabbitMQ
+      RABBITMQ_URL: amqp://test_user:test_password@rabbitmq:5672/
+
+      # Feature Flags
+      ENABLE_MATCHING: "true"
+      ENABLE_WEBSOCKET: "true"
+      ENABLE_MARKET_DATA: "true"
+
+      # Performance Tuning (test environment)
+      MAX_CONNECTIONS: 100
+      QUERY_TIMEOUT: 10s
+
+      # WebSocket
+      WS_PORT: 8081
+      WS_PING_INTERVAL: 30s
+      WS_PONG_WAIT: 10s
+
+      # Matching Engine
+      MATCHING_ENGINE_BATCH_SIZE: 100
+      MATCHING_ENGINE_TIMEOUT: 5s
+
+    ports:
+      - "8080:8080"  # API
+      - "8081:8081"  # WebSocket
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - ./services/trade-engine:/app
+      - /app/bin  # Don't mount binary
+    networks:
+      - test_network
+    labels:
+      - "app=exchange-test"
+      - "component=trade-engine"
+      - "version=1.0.0"
+
+  # Auth Service - NestJS
+  auth-service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+      target: development
+    container_name: test_auth_service
+    environment:
+      # Core
+      NODE_ENV: test
+      LOG_LEVEL: debug
+      PORT: 3000
+      API_URL: http://auth-service:3000
+
+      # Database
+      DATABASE_URL: postgresql://test:test_password_secure@postgres:5432/exchange_test
+
+      # Cache
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: test_redis_password
+
+      # Message Queue
+      RABBITMQ_URL: amqp://test_user:test_password@rabbitmq:5672/
+
+      # JWT Configuration
+      JWT_ALGORITHM: RS256
+      JWT_PRIVATE_KEY_PATH: /app/keys/private.pem
+      JWT_PUBLIC_KEY_PATH: /app/keys/public.pem
+      JWT_ACCESS_TOKEN_EXPIRY: 15m
+      JWT_REFRESH_TOKEN_EXPIRY: 30d
+      JWT_EMAIL_VERIFICATION_EXPIRY: 24h
+
+      # Email (Mailpit in test environment)
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      MAIL_USER: ""
+      MAIL_PASSWORD: ""
+      MAIL_FROM: test@exchange.local
+      EMAIL_VERIFICATION_ENABLED: "true"
+
+      # Security
+      BCRYPT_ROUNDS: 10
+      RECAPTCHA_SITE_KEY: 6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI
+      RECAPTCHA_SECRET_KEY: 6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe
+      RECAPTCHA_SCORE_THRESHOLD: "0.5"
+
+      # 2FA
+      TWO_FACTOR_ENCRYPTION_KEY: sMF1I3Ol5Z2ZAybh9gnIIZMLb/VyZ2an+IzY7Y3y+ec=
+      TWO_FACTOR_ISSUER: MyCrypto Test
+      TWO_FACTOR_SETUP_EXPIRY: 15m
+      TWO_FACTOR_CHALLENGE_EXPIRY: 5m
+      TWO_FACTOR_MAX_ATTEMPTS: "5"
+
+    ports:
+      - "3001:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+    volumes:
+      - ./services/auth-service:/app
+      - ./services/auth-service/keys:/app/keys:ro
+      - /app/node_modules
+    networks:
+      - test_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    labels:
+      - "app=exchange-test"
+      - "component=auth-service"
+
+  # Wallet Service - NestJS
+  wallet-service:
+    build:
+      context: ./services/wallet-service
+      dockerfile: Dockerfile
+      target: development
+    container_name: test_wallet_service
+    environment:
+      # Core
+      NODE_ENV: test
+      LOG_LEVEL: debug
+      PORT: 3000
+      API_URL: http://wallet-service:3000
+
+      # Database
+      DATABASE_URL: postgresql://test:test_password_secure@postgres:5432/exchange_test
+
+      # Cache
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: test_redis_password
+
+      # Message Queue
+      RABBITMQ_URL: amqp://test_user:test_password@rabbitmq:5672/
+
+      # Dependencies
+      AUTH_SERVICE_URL: http://auth-service:3000
+      TRADE_ENGINE_URL: http://trade-engine:8080/api/v1
+
+      # JWT Validation
+      JWT_ALGORITHM: RS256
+      JWT_PUBLIC_KEY_PATH: /app/keys/public.pem
+
+      # Limits (TRY)
+      TRY_MIN_DEPOSIT: 100
+      TRY_MAX_DEPOSIT: 50000
+      TRY_MIN_WITHDRAWAL: 100
+      TRY_MAX_WITHDRAWAL: 50000
+      TRY_WITHDRAWAL_FEE: 5
+
+      # Limits (Crypto)
+      CRYPTO_MIN_DEPOSIT: 0.0001
+      CRYPTO_MAX_DEPOSIT: 100
+      CRYPTO_MIN_WITHDRAWAL: 0.0001
+      CRYPTO_MAX_WITHDRAWAL: 100
+
+      # Balances Cache
+      BALANCE_CACHE_TTL: 5
+      WITHDRAWAL_LOCK_TTL: 300
+
+    ports:
+      - "3002:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+      trade-engine:
+        condition: service_healthy
+    volumes:
+      - ./services/wallet-service:/app
+      - ./services/auth-service/keys:/app/keys:ro
+      - /app/node_modules
+    networks:
+      - test_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    labels:
+      - "app=exchange-test"
+      - "component=wallet-service"
+
+  # Frontend - React (optional for E2E)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: http://localhost:3001/api/v1
+        REACT_APP_WS_URL: ws://localhost:3001/ws
+    container_name: test_frontend
+    environment:
+      REACT_APP_API_URL: http://localhost:3001/api/v1
+      REACT_APP_WS_URL: ws://localhost:3001/ws
+      REACT_APP_ENV: test
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth-service
+      - wallet-service
+      - trade-engine
+    networks:
+      - test_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    labels:
+      - "app=exchange-test"
+      - "component=frontend"
+    profiles:
+      - e2e  # Only start with --profile e2e
+
+  # Mailpit - Email Testing
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: test_mailpit
+    ports:
+      - "1026:1025"   # SMTP
+      - "8026:8025"   # Web UI
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    networks:
+      - test_network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8025/api/v1/info"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    labels:
+      - "app=exchange-test"
+      - "component=email"
+
+  # MinIO - Object Storage (optional)
+  minio:
+    image: minio/minio:latest
+    container_name: test_minio
+    ports:
+      - "9000:9000"   # API
+      - "9001:9001"   # Console
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin_password
+    command: server /data --console-address ":9001"
+    volumes:
+      - test_minio_data:/data
+    networks:
+      - test_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "app=exchange-test"
+      - "component=storage"
+    profiles:
+      - storage  # Optional profile
+
+volumes:
+  test_postgres_data:
+    driver: local
+  test_redis_data:
+    driver: local
+  test_rabbitmq_data:
+    driver: local
+  test_minio_data:
+    driver: local
+
+networks:
+  test_network:
+    driver: bridge
+    name: test_network

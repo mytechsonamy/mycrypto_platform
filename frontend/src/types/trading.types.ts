@@ -76,6 +76,7 @@ export enum TimeInForce {
   GTC = 'GTC', // Good Till Cancel
   IOC = 'IOC', // Immediate or Cancel
   FOK = 'FOK', // Fill or Kill
+  POST_ONLY = 'POST_ONLY', // Post-Only (maker only)
 }
 
 // Order request
@@ -231,3 +232,44 @@ export type TradingPair = typeof TRADING_PAIRS[number];
 // Order book aggregate levels (percentage)
 export const AGGREGATE_LEVELS = [0.1, 0.5, 1] as const;
 export type AggregateLevel = typeof AGGREGATE_LEVELS[number];
+
+// Executed trade (user's matched trades with P&L)
+export interface ExecutedTrade {
+  tradeId: string;
+  symbol: string;
+  side: OrderSide;
+  type: OrderType;
+  price: number;              // Execution price per unit
+  quantity: number;           // Quantity traded
+  totalValue: number;         // price × quantity in quote currency
+  fee: number;                // Fee paid for this trade
+  orderId: string;            // User's order ID
+  counterOrderId?: string;    // Order this trade matched with
+  executedAt: number;         // Trade execution timestamp
+  pnl?: number;              // Profit/loss in quote currency (calculated)
+  pnlPercent?: number;       // Profit/loss percentage (calculated)
+}
+
+// Trade history response with statistics
+export interface TradeHistoryResponse {
+  trades: ExecutedTrade[];
+  total: number;
+  page: number;
+  limit: number;
+  summary: {
+    totalTrades: number;
+    totalPnl: number;
+    avgPnlPercent: number;
+    winRate: number;           // Percentage of trades with positive P&L
+  };
+}
+
+// Trade history filters
+export interface TradeHistoryFilters {
+  symbol?: string;
+  side?: OrderSide;
+  startDate?: number;
+  endDate?: number;
+  page?: number;
+  limit?: number;
+}

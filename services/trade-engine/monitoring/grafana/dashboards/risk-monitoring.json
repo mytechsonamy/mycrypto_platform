@@ -1,0 +1,184 @@
+{
+  "dashboard": {
+    "title": "Trade Engine - Risk Monitoring",
+    "tags": ["risk", "exposure", "limits"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Risk Level",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "trade_engine_risk_level",
+            "legendFormat": "Risk Level"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 8, "x": 0, "y": 0},
+        "options": {
+          "colorMode": "background",
+          "thresholds": [
+            {"value": 0, "color": "green"},
+            {"value": 1, "color": "yellow"},
+            {"value": 2, "color": "red"}
+          ]
+        }
+      },
+      {
+        "id": 2,
+        "title": "Pending Settlements Value",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "trade_engine_pending_settlements_value_usd",
+            "legendFormat": "USD"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 8, "x": 8, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Settlement Failures (24h)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(increase(trade_engine_settlement_errors_total[24h]))",
+            "legendFormat": "Failures"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 8, "x": 16, "y": 0},
+        "options": {
+          "colorMode": "background",
+          "thresholds": [
+            {"value": 0, "color": "green"},
+            {"value": 5, "color": "yellow"},
+            {"value": 20, "color": "red"}
+          ]
+        }
+      },
+      {
+        "id": 4,
+        "title": "Order Book Depth by Symbol",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(trade_engine_orderbook_depth) by (symbol, side)",
+            "legendFormat": "{{symbol}} - {{side}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4}
+      },
+      {
+        "id": 5,
+        "title": "Open Orders by Symbol",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(trade_engine_open_orders) by (symbol)",
+            "legendFormat": "{{symbol}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4}
+      },
+      {
+        "id": 6,
+        "title": "Largest Orders (Top 10)",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "topk(10, trade_engine_order_size_usd)",
+            "legendFormat": "Order Size"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12}
+      },
+      {
+        "id": 7,
+        "title": "Settlement Error Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(trade_engine_settlement_errors_total[5m]) / rate(trade_engine_settlements_processed_total[5m])",
+            "legendFormat": "Error Rate"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12}
+      },
+      {
+        "id": 8,
+        "title": "Trading Volume by Symbol (24h)",
+        "type": "bargauge",
+        "targets": [
+          {
+            "expr": "sum(increase(trade_engine_trade_value_usd_sum[24h])) by (symbol)",
+            "legendFormat": "{{symbol}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20}
+      },
+      {
+        "id": 9,
+        "title": "Wallet Service Errors",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(trade_engine_wallet_service_errors_total[5m])) by (operation)",
+            "legendFormat": "{{operation}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20}
+      },
+      {
+        "id": 10,
+        "title": "API Error Rate by Endpoint",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(trade_engine_api_errors_total[5m])) by (endpoint)",
+            "legendFormat": "{{endpoint}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 28}
+      },
+      {
+        "id": 11,
+        "title": "Active Users",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "trade_engine_active_users",
+            "legendFormat": "Active Users"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 28}
+      },
+      {
+        "id": 12,
+        "title": "Fees Collected (24h)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(increase(trade_engine_fees_collected_total[24h]))",
+            "legendFormat": "Total Fees"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 12, "x": 0, "y": 36}
+      },
+      {
+        "id": 13,
+        "title": "Daily Volume Trend",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(trade_engine_daily_volume_usd) by (symbol)",
+            "legendFormat": "{{symbol}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 36}
+      }
+    ]
+  }
+}

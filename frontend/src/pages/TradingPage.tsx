@@ -18,6 +18,8 @@ import {
   CircularProgress,
   Chip,
   SelectChangeEvent,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import { useAppDispatch, useAppSelector } from '../store';
 import {
@@ -34,6 +36,7 @@ import {
   selectSelectedSymbol,
   selectOrderBook,
   selectTicker,
+  selectRecentTrades,
   selectTradingLoading,
   selectTradingError,
   selectAggregateLevel,
@@ -48,18 +51,29 @@ import {
 import { getOrderBook, getTicker, getRecentTrades } from '../api/tradingApi';
 import websocketService from '../services/websocket.service';
 import OrderBookComponent from '../components/Trading/OrderBook/OrderBookComponent';
+import MarketOrderForm from '../components/Trading/OrderForms/MarketOrderForm';
+import LimitOrderForm from '../components/Trading/OrderForms/LimitOrderForm';
+import MarketDataPanel from '../components/Trading/MarketData/MarketDataPanel';
+import OpenOrdersComponent from '../components/Trading/OpenOrders/OpenOrdersComponent';
+import TickerComponent from '../components/Trading/Ticker/TickerComponent';
+import RecentTradesComponent from '../components/Trading/RecentTrades/RecentTradesComponent';
+import OrderHistoryComponent from '../components/Trading/OrderHistory/OrderHistoryComponent';
+import TradeHistoryComponent from '../components/Trading/TradeHistory/TradeHistoryComponent';
 
 const TradingPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const selectedSymbol = useAppSelector(selectSelectedSymbol);
   const orderBook = useAppSelector(selectOrderBook);
   const ticker = useAppSelector(selectTicker);
+  const recentTrades = useAppSelector(selectRecentTrades);
   const loading = useAppSelector(selectTradingLoading);
   const error = useAppSelector(selectTradingError);
   const aggregateLevel = useAppSelector(selectAggregateLevel);
   const wsConnected = useAppSelector(selectWsConnected);
 
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [orderType, setOrderType] = useState<'market' | 'limit'>('market');
 
   // Load initial data
   useEffect(() => {
@@ -167,6 +181,16 @@ const TradingPage: React.FC = () => {
     dispatch(setAggregateLevel(level));
   };
 
+  // Handle order placed - refresh order status panel
+  const handleOrderPlaced = () => {
+    setRefreshTrigger((prev) => prev + 1);
+  };
+
+  // Handle order type tab change
+  const handleOrderTypeChange = (event: React.SyntheticEvent, newValue: 'market' | 'limit') => {
+    setOrderType(newValue);
+  };
+
   // Format price change
   const formatPriceChange = (change: string): string => {
     const num = parseFloat(change);
@@ -271,6 +295,16 @@ const TradingPage: React.FC = () => {
         </Alert>
       )}
 
+      {/* Ticker Component - Full market data display */}
+      <Box sx={{ mb: 2 }}>
+        <TickerComponent
+          ticker={ticker}
+          symbol={selectedSymbol}
+          loading={loading && !initialLoadComplete}
+          error={error}
+        />
+      </Box>
+
       {/* Main trading layout */}
       <Grid container spacing={2}>
         {/* Left: Order Book */}
@@ -288,65 +322,76 @@ const TradingPage: React.FC = () => {
           />
         </Grid>
 
-        {/* Center: Chart & Recent Trades (Placeholder) */}
+        {/* Center: Market Data & Recent Trades */}
         <Grid item xs={12} lg={4}>
-          <Paper
-            elevation={2}
-            sx={{
-              p: 3,
-              minHeight: 600,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Typography variant="h6" color="text.secondary" gutterBottom>
-              Fiyat Grafiği
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Çok yakında...
-            </Typography>
-            <CircularProgress sx={{ mt: 2 }} />
-          </Paper>
+          <Box display="flex" flexDirection="column" gap={2}>
+            <MarketDataPanel loading={loading && !initialLoadComplete} />
+            <RecentTradesComponent
+              trades={recentTrades}
+              symbol={selectedSymbol}
+              loading={loading && !initialLoadComplete}
+              error={error}
+              maxHeight={400}
+            />
+          </Box>
         </Grid>
 
-        {/* Right: Order Form (Placeholder) */}
+        {/* Right: Order Forms (Market & Limit) */}
         <Grid item xs={12} lg={4}>
-          <Paper
-            elevation={2}
-            sx={{
-              p: 3,
-              minHeight: 600,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Typography variant="h6" color="text.secondary" gutterBottom>
-              Emir Formu
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Çok yakında...
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 2 }}>
-              Limit / Market / Stop emirleri
-            </Typography>
+          <Paper elevation={2} sx={{ mb: 2 }}>
+            <Tabs
+              value={orderType}
+              onChange={handleOrderTypeChange}
+              variant="fullWidth"
+              sx={{
+                borderBottom: 1,
+                borderColor: 'divider',
+              }}
+            >
+              <Tab
+                label="Market Siparişi"
+                value="market"
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 600,
+                }}
+              />
+              <Tab
+                label="Limit Siparişi"
+                value="limit"
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 600,
+                }}
+              />
+            </Tabs>
           </Paper>
+
+          {/* Render selected order form */}
+          {orderType === 'market' ? (
+            <MarketOrderForm onOrderPlaced={handleOrderPlaced} />
+          ) : (
+            <LimitOrderForm onOrderPlaced={handleOrderPlaced} />
+          )}
         </Grid>
       </Grid>
 
-      {/* Bottom: Open Orders & Trade History (Placeholder) */}
+      {/* Bottom: Open Orders, Order History & Trade History */}
       <Box sx={{ mt: 3 }}>
-        <Paper elevation={2} sx={{ p: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Açık Emirler & İşlem Geçmişi
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Çok yakında...
-          </Typography>
-        </Paper>
+        <Grid container spacing={2}>
+          {/* Open Orders with filtering and sorting */}
+          <Grid item xs={12}>
+            <OpenOrdersComponent onOrderCanceled={handleOrderPlaced} />
+          </Grid>
+          {/* Order History with filters, export, and statistics */}
+          <Grid item xs={12}>
+            <OrderHistoryComponent />
+          </Grid>
+          {/* Trade History with P&L calculations, filters, and export */}
+          <Grid item xs={12}>
+            <TradeHistoryComponent />
+          </Grid>
+        </Grid>
       </Box>
     </Container>
   );

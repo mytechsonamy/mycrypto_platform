@@ -7,6 +7,7 @@
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.15.10",
     "@mui/material": "^5.15.10",
+    "@mui/x-date-pickers": "^8.19.0",
     "@reduxjs/toolkit": "^2.1.0",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^14.2.1",
@@ -17,6 +18,7 @@
     "@types/react-dom": "^18.2.19",
     "ajv": "^8.17.1",
     "axios": "^1.6.7",
+    "date-fns": "^4.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^9.1.0",
@@ -69,7 +71,7 @@
       }
     },
     "transformIgnorePatterns": [
-      "node_modules/(?!(axios)/)"
+      "node_modules/(?!(axios|date-fns|@mui/x-date-pickers)/)"
     ]
   }
 }

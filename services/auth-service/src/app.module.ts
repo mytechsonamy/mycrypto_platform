@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { KycModule } from './kyc/kyc.module';
+import { TradingModule } from './trading/trading.module';
 import { HealthController } from './common/health.controller';
 
 @Module({
@@ -46,6 +47,7 @@ import { HealthController } from './common/health.controller';
     // Feature modules
     AuthModule,
     KycModule,
+    TradingModule,
   ],
   controllers: [HealthController],
 })

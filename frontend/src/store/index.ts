@@ -7,6 +7,7 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import authReducer from './slices/authSlice';
 import walletReducer from './slices/walletSlice';
 import tradingReducer from './slices/tradingSlice';
+import alertsReducer from './slices/alertsSlice';
 
 // Configure store with all reducers
 export const store = configureStore({
@@ -14,6 +15,7 @@ export const store = configureStore({
     auth: authReducer,
     wallet: walletReducer,
     trading: tradingReducer,
+    alerts: alertsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

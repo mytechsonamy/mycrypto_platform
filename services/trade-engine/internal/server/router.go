@@ -57,6 +57,7 @@ func NewRouter(logger *zap.Logger, db *gorm.DB, redis *redis.Client, matchingEng
 	// Create services with matching engine
 	orderService := service.NewOrderService(orderRepo, tradeRepo, matchingEngine, walletClient, logger)
 	marketDataService := service.NewMarketDataService(tradeRepo, logger)
+	limitsService := service.NewTradingLimitsService(logger)
 
 	// Create handlers
 	orderHandler := NewOrderHandler(orderService, logger)
@@ -64,6 +65,12 @@ func NewRouter(logger *zap.Logger, db *gorm.DB, redis *redis.Client, matchingEng
 	tradeHandler := NewTradeHandler(tradeRepo, logger)
 	marketHandler := NewMarketHandler(matchingEngine, tradeRepo, logger)
 	marketDataHandler := NewMarketDataHandler(marketDataService, logger)
+
+	// Create admin handler
+	adminHandler := NewAdminHandler(logger, db, redis, matchingEngine, walletClient, orderRepo, tradeRepo, limitsService)
+
+	// Create admin auth middleware
+	adminAuth := NewAdminAuthMiddleware(logger)
 
 	// Create WebSocket handler
 	wsHandler := NewWebSocketHandler(connectionManager, logger)
@@ -119,6 +126,21 @@ func NewRouter(logger *zap.Logger, db *gorm.DB, redis *redis.Client, matchingEng
 
 		// Market data - 24h statistics
 		r.Get("/statistics/24h/{symbol}", marketDataHandler.Get24hStats)  // GET /api/v1/statistics/24h/BTC-USDT
+
+		// Admin endpoints (protected by authentication)
+		r.Route("/admin", func(r chi.Router) {
+			// Apply admin authentication middleware
+			r.Use(adminAuth.Middleware)
+
+			// Health & Status endpoints
+			r.Get("/health", adminHandler.GetHealth)           // GET /api/v1/admin/health
+			r.Get("/metrics", adminHandler.GetMetrics)         // GET /api/v1/admin/metrics
+			r.Get("/risk-status", adminHandler.GetRiskStatus)  // GET /api/v1/admin/risk-status
+
+			// Configuration endpoints
+			r.Get("/limits", adminHandler.GetLimits)           // GET /api/v1/admin/limits
+			r.Post("/limits", adminHandler.UpdateLimits)       // POST /api/v1/admin/limits
+		})
 	})
 
 	return r

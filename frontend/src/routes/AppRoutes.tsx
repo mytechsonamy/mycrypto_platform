@@ -17,6 +17,8 @@ const TwoFactorSettingsPage = lazy(() => import('../pages/TwoFactorSettingsPage'
 const TwoFactorSetupPage = lazy(() => import('../pages/TwoFactorSetupPage'));
 const WalletDashboardPage = lazy(() => import('../pages/WalletDashboardPage'));
 const TradingPage = lazy(() => import('../pages/TradingPage'));
+const FeeStructurePage = lazy(() => import('../pages/FeeStructurePage'));
+const PriceAlertsPage = lazy(() => import('../pages/PriceAlertsPage'));
 
 // Loading fallback component
 const PageLoader: React.FC = () => (
@@ -55,6 +57,14 @@ const AppRoutes: React.FC = () => {
         {/* Trading routes */}
         <Route path="/trading" element={<TradingPage />} />
         <Route path="/trade" element={<TradingPage />} />
+
+        {/* Info routes */}
+        <Route path="/fees" element={<FeeStructurePage />} />
+        <Route path="/info/fees" element={<FeeStructurePage />} />
+
+        {/* Alerts routes */}
+        <Route path="/alerts" element={<PriceAlertsPage />} />
+        <Route path="/price-alerts" element={<PriceAlertsPage />} />
 
         {/* Placeholder routes - to be implemented */}
         <Route path="/dashboard" element={<div>Dashboard - Coming Soon</div>} />

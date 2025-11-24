@@ -36,6 +36,16 @@ describe('tradingSlice', () => {
     error: null,
     aggregateLevel: 0.1,
     wsConnected: false,
+    orderPlacement: {
+      loading: false,
+      error: null,
+      lastOrderId: null,
+    },
+    orderCancellation: {
+      loading: false,
+      error: null,
+      cancelingOrderId: null,
+    },
   };
 
   it('should return the initial state', () => {

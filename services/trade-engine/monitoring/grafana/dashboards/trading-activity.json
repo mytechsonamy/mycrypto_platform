@@ -1,0 +1,156 @@
+{
+  "dashboard": {
+    "title": "Trade Engine - Trading Activity",
+    "tags": ["trading", "orders", "trades"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "5s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Orders Placed (Total)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(trade_engine_orders_placed_total)",
+            "legendFormat": "Total Orders"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Trades Executed (Total)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(trade_engine_trades_executed_total)",
+            "legendFormat": "Total Trades"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Open Orders",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(trade_engine_open_orders)",
+            "legendFormat": "Open Orders"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "Orders Per Second",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(trade_engine_orders_placed_total[1m])",
+            "legendFormat": "Orders/sec"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0}
+      },
+      {
+        "id": 5,
+        "title": "Orders Placed by Symbol",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(trade_engine_orders_placed_total[5m])) by (symbol)",
+            "legendFormat": "{{symbol}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4}
+      },
+      {
+        "id": 6,
+        "title": "Trades by Symbol",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(trade_engine_trades_executed_total[5m])) by (symbol)",
+            "legendFormat": "{{symbol}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4}
+      },
+      {
+        "id": 7,
+        "title": "Order Types Distribution",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum(trade_engine_orders_placed_total) by (type)",
+            "legendFormat": "{{type}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 12}
+      },
+      {
+        "id": 8,
+        "title": "Buy vs Sell Orders",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum(trade_engine_orders_placed_total) by (side)",
+            "legendFormat": "{{side}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 12}
+      },
+      {
+        "id": 9,
+        "title": "Trade Volume (USD)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(trade_engine_trade_value_usd_sum[5m])) by (symbol)",
+            "legendFormat": "{{symbol}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 12}
+      },
+      {
+        "id": 10,
+        "title": "Order Processing Duration (p99)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(trade_engine_order_processing_duration_seconds_bucket[5m])) by (le, symbol))",
+            "legendFormat": "{{symbol}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20}
+      },
+      {
+        "id": 11,
+        "title": "Matching Latency (p99)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.99, sum(rate(trade_engine_matching_latency_seconds_bucket[5m])) by (le, symbol))",
+            "legendFormat": "{{symbol}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20}
+      },
+      {
+        "id": 12,
+        "title": "Order Cancellations",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(trade_engine_orders_cancelled_total[5m])) by (reason)",
+            "legendFormat": "{{reason}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 28}
+      }
+    ]
+  }
+}
