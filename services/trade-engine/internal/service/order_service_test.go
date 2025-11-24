@@ -17,7 +17,9 @@ import (
 	"github.com/mytrader/trade-engine/pkg/clients/wallet"
 )
 
-// Mock implementations
+// OrderService-specific mocks (using different interface than generic test_mocks.go)
+
+// MockOrderRepository implements repository.OrderRepository for tests
 type MockOrderRepository struct {
 	mock.Mock
 }
