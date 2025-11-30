@@ -11,6 +11,14 @@ import TradingPage from './TradingPage';
 import tradingReducer from '../store/slices/tradingSlice';
 import * as tradingApi from '../api/tradingApi';
 import websocketService from '../services/websocket.service';
+import walletReducer from '../store/slices/walletSlice';
+import authReducer from '../store/slices/authSlice';
+
+// Mock @mui/material useMediaQuery
+jest.mock('@mui/material', () => ({
+  ...jest.requireActual('@mui/material'),
+  useMediaQuery: jest.fn(() => false),
+}));
 
 // Mock trading API
 jest.mock('../api/tradingApi');
@@ -28,6 +36,7 @@ jest.mock('../services/websocket.service', () => ({
     subscribeToOrderBook: jest.fn(),
     subscribeToTicker: jest.fn(),
     subscribeToTrades: jest.fn(),
+    subscribeToOrders: jest.fn(),
     getSubscriptions: jest.fn(() => []),
   },
 }));
@@ -44,6 +53,8 @@ describe('TradingPage', () => {
     store = configureStore({
       reducer: {
         trading: tradingReducer,
+        wallet: walletReducer,
+        auth: authReducer,
       },
     });
 
@@ -88,6 +99,22 @@ describe('TradingPage', () => {
         isBestMatch: true,
       },
     ]);
+
+    mockedTradingApi.getUserTradeHistory.mockResolvedValue({
+      trades: [],
+      total: 0,
+      page: 1,
+      limit: 20,
+      summary: {
+        totalTrades: 0,
+        totalPnl: 0,
+        avgPnlPercent: 0,
+        winRate: 0,
+      },
+    });
+
+    mockedTradingApi.getOpenOrders.mockResolvedValue([]);
+    mockedTradingApi.getOrderHistory.mockResolvedValue([]);
 
     // Mock WebSocket connection
     mockedWebSocketService.connect.mockResolvedValue(undefined);

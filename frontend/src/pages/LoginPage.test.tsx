@@ -100,7 +100,7 @@ describe('LoginPage', () => {
     it('renders login form', () => {
       const { container } = renderWithProviders(<LoginPage />);
 
-      expect(screen.getByRole('heading', { name: /giris yap/i })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /giriş yap/i })).toBeInTheDocument();
       expect(screen.getByLabelText(/e-posta/i)).toBeInTheDocument();
       expect(container.querySelector('#password')).toBeInTheDocument();
     });
@@ -142,7 +142,7 @@ describe('LoginPage', () => {
 
       const emailInput = screen.getByLabelText(/e-posta/i);
       const passwordInput = container.querySelector('#password') as HTMLElement;
-      const submitButton = screen.getByRole('button', { name: /giris yap/i });
+      const submitButton = screen.getByRole('button', { name: /giriş yap/i });
 
       await userEvent.type(emailInput, 'test@example.com');
       await userEvent.type(passwordInput, 'SecurePass123!');
@@ -162,8 +162,8 @@ describe('LoginPage', () => {
 
       const emailInput = screen.getByLabelText(/e-posta/i);
       const passwordInput = container.querySelector('#password') as HTMLElement;
-      const rememberMeCheckbox = screen.getByLabelText(/beni hatirla/i);
-      const submitButton = screen.getByRole('button', { name: /giris yap/i });
+      const rememberMeCheckbox = screen.getByLabelText(/beni hatırla/i);
+      const submitButton = screen.getByRole('button', { name: /giriş yap/i });
 
       await userEvent.type(emailInput, 'test@example.com');
       await userEvent.type(passwordInput, 'SecurePass123!');
@@ -182,7 +182,7 @@ describe('LoginPage', () => {
 
       const emailInput = screen.getByLabelText(/e-posta/i);
       const passwordInput = container.querySelector('#password') as HTMLElement;
-      const submitButton = screen.getByRole('button', { name: /giris yap/i });
+      const submitButton = screen.getByRole('button', { name: /giriş yap/i });
 
       await userEvent.type(emailInput, 'test@example.com');
       await userEvent.type(passwordInput, 'SecurePass123!');
@@ -199,14 +199,14 @@ describe('LoginPage', () => {
         loading: true,
       });
 
-      expect(screen.getByRole('button', { name: /giris yapiliyor/i })).toBeDisabled();
+      expect(screen.getByRole('button', { name: /giriş yapılıyor/i })).toBeDisabled();
       expect(screen.getByLabelText(/e-posta/i)).toBeDisabled();
     });
   });
 
   describe('Error Handling', () => {
     it('passes error to LoginForm', () => {
-      const errorMessage = 'E-posta veya sifre hatali';
+      const errorMessage = 'E-posta veya şifre hatalı';
       renderWithProviders(<LoginPage />, {
         error: errorMessage,
       });

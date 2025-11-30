@@ -4,6 +4,8 @@
 
 import '@testing-library/jest-dom';
 
+console.log('setupTests.ts is running');
+
 // Mock window.matchMedia for Material-UI useMediaQuery
 Object.defineProperty(window, 'matchMedia', {
   writable: true,

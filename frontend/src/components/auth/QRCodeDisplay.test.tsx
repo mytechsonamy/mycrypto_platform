@@ -36,7 +36,7 @@ describe('QRCodeDisplay', () => {
     render(<QRCodeDisplay {...defaultProps} />);
 
     // Secret should be formatted with spaces every 4 characters
-    const formattedSecret = screen.getByLabelText('Manuel giris kodu');
+    const formattedSecret = screen.getByLabelText('Manuel giriş kodu');
     expect(formattedSecret).toBeInTheDocument();
     expect(formattedSecret).toHaveTextContent('JBSW Y3DP EHPK 3PXP');
   });
@@ -53,7 +53,7 @@ describe('QRCodeDisplay', () => {
     render(<QRCodeDisplay {...defaultProps} />);
 
     expect(
-      screen.getByText(/QR kodu tarayamiyorsaniz/i)
+      screen.getByText(/QR kodu tarayamıyorsanız/i)
     ).toBeInTheDocument();
   });
 
@@ -67,7 +67,7 @@ describe('QRCodeDisplay', () => {
     expect(mockClipboard.writeText).toHaveBeenCalledWith(defaultProps.secret);
 
     await waitFor(() => {
-      expect(screen.getByText('Kod panoya kopyalandi')).toBeInTheDocument();
+      expect(screen.getByText('Kod panoya kopyalandı')).toBeInTheDocument();
     });
   });
 
@@ -79,7 +79,7 @@ describe('QRCodeDisplay', () => {
     fireEvent.click(copyButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Kod panoya kopyalandi')).toBeInTheDocument();
+      expect(screen.getByText('Kod panoya kopyalandı')).toBeInTheDocument();
     });
   });
 
