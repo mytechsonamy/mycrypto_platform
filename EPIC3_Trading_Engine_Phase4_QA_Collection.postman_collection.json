@@ -1,0 +1,1197 @@
+{
+  "info": {
+    "name": "EPIC 3: Trading Engine & Market Data - Phase 4 QA Tests",
+    "description": "Comprehensive test collection for all 44 test cases across 6 phases\nPhase 1: Market Data (12 tests)\nPhase 2: Order Placement (8 tests)\nPhase 3: Order Management (8 tests)\nPhase 4: History & Analytics (8 tests)\nPhase 5: Advanced Features (8 tests)\nPhase 6: Performance & WebSocket (5+ tests)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "PHASE 1: Market Data Tests",
+      "item": [
+        {
+          "name": "TC-101: Order Book - Real-time display (REST API)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has valid order book structure', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData).to.have.property('success', true);",
+                  "  pm.expect(jsonData.data).to.have.property('symbol');",
+                  "  pm.expect(jsonData.data).to.have.property('bids').and.be.an('array');",
+                  "  pm.expect(jsonData.data).to.have.property('asks').and.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Bids are sorted in descending order', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  var bids = jsonData.data.bids;",
+                  "  for (var i = 0; i < bids.length - 1; i++) {",
+                  "    pm.expect(parseFloat(bids[i].price)).to.be.greaterThanOrEqual(parseFloat(bids[i+1].price));",
+                  "  }",
+                  "});",
+                  "",
+                  "pm.test('Asks are sorted in ascending order', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  var asks = jsonData.data.asks;",
+                  "  for (var i = 0; i < asks.length - 1; i++) {",
+                  "    pm.expect(parseFloat(asks[i].price)).to.be.lessThanOrEqual(parseFloat(asks[i+1].price));",
+                  "  }",
+                  "});",
+                  "",
+                  "pm.test('Best bid is less than best ask (bid-ask spread)', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  var bids = jsonData.data.bids;",
+                  "  var asks = jsonData.data.asks;",
+                  "  if (bids.length > 0 && asks.length > 0) {",
+                  "    pm.expect(parseFloat(bids[0].price)).to.be.lessThan(parseFloat(asks[0].price));",
+                  "  }",
+                  "});",
+                  "",
+                  "pm.test('All bid/ask entries have price and quantity', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  jsonData.data.bids.forEach(function(bid) {",
+                  "    pm.expect(bid).to.have.property('price');",
+                  "    pm.expect(bid).to.have.property('quantity');",
+                  "  });",
+                  "  jsonData.data.asks.forEach(function(ask) {",
+                  "    pm.expect(ask).to.have.property('price');",
+                  "    pm.expect(ask).to.have.property('quantity');",
+                  "  });",
+                  "});",
+                  "",
+                  "pm.test('Response time < 100ms', function() {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(100);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Accept", "value": "application/json"}
+            ],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/orderbook/BTC-USDT",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "orderbook", "BTC-USDT"]
+            }
+          }
+        },
+        {
+          "name": "TC-102: Market Ticker - Single symbol",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has valid ticker structure', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData).to.have.property('success', true);",
+                  "  pm.expect(jsonData.data).to.have.property('symbol');",
+                  "  pm.expect(jsonData.data).to.have.property('last_price');",
+                  "  pm.expect(jsonData.data).to.have.property('bid');",
+                  "  pm.expect(jsonData.data).to.have.property('ask');",
+                  "});",
+                  "",
+                  "pm.test('All price fields are valid decimals', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(parseFloat(jsonData.data.last_price)).to.be.a('number');",
+                  "  pm.expect(parseFloat(jsonData.data.bid)).to.be.a('number');",
+                  "  pm.expect(parseFloat(jsonData.data.ask)).to.be.a('number');",
+                  "});",
+                  "",
+                  "pm.test('Last price is between bid and ask', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  var last = parseFloat(jsonData.data.last_price);",
+                  "  var bid = parseFloat(jsonData.data.bid);",
+                  "  var ask = parseFloat(jsonData.data.ask);",
+                  "  pm.expect(last).to.be.greaterThanOrEqual(bid);",
+                  "  pm.expect(last).to.be.lessThanOrEqual(ask);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/ticker/BTC-USDT",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "ticker", "BTC-USDT"]
+            }
+          }
+        },
+        {
+          "name": "TC-103: 24h Statistics - OHLCV calculations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has valid 24h stats structure', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData).to.have.property('success', true);",
+                  "  var stats = jsonData.data.stats_24h;",
+                  "  pm.expect(stats).to.have.property('open');",
+                  "  pm.expect(stats).to.have.property('high');",
+                  "  pm.expect(stats).to.have.property('low');",
+                  "  pm.expect(stats).to.have.property('close');",
+                  "  pm.expect(stats).to.have.property('volume');",
+                  "});",
+                  "",
+                  "pm.test('OHLC values are logical (H >= C >= L, H >= O >= L)', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  var stats = jsonData.data.stats_24h;",
+                  "  var open = parseFloat(stats.open);",
+                  "  var high = parseFloat(stats.high);",
+                  "  var low = parseFloat(stats.low);",
+                  "  var close = parseFloat(stats.close);",
+                  "  pm.expect(high).to.be.greaterThanOrEqual(close);",
+                  "  pm.expect(high).to.be.greaterThanOrEqual(open);",
+                  "  pm.expect(high).to.be.greaterThanOrEqual(low);",
+                  "  pm.expect(low).to.be.lessThanOrEqual(close);",
+                  "  pm.expect(low).to.be.lessThanOrEqual(open);",
+                  "});",
+                  "",
+                  "pm.test('Volume is non-negative', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  var volume = parseFloat(jsonData.data.stats_24h.volume);",
+                  "  pm.expect(volume).to.be.greaterThanOrEqual(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/statistics/BTC-USDT?interval=24h",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "statistics", "BTC-USDT"],
+              "query": [
+                {"key": "interval", "value": "24h"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-104: Recent Trades - Live feed",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has valid trades structure', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData).to.have.property('success', true);",
+                  "  pm.expect(jsonData.data).to.have.property('trades').and.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Each trade has required fields', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  jsonData.data.trades.forEach(function(trade) {",
+                  "    pm.expect(trade).to.have.property('id');",
+                  "    pm.expect(trade).to.have.property('price');",
+                  "    pm.expect(trade).to.have.property('quantity');",
+                  "    pm.expect(trade).to.have.property('side');",
+                  "    pm.expect(trade).to.have.property('timestamp');",
+                  "  });",
+                  "});",
+                  "",
+                  "pm.test('Trades are sorted by timestamp (newest first)', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  var trades = jsonData.data.trades;",
+                  "  for (var i = 0; i < trades.length - 1; i++) {",
+                  "    pm.expect(trades[i].timestamp).to.be.greaterThanOrEqual(trades[i+1].timestamp);",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/trades/recent/BTC-USDT",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "trades", "recent", "BTC-USDT"]
+            }
+          }
+        },
+        {
+          "name": "TC-105: Recent Trades - Pagination",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Pagination info present', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('pagination');",
+                  "  var paging = jsonData.data.pagination;",
+                  "  pm.expect(paging).to.have.property('total');",
+                  "  pm.expect(paging).to.have.property('limit');",
+                  "  pm.expect(paging).to.have.property('offset');",
+                  "});",
+                  "",
+                  "pm.test('Returned items <= limit', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data.trades.length).to.be.lessThanOrEqual(jsonData.data.pagination.limit);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/trades/recent/BTC-USDT?limit=10&offset=0",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "trades", "recent", "BTC-USDT"],
+              "query": [
+                {"key": "limit", "value": "10"},
+                {"key": "offset", "value": "0"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-106: Candle History - OHLCV per timeframe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has valid candles structure', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData).to.have.property('success', true);",
+                  "  pm.expect(jsonData.data).to.have.property('candles').and.be.an('array');",
+                  "  pm.expect(jsonData.data).to.have.property('timeframe');",
+                  "});",
+                  "",
+                  "pm.test('Each candle has OHLCV data', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  jsonData.data.candles.forEach(function(candle) {",
+                  "    pm.expect(candle).to.have.property('time');",
+                  "    pm.expect(candle).to.have.property('open');",
+                  "    pm.expect(candle).to.have.property('high');",
+                  "    pm.expect(candle).to.have.property('low');",
+                  "    pm.expect(candle).to.have.property('close');",
+                  "    pm.expect(candle).to.have.property('volume');",
+                  "  });",
+                  "});",
+                  "",
+                  "pm.test('High >= Close and High >= Open', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  jsonData.data.candles.forEach(function(candle) {",
+                  "    var high = parseFloat(candle.high);",
+                  "    var close = parseFloat(candle.close);",
+                  "    var open = parseFloat(candle.open);",
+                  "    var low = parseFloat(candle.low);",
+                  "    pm.expect(high).to.be.greaterThanOrEqual(close);",
+                  "    pm.expect(high).to.be.greaterThanOrEqual(open);",
+                  "    pm.expect(low).to.be.lessThanOrEqual(close);",
+                  "    pm.expect(low).to.be.lessThanOrEqual(open);",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/candles/BTC-USDT?timeframe=1h&start=1700000000&end=1700100000",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "candles", "BTC-USDT"],
+              "query": [
+                {"key": "timeframe", "value": "1h"},
+                {"key": "start", "value": "1700000000"},
+                {"key": "end", "value": "1700100000"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-107: Symbol List - Metadata and trading rules",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has symbols array', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData).to.have.property('success', true);",
+                  "  pm.expect(jsonData.data).to.have.property('symbols').and.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Each symbol has trading rules', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  jsonData.data.symbols.forEach(function(symbol) {",
+                  "    pm.expect(symbol).to.have.property('symbol');",
+                  "    pm.expect(symbol).to.have.property('base_asset');",
+                  "    pm.expect(symbol).to.have.property('quote_asset');",
+                  "    pm.expect(symbol).to.have.property('min_order_quantity');",
+                  "    pm.expect(symbol).to.have.property('max_order_quantity');",
+                  "    pm.expect(symbol).to.have.property('step_size');",
+                  "  });",
+                  "});",
+                  "",
+                  "pm.test('Contains expected trading pairs', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  var symbols = jsonData.data.symbols.map(s => s.symbol);",
+                  "  pm.expect(symbols).to.include('BTC-USDT');",
+                  "  pm.expect(symbols).to.include('ETH-USDT');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/symbols",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "symbols"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "PHASE 2: Order Placement Tests",
+      "item": [
+        {
+          "name": "TC-201: Market Order - Buy BTC",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 (Created)', function() {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Order created with FILLED or PENDING status', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.order).to.have.property('id');",
+                  "  pm.expect(['FILLED', 'PENDING']).to.include(jsonData.order.status);",
+                  "});",
+                  "",
+                  "pm.test('Order matches request parameters', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.order.symbol).to.equal('BTC-USDT');",
+                  "  pm.expect(jsonData.order.side).to.equal('BUY');",
+                  "  pm.expect(jsonData.order.type).to.equal('MARKET');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"symbol\": \"BTC-USDT\", \"side\": \"BUY\", \"type\": \"MARKET\", \"quantity\": \"0.1\"}"
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/orders",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "orders"]
+            }
+          }
+        },
+        {
+          "name": "TC-202: Limit Order - Buy with pending state",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function() {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Limit order created with PENDING status', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.order.type).to.equal('LIMIT');",
+                  "  pm.expect(jsonData.order.status).to.equal('PENDING');",
+                  "  pm.expect(jsonData.order.price).to.be.defined;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"symbol\": \"BTC-USDT\", \"side\": \"BUY\", \"type\": \"LIMIT\", \"quantity\": \"0.1\", \"price\": \"30000\"}"
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/orders",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "orders"]
+            }
+          }
+        },
+        {
+          "name": "TC-203: Order Type Validation - Invalid types",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Invalid order type rejected with 400', function() {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message provided', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData).to.have.property('error');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"symbol\": \"BTC-USDT\", \"side\": \"BUY\", \"type\": \"INVALID\", \"quantity\": \"0.1\"}"
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/orders",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "orders"]
+            }
+          }
+        },
+        {
+          "name": "TC-204: Price Validation - Negative prices rejected",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Negative price rejected with 400', function() {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Validation error message provided', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData).to.have.property('error');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"symbol\": \"BTC-USDT\", \"side\": \"BUY\", \"type\": \"LIMIT\", \"quantity\": \"0.1\", \"price\": \"-100\"}"
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/orders",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "orders"]
+            }
+          }
+        },
+        {
+          "name": "TC-205: Quantity Validation - Zero/negative rejected",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Zero/negative quantity rejected with 400', function() {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Quantity validation error provided', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData).to.have.property('error');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"symbol\": \"BTC-USDT\", \"side\": \"BUY\", \"type\": \"MARKET\", \"quantity\": \"0\"}"
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/orders",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "orders"]
+            }
+          }
+        },
+        {
+          "name": "TC-206: Balance Check - Insufficient funds prevented",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Insufficient funds returns 400 or 422', function() {",
+                  "  var status = pm.response.code;",
+                  "  pm.expect([400, 422]).to.include(status);",
+                  "});",
+                  "",
+                  "pm.test('Error indicates insufficient balance', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.error.toLowerCase()).to.include('insufficient');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"symbol\": \"BTC-USDT\", \"side\": \"BUY\", \"type\": \"MARKET\", \"quantity\": \"999999\"}"
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/orders",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "orders"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "PHASE 3: Order Management Tests",
+      "item": [
+        {
+          "name": "TC-301: Open Orders - Fetch user's active orders",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has valid open orders structure', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData).to.have.property('success', true);",
+                  "  pm.expect(jsonData.data).to.have.property('orders').and.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('All orders have status PENDING or PARTIALLY_FILLED', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  jsonData.data.orders.forEach(function(order) {",
+                  "    pm.expect(['PENDING', 'PARTIALLY_FILLED']).to.include(order.status);",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/orders/open",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "orders", "open"]
+            }
+          }
+        },
+        {
+          "name": "TC-302: Cancel Order - Valid cancellation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Order cancellation successful (200 or 204)', function() {",
+                  "  var status = pm.response.code;",
+                  "  pm.expect([200, 204]).to.include(status);",
+                  "});",
+                  "",
+                  "pm.test('Cancelled order status is CANCELLED', function() {",
+                  "  if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.status).to.equal('CANCELLED');",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/orders/{{order_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "orders", "{{order_id}}"]
+            }
+          }
+        },
+        {
+          "name": "TC-303: Order History - Filtering by status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('All returned orders match filter status', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  var filterStatus = pm.request.url.query.get('status');",
+                  "  jsonData.data.orders.forEach(function(order) {",
+                  "    pm.expect(order.status).to.equal(filterStatus);",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/orders/history?status=FILLED&limit=50",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "orders", "history"],
+              "query": [
+                {"key": "status", "value": "FILLED"},
+                {"key": "limit", "value": "50"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-304: Order History - Pagination",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Pagination metadata present', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('pagination');",
+                  "  var paging = jsonData.data.pagination;",
+                  "  pm.expect(paging).to.have.property('total');",
+                  "  pm.expect(paging).to.have.property('limit');",
+                  "  pm.expect(paging).to.have.property('offset');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/orders/history?limit=10&offset=0",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "orders", "history"],
+              "query": [
+                {"key": "limit", "value": "10"},
+                {"key": "offset", "value": "0"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-305: Order Detail - Single order fetch",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Order detail has all fields', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  var order = jsonData.data;",
+                  "  pm.expect(order).to.have.property('id');",
+                  "  pm.expect(order).to.have.property('symbol');",
+                  "  pm.expect(order).to.have.property('side');",
+                  "  pm.expect(order).to.have.property('type');",
+                  "  pm.expect(order).to.have.property('status');",
+                  "  pm.expect(order).to.have.property('quantity');",
+                  "  pm.expect(order).to.have.property('filled_quantity');",
+                  "  pm.expect(order).to.have.property('created_at');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/orders/{{order_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "orders", "{{order_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "PHASE 4: History & Analytics Tests",
+      "item": [
+        {
+          "name": "TC-401: Trade History - Fetch all user trades",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has trades array', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData).to.have.property('success', true);",
+                  "  pm.expect(jsonData.data).to.have.property('trades').and.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Each trade has required fields', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  jsonData.data.trades.forEach(function(trade) {",
+                  "    pm.expect(trade).to.have.property('id');",
+                  "    pm.expect(trade).to.have.property('symbol');",
+                  "    pm.expect(trade).to.have.property('price');",
+                  "    pm.expect(trade).to.have.property('quantity');",
+                  "    pm.expect(trade).to.have.property('side');",
+                  "    pm.expect(trade).to.have.property('executed_at');",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/trades/history",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "trades", "history"]
+            }
+          }
+        },
+        {
+          "name": "TC-402: Trade History - Filter by symbol",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('All trades match filtered symbol', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  var filterSymbol = pm.request.url.query.get('symbol');",
+                  "  jsonData.data.trades.forEach(function(trade) {",
+                  "    pm.expect(trade.symbol).to.equal(filterSymbol);",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/trades/history?symbol=BTC-USDT",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "trades", "history"],
+              "query": [
+                {"key": "symbol", "value": "BTC-USDT"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-403: P&L Calculation - Profit/loss per trade",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Trade has P&L information', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  var trade = jsonData.data;",
+                  "  pm.expect(trade).to.have.property('entry_price');",
+                  "  pm.expect(trade).to.have.property('exit_price');",
+                  "  pm.expect(trade).to.have.property('pnl');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/trades/{{trade_id}}/pnl",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "trades", "{{trade_id}}", "pnl"]
+            }
+          }
+        },
+        {
+          "name": "TC-404: Settlement Status - Trade confirmation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Settlement status is valid', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  var status = jsonData.data.settlement_status;",
+                  "  pm.expect(['PENDING', 'CONFIRMED', 'FAILED']).to.include(status);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/trades/{{trade_id}}/settlement",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "trades", "{{trade_id}}", "settlement"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "PHASE 5: Advanced Features Tests",
+      "item": [
+        {
+          "name": "TC-501: Price Alerts - Create alert",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function() {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Alert created successfully', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('id');",
+                  "  pm.expect(jsonData.data).to.have.property('symbol');",
+                  "  pm.expect(jsonData.data).to.have.property('target_price');",
+                  "  pm.expect(jsonData.data).to.have.property('alert_type');",
+                  "  pm.expect(jsonData.data.is_active).to.equal(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"symbol\": \"BTC-USDT\", \"alert_type\": \"above\", \"target_price\": \"35000\"}"
+            },
+            "url": {
+              "raw": "http://localhost:8001/api/v1/alerts",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "alerts"]
+            }
+          }
+        },
+        {
+          "name": "TC-502: Technical Indicators - SMA 20-period",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('SMA indicator calculated', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('symbol');",
+                  "  pm.expect(jsonData.data).to.have.property('indicator_type', 'SMA');",
+                  "  pm.expect(jsonData.data).to.have.property('period', 20);",
+                  "  pm.expect(jsonData.data).to.have.property('value');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/market/indicators/BTC-USDT?type=sma&period=20",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "market", "indicators", "BTC-USDT"],
+              "query": [
+                {"key": "type", "value": "sma"},
+                {"key": "period", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "TC-503: Technical Indicators - EMA 12-period",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('EMA indicator calculated', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data.indicator_type).to.equal('EMA');",
+                  "  pm.expect(jsonData.data.period).to.equal(12);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/market/indicators/ETH-USDT?type=ema&period=12",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "market", "indicators", "ETH-USDT"],
+              "query": [
+                {"key": "type", "value": "ema"},
+                {"key": "period", "value": "12"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "PHASE 6: Performance & WebSocket Tests",
+      "item": [
+        {
+          "name": "TC-601: Response Time Baseline - Market Data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response time < 50ms', function() {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(50);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8001/api/v1/ticker/BTC-USDT",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8001",
+              "path": ["api", "v1", "ticker", "BTC-USDT"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "order_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "trade_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
