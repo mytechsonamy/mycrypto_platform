@@ -11,6 +11,7 @@ import {
 import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { MarketService } from '../services/market.service';
+import { TickerService } from '../services/ticker.service';
 import { UserOrderHighlightService } from '../services/user-order-highlight.service';
 
 interface OrderbookSubscription {
@@ -24,6 +25,20 @@ interface OrderbookMessage {
   bids: Array<[string, string]>;
   asks: Array<[string, string]>;
   lastUpdateId: number;
+  timestamp: string;
+}
+
+interface TickerSubscription {
+  symbol: string;
+  interval?: number; // Update interval in milliseconds (default: 1000ms = 1 second)
+}
+
+interface TickerUpdateMessage {
+  type: 'ticker_update';
+  symbol: string;
+  lastPrice: string;
+  priceChange: string;
+  priceChangePercent: string;
   timestamp: string;
 }
 
@@ -43,8 +58,15 @@ export class MarketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
   private userOrderSubscriptions: Map<string, string> = new Map(); // clientId -> userId
   private readonly UPDATE_INTERVAL_MS = 100; // Batch updates every 100ms
 
+  // Ticker-specific subscriptions and state
+  private tickerSubscriptions: Map<string, Set<string>> = new Map(); // clientId -> Set<symbol>
+  private tickerIntervals: Map<string, NodeJS.Timeout> = new Map(); // symbol -> interval
+  private lastTickerData: Map<string, TickerUpdateMessage> = new Map(); // symbol -> last ticker data for delta detection
+  private readonly DEFAULT_TICKER_INTERVAL_MS = 1000; // 1 second default interval
+
   constructor(
     private readonly marketService: MarketService,
+    private readonly tickerService: TickerService,
     private readonly userOrderHighlightService: UserOrderHighlightService,
   ) {}
 
@@ -67,13 +89,22 @@ export class MarketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
   handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected: ${client.id}`);
 
-    // Clean up client subscriptions
+    // Clean up orderbook subscriptions
     const subscriptions = this.clientSubscriptions.get(client.id);
     if (subscriptions) {
       subscriptions.forEach((symbol) => {
         this.unsubscribeFromSymbol(client.id, symbol);
       });
       this.clientSubscriptions.delete(client.id);
+    }
+
+    // Clean up ticker subscriptions
+    const tickerSubs = this.tickerSubscriptions.get(client.id);
+    if (tickerSubs) {
+      tickerSubs.forEach((symbol) => {
+        this.unsubscribeFromTicker(client.id, symbol);
+      });
+      this.tickerSubscriptions.delete(client.id);
     }
 
     // Clean up user order subscriptions
@@ -357,6 +388,206 @@ export class MarketGateway implements OnGatewayInit, OnGatewayConnection, OnGate
   private getSubscribedClients(symbol: string): string[] {
     const clients: string[] = [];
     this.clientSubscriptions.forEach((symbols, clientId) => {
+      if (symbols.has(symbol)) {
+        clients.push(clientId);
+      }
+    });
+    return clients;
+  }
+
+  /**
+   * Handle ticker subscription
+   * Client sends: { symbol: 'BTC_TRY', interval?: 1000 }
+   * Channel: ticker:{symbol}
+   */
+  @SubscribeMessage('subscribe_ticker')
+  async handleSubscribeTicker(
+    @MessageBody() data: TickerSubscription,
+    @ConnectedSocket() client: Socket,
+  ) {
+    try {
+      const { symbol, interval = this.DEFAULT_TICKER_INTERVAL_MS } = data;
+
+      // Validate interval (min 100ms, max 60s)
+      if (interval < 100 || interval > 60000) {
+        throw new Error('Interval must be between 100ms and 60000ms');
+      }
+
+      this.logger.log(`Client ${client.id} subscribing to ticker:${symbol} with ${interval}ms interval`);
+
+      // Add to client's ticker subscriptions
+      const clientTickerSubs = this.tickerSubscriptions.get(client.id) || new Set();
+      clientTickerSubs.add(symbol);
+      this.tickerSubscriptions.set(client.id, clientTickerSubs);
+
+      // Send initial ticker data
+      await this.sendTickerSnapshot(client, symbol);
+
+      // Start periodic updates if not already running for this symbol
+      if (!this.tickerIntervals.has(symbol)) {
+        this.startTickerUpdates(symbol, interval);
+      }
+
+      // Send subscription confirmation
+      client.emit('subscribed', {
+        type: 'subscription_confirmed',
+        channel: `ticker:${symbol}`,
+        interval,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      this.logger.error(`Ticker subscription error for client ${client.id}: ${error.message}`);
+      client.emit('error', {
+        type: 'ticker_subscription_error',
+        message: error.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * Handle ticker unsubscription
+   * Client sends: { symbol: 'BTC_TRY' }
+   */
+  @SubscribeMessage('unsubscribe_ticker')
+  handleUnsubscribeTicker(
+    @MessageBody() data: { symbol: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const { symbol } = data;
+
+    this.logger.log(`Client ${client.id} unsubscribing from ticker:${symbol}`);
+
+    this.unsubscribeFromTicker(client.id, symbol);
+
+    client.emit('unsubscribed', {
+      type: 'unsubscription_confirmed',
+      channel: `ticker:${symbol}`,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  /**
+   * Send initial ticker snapshot to client
+   */
+  private async sendTickerSnapshot(client: Socket, symbol: string) {
+    try {
+      const ticker = await this.tickerService.getTicker(symbol);
+
+      const message: TickerUpdateMessage = {
+        type: 'ticker_update',
+        symbol,
+        lastPrice: ticker.lastPrice,
+        priceChange: ticker.priceChange,
+        priceChangePercent: ticker.priceChangePercent,
+        timestamp: ticker.timestamp,
+      };
+
+      client.emit(`ticker:${symbol}`, message);
+
+      // Store as last data for delta detection
+      this.lastTickerData.set(symbol, message);
+    } catch (error) {
+      this.logger.error(`Failed to send ticker snapshot for ${symbol}: ${error.message}`);
+      client.emit('error', {
+        type: 'ticker_snapshot_error',
+        symbol,
+        message: error.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * Start periodic ticker updates for a symbol
+   * Implements delta updates: only broadcast if price changed
+   */
+  private startTickerUpdates(symbol: string, intervalMs: number) {
+    const interval = setInterval(async () => {
+      try {
+        // Get all clients subscribed to this ticker
+        const subscribedClients = this.getTickerSubscribedClients(symbol);
+
+        if (subscribedClients.length === 0) {
+          // No subscribers, stop updates
+          this.stopTickerUpdates(symbol);
+          return;
+        }
+
+        // Fetch latest ticker data
+        const ticker = await this.tickerService.getTicker(symbol);
+
+        const message: TickerUpdateMessage = {
+          type: 'ticker_update',
+          symbol,
+          lastPrice: ticker.lastPrice,
+          priceChange: ticker.priceChange,
+          priceChangePercent: ticker.priceChangePercent,
+          timestamp: ticker.timestamp,
+        };
+
+        // Delta detection: only send if price changed
+        const lastData = this.lastTickerData.get(symbol);
+        const priceChanged = !lastData || lastData.lastPrice !== message.lastPrice;
+
+        if (priceChanged) {
+          // Price changed - broadcast to all subscribed clients
+          subscribedClients.forEach((clientId) => {
+            this.server.to(clientId).emit(`ticker:${symbol}`, message);
+          });
+
+          // Update last data
+          this.lastTickerData.set(symbol, message);
+
+          this.logger.debug(
+            `Broadcasted ticker update for ${symbol} to ${subscribedClients.length} clients (price: ${message.lastPrice})`,
+          );
+        } else {
+          this.logger.debug(`Skipped ticker update for ${symbol} (no price change)`);
+        }
+      } catch (error) {
+        this.logger.error(`Failed to broadcast ticker update for ${symbol}: ${error.message}`);
+      }
+    }, intervalMs);
+
+    this.tickerIntervals.set(symbol, interval);
+    this.logger.log(`Started ticker updates for ${symbol} (${intervalMs}ms interval)`);
+  }
+
+  /**
+   * Stop periodic ticker updates for a symbol
+   */
+  private stopTickerUpdates(symbol: string) {
+    const interval = this.tickerIntervals.get(symbol);
+    if (interval) {
+      clearInterval(interval);
+      this.tickerIntervals.delete(symbol);
+      this.lastTickerData.delete(symbol);
+      this.logger.log(`Stopped ticker updates for ${symbol}`);
+    }
+  }
+
+  /**
+   * Unsubscribe a client from a ticker
+   */
+  private unsubscribeFromTicker(clientId: string, symbol: string) {
+    const clientSubs = this.tickerSubscriptions.get(clientId);
+    if (clientSubs) {
+      clientSubs.delete(symbol);
+
+      // Stop updates if no clients are subscribed
+      if (this.getTickerSubscribedClients(symbol).length === 0) {
+        this.stopTickerUpdates(symbol);
+      }
+    }
+  }
+
+  /**
+   * Get all client IDs subscribed to a ticker symbol
+   */
+  private getTickerSubscribedClients(symbol: string): string[] {
+    const clients: string[] = [];
+    this.tickerSubscriptions.forEach((symbols, clientId) => {
       if (symbols.has(symbol)) {
         clients.push(clientId);
       }

@@ -1,0 +1,803 @@
+{
+  "info": {
+    "name": "Story 3.2 - Ticker Display API Tests",
+    "description": "Comprehensive Postman collection for testing Story 3.2 Ticker API endpoints, WebSocket integration, and performance verification",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0",
+    "exporter": "QA Engineer",
+    "exporterVersion": "1.0"
+  },
+  "item": [
+    {
+      "name": "1. Single Ticker Endpoint",
+      "item": [
+        {
+          "name": "TC-3.2-001: Get Single Symbol (BTC_TRY)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test 1: Status code is 200",
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Test 2: Response time < 50ms",
+                  "pm.test('Response time < 50ms (SLA requirement)', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(50);",
+                  "});",
+                  "",
+                  "// Test 3: Response has required fields",
+                  "pm.test('Response includes all required fields', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('symbol');",
+                  "    pm.expect(jsonData).to.have.property('lastPrice');",
+                  "    pm.expect(jsonData).to.have.property('priceChange');",
+                  "    pm.expect(jsonData).to.have.property('priceChangePercent');",
+                  "    pm.expect(jsonData).to.have.property('high');",
+                  "    pm.expect(jsonData).to.have.property('low');",
+                  "    pm.expect(jsonData).to.have.property('volume');",
+                  "    pm.expect(jsonData).to.have.property('quoteVolume');",
+                  "    pm.expect(jsonData).to.have.property('timestamp');",
+                  "});",
+                  "",
+                  "// Test 4: Symbol matches request",
+                  "pm.test('Symbol field matches BTC_TRY', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.symbol).to.equal('BTC_TRY');",
+                  "});",
+                  "",
+                  "// Test 5: Prices are strings (prevent precision loss)",
+                  "pm.test('Price fields are strings (string-format decimal)', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(typeof jsonData.lastPrice).to.equal('string');",
+                  "    pm.expect(typeof jsonData.priceChange).to.equal('string');",
+                  "    pm.expect(typeof jsonData.high).to.equal('string');",
+                  "    pm.expect(typeof jsonData.low).to.equal('string');",
+                  "});",
+                  "",
+                  "// Test 6: Volume fields are numeric or string",
+                  "pm.test('Volume fields present and non-null', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.volume).to.not.be.null;",
+                  "    pm.expect(jsonData.quoteVolume).to.not.be.null;",
+                  "});",
+                  "",
+                  "// Test 7: Timestamp is ISO 8601 format",
+                  "pm.test('Timestamp is valid ISO 8601 format', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const timestamp = new Date(jsonData.timestamp);",
+                  "    pm.expect(timestamp).to.be.valid;",
+                  "    pm.expect(jsonData.timestamp).to.match(/\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z/);",
+                  "});",
+                  "",
+                  "// Store response for comparison with bulk endpoint",
+                  "pm.environment.set('btc_try_lastPrice', pm.response.json().lastPrice);",
+                  "pm.environment.set('btc_try_timestamp', pm.response.json().timestamp);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/ticker/BTC_TRY",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "ticker",
+                "BTC_TRY"
+              ]
+            },
+            "description": "Get single ticker for BTC_TRY pair"
+          },
+          "response": []
+        },
+        {
+          "name": "TC-3.2-001: Get Single Symbol (ETH_TRY)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response time < 50ms', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(50);",
+                  "});",
+                  "",
+                  "pm.test('Symbol is ETH_TRY', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.symbol).to.equal('ETH_TRY');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/ticker/ETH_TRY",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "ticker",
+                "ETH_TRY"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-3.2-001: Get Single Symbol (USDT_TRY)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response time < 50ms', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(50);",
+                  "});",
+                  "",
+                  "pm.test('Symbol is USDT_TRY', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.symbol).to.equal('USDT_TRY');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/ticker/USDT_TRY",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "ticker",
+                "USDT_TRY"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Bulk Tickers Endpoint",
+      "item": [
+        {
+          "name": "TC-3.2-002: Get Multiple Symbols (Bulk Query)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test 1: Status code is 200",
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Test 2: Response time < 80ms for bulk request",
+                  "pm.test('Response time < 80ms (bulk SLA)', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(80);",
+                  "});",
+                  "",
+                  "// Test 3: Response contains tickers array",
+                  "pm.test('Response contains tickers array', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('tickers');",
+                  "    pm.expect(Array.isArray(jsonData.tickers)).to.be.true;",
+                  "});",
+                  "",
+                  "// Test 4: All 3 symbols present",
+                  "pm.test('All 3 symbols present in response', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.tickers.length).to.equal(3);",
+                  "});",
+                  "",
+                  "// Test 5: Each ticker has required fields",
+                  "pm.test('Each ticker has required fields', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    jsonData.tickers.forEach(function(ticker) {",
+                  "        pm.expect(ticker).to.have.property('symbol');",
+                  "        pm.expect(ticker).to.have.property('lastPrice');",
+                  "        pm.expect(ticker).to.have.property('high');",
+                  "        pm.expect(ticker).to.have.property('low');",
+                  "        pm.expect(ticker).to.have.property('volume');",
+                  "    });",
+                  "});",
+                  "",
+                  "// Test 6: Array maintains request order",
+                  "pm.test('Symbols appear in request order', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.tickers[0].symbol).to.equal('BTC_TRY');",
+                  "    pm.expect(jsonData.tickers[1].symbol).to.equal('ETH_TRY');",
+                  "    pm.expect(jsonData.tickers[2].symbol).to.equal('USDT_TRY');",
+                  "});",
+                  "",
+                  "// Test 7: Compare BTC data between single and bulk endpoints",
+                  "pm.test('BTC data consistent between single and bulk endpoints', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const btc = jsonData.tickers[0];",
+                  "    const storedPrice = pm.environment.get('btc_try_lastPrice');",
+                  "    pm.expect(btc.lastPrice).to.equal(storedPrice);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/tickers?symbols=BTC_TRY,ETH_TRY,USDT_TRY",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "tickers"
+              ],
+              "query": [
+                {
+                  "key": "symbols",
+                  "value": "BTC_TRY,ETH_TRY,USDT_TRY"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Error Handling",
+      "item": [
+        {
+          "name": "TC-3.2-003: Invalid Symbol Returns 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test 1: Status code is 404",
+                  "pm.test('Status code is 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "// Test 2: Response contains error information",
+                  "pm.test('Response contains error details', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('error');",
+                  "    pm.expect(jsonData).to.have.property('code');",
+                  "});",
+                  "",
+                  "// Test 3: Error code indicates not found",
+                  "pm.test('Error code indicates ticker not found', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.code).to.include('NOT_FOUND');",
+                  "});",
+                  "",
+                  "// Test 4: Error message is user-friendly (no stack trace)",
+                  "pm.test('Error message is user-friendly', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    const error = jsonData.error.toLowerCase();",
+                  "    pm.expect(error).to.not.include('stack');",
+                  "    pm.expect(error).to.not.include('undefined');",
+                  "    pm.expect(error).to.include('not found');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/ticker/INVALID_XYZ",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "ticker",
+                "INVALID_XYZ"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Performance Testing",
+      "item": [
+        {
+          "name": "Performance Setup: Initialize variables",
+          "event": [
+            {
+              "listen": "pre-request",
+              "script": {
+                "exec": [
+                  "// Initialize performance tracking variables",
+                  "pm.environment.set('test_iteration', 0);",
+                  "pm.environment.set('response_times', JSON.stringify([]));",
+                  "pm.environment.set('cache_hits', 0);",
+                  "pm.environment.set('cache_misses', 0);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "https://httpbin.org/delay/0",
+              "protocol": "https",
+              "host": [
+                "httpbin.org"
+              ],
+              "path": [
+                "delay",
+                "0"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-3.2-004: Performance - Load Test (50 requests)",
+          "event": [
+            {
+              "listen": "pre-request",
+              "script": {
+                "exec": [
+                  "// Track iteration number",
+                  "let iteration = parseInt(pm.environment.get('test_iteration') || '0');",
+                  "iteration++;",
+                  "pm.environment.set('test_iteration', iteration.toString());"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test 1: Status is 200",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Track response times",
+                  "const responseTime = pm.response.responseTime;",
+                  "let times = JSON.parse(pm.environment.get('response_times') || '[]');",
+                  "times.push(responseTime);",
+                  "pm.environment.set('response_times', JSON.stringify(times));",
+                  "",
+                  "// Test 2: Individual request < 50ms",
+                  "pm.test(`Request ${pm.environment.get('test_iteration')}: Response time < 50ms`, function () {",
+                  "    pm.expect(responseTime).to.be.below(50);",
+                  "});",
+                  "",
+                  "// Test 3: Track cache behavior",
+                  "const headers = pm.response.headers.toObject();",
+                  "if (headers['x-cache'] && headers['x-cache'].toLowerCase().includes('hit')) {",
+                  "    let hits = parseInt(pm.environment.get('cache_hits') || '0');",
+                  "    pm.environment.set('cache_hits', (hits + 1).toString());",
+                  "    pm.test(`Request ${pm.environment.get('test_iteration')}: Cache HIT`, function () { assert.ok(true); });",
+                  "} else {",
+                  "    let misses = parseInt(pm.environment.get('cache_misses') || '0');",
+                  "    pm.environment.set('cache_misses', (misses + 1).toString());",
+                  "}",
+                  "",
+                  "// Final: Calculate statistics on last iteration",
+                  "if (pm.environment.get('test_iteration') === '50') {",
+                  "    let times = JSON.parse(pm.environment.get('response_times'));",
+                  "    times.sort((a, b) => a - b);",
+                  "    let p50 = times[Math.floor(times.length * 0.5)];",
+                  "    let p99 = times[Math.floor(times.length * 0.99)];",
+                  "    let p999 = times[Math.floor(times.length * 0.999)];",
+                  "    let avg = times.reduce((a, b) => a + b) / times.length;",
+                  "    ",
+                  "    console.log('===== PERFORMANCE SUMMARY =====');",
+                  "    console.log(`Total Requests: 50`);",
+                  "    console.log(`Avg Response Time: ${avg.toFixed(2)}ms`);",
+                  "    console.log(`p50: ${p50}ms`);",
+                  "    console.log(`p99: ${p99}ms`);",
+                  "    console.log(`p99.9: ${p999}ms`);",
+                  "    console.log(`Cache Hits: ${pm.environment.get('cache_hits')}`);",
+                  "    console.log(`Cache Misses: ${pm.environment.get('cache_misses')}`);",
+                  "    console.log('================================');",
+                  "    ",
+                  "    pm.test('p99 response time < 50ms SLA', function() {",
+                  "        pm.expect(p99).to.be.below(50);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/ticker/BTC_TRY",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "ticker",
+                "BTC_TRY"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Caching Tests",
+      "item": [
+        {
+          "name": "TC-3.2-006: Cache Hit/Miss Validation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test 1: First request (cache miss expected)",
+                  "pm.test('First request: Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Store timestamp for cache validation",
+                  "const response1 = pm.response.json();",
+                  "const timestamp1 = response1.timestamp;",
+                  "pm.environment.set('first_request_time', Date.now().toString());",
+                  "pm.environment.set('first_timestamp', timestamp1);",
+                  "pm.environment.set('first_response_time', pm.response.responseTime.toString());"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/ticker/BTC_TRY",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "ticker",
+                "BTC_TRY"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-3.2-006: Second request (Cache Hit expected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response2 = pm.response.json();",
+                  "const timestamp2 = response2.timestamp;",
+                  "const firstTime = parseInt(pm.environment.get('first_request_time'));",
+                  "const secondTime = Date.now();",
+                  "const timeDiff = secondTime - firstTime;",
+                  "",
+                  "// Test 1: Timestamp should be identical (cache hit)",
+                  "pm.test('Cache Hit: Timestamps identical', function () {",
+                  "    pm.expect(timestamp2).to.equal(pm.environment.get('first_timestamp'));",
+                  "});",
+                  "",
+                  "// Test 2: Response should be faster (cache hit)",
+                  "const firstResponseTime = parseInt(pm.environment.get('first_response_time'));",
+                  "const secondResponseTime = pm.response.responseTime;",
+                  "pm.test('Cache Hit: Second request faster', function () {",
+                  "    pm.expect(secondResponseTime).to.be.below(firstResponseTime);",
+                  "});",
+                  "",
+                  "// Test 3: Response time < 5ms for cache hit",
+                  "pm.test('Cache Hit: Response < 5ms', function () {",
+                  "    pm.expect(secondResponseTime).to.be.below(5);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/ticker/BTC_TRY",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "ticker",
+                "BTC_TRY"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-3.2-006: Wait for TTL expiration",
+          "event": [
+            {
+              "listen": "pre-request",
+              "script": {
+                "exec": [
+                  "// Wait 11 seconds for cache TTL to expire (10-second TTL)",
+                  "const waitTime = 11000;",
+                  "console.log(`Waiting ${waitTime}ms for cache expiration...`);",
+                  "pm.sleep(waitTime);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "https://httpbin.org/delay/0",
+              "protocol": "https",
+              "host": [
+                "httpbin.org"
+              ],
+              "path": [
+                "delay",
+                "0"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "TC-3.2-006: Third request (Cache Miss expected after TTL)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response3 = pm.response.json();",
+                  "const timestamp3 = response3.timestamp;",
+                  "const timestamp1 = pm.environment.get('first_timestamp');",
+                  "",
+                  "// Test 1: Timestamp should be different (cache expired)",
+                  "pm.test('Cache Expired: Timestamp updated', function () {",
+                  "    pm.expect(timestamp3).to.not.equal(timestamp1);",
+                  "});",
+                  "",
+                  "// Test 2: Response time similar to first request (cache miss)",
+                  "const firstResponseTime = parseInt(pm.environment.get('first_response_time'));",
+                  "const thirdResponseTime = pm.response.responseTime;",
+                  "pm.test('Cache Expired: Response time similar to first request', function () {",
+                  "    // Allow 20% variance",
+                  "    const variance = firstResponseTime * 0.2;",
+                  "    pm.expect(thirdResponseTime).to.be.within(firstResponseTime - variance, firstResponseTime + variance);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/ticker/BTC_TRY",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "ticker",
+                "BTC_TRY"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Data Validation",
+      "item": [
+        {
+          "name": "TC-3.2-007: 24h Statistics Data Validation",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "// Test 1: High >= Low",
+                  "pm.test('High price >= Low price', function () {",
+                  "    const high = parseFloat(jsonData.high);",
+                  "    const low = parseFloat(jsonData.low);",
+                  "    pm.expect(high).to.be.at.least(low);",
+                  "});",
+                  "",
+                  "// Test 2: Last price between high and low",
+                  "pm.test('Last price between High and Low', function () {",
+                  "    const lastPrice = parseFloat(jsonData.lastPrice);",
+                  "    const high = parseFloat(jsonData.high);",
+                  "    const low = parseFloat(jsonData.low);",
+                  "    pm.expect(lastPrice).to.be.at.least(low);",
+                  "    pm.expect(lastPrice).to.be.at.most(high);",
+                  "});",
+                  "",
+                  "// Test 3: Volume is non-negative",
+                  "pm.test('Volume is non-negative', function () {",
+                  "    const volume = parseFloat(jsonData.volume);",
+                  "    pm.expect(volume).to.be.at.least(0);",
+                  "});",
+                  "",
+                  "// Test 4: Quote volume is non-negative",
+                  "pm.test('Quote volume is non-negative', function () {",
+                  "    const quoteVolume = parseFloat(jsonData.quoteVolume);",
+                  "    pm.expect(quoteVolume).to.be.at.least(0);",
+                  "});",
+                  "",
+                  "// Test 5: Decimal precision is preserved (string format)",
+                  "pm.test('Decimal precision preserved (string format)', function () {",
+                  "    const price = jsonData.lastPrice;",
+                  "    pm.expect(price).to.include('.');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/ticker/BTC_TRY",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "market",
+                "ticker",
+                "BTC_TRY"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ]
+}

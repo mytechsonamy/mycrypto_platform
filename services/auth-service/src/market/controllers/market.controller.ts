@@ -1,14 +1,20 @@
 import { Controller, Get, Param, Query, HttpStatus, Logger } from '@nestjs/common';
 import { MarketService } from '../services/market.service';
+import { TickerService } from '../services/ticker.service';
 import { OrderbookQueryDto } from '../dto/orderbook-query.dto';
+import { TickerQueryDto } from '../dto/ticker-query.dto';
 import { OrderbookResponseDto } from '../dto/orderbook-response.dto';
 import { DepthChartResponseDto } from '../dto/depth-chart-response.dto';
+import { TickerResponseDto, BulkTickersResponseDto } from '../dto/ticker-response.dto';
 
 @Controller('api/v1/market')
 export class MarketController {
   private readonly logger = new Logger(MarketController.name);
 
-  constructor(private readonly marketService: MarketService) {}
+  constructor(
+    private readonly marketService: MarketService,
+    private readonly tickerService: TickerService,
+  ) {}
 
   /**
    * GET /api/v1/market/orderbook/:symbol
@@ -103,6 +109,105 @@ export class MarketController {
     } catch (error) {
       const duration = Date.now() - startTime;
       this.logger.error(`Depth chart request failed after ${duration}ms: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * GET /api/v1/market/ticker/:symbol
+   * Get real-time ticker data for a single symbol
+   *
+   * @param symbol Trading symbol (BTC_TRY, ETH_TRY, USDT_TRY)
+   * @returns Ticker with lastPrice, priceChange, priceChangePercent, high, low, volume, quoteVolume
+   */
+  @Get('ticker/:symbol')
+  async getTicker(
+    @Param('symbol') symbol: string,
+  ): Promise<{
+    success: boolean;
+    data: TickerResponseDto;
+    meta: {
+      timestamp: string;
+      request_id?: string;
+    };
+  }> {
+    const startTime = Date.now();
+
+    try {
+      const ticker = await this.tickerService.getTicker(symbol.toUpperCase());
+
+      const duration = Date.now() - startTime;
+
+      // Check latency SLA (<50ms p99)
+      if (duration > 50) {
+        this.logger.warn(`Ticker request exceeded latency SLA: ${duration}ms for ${symbol}`);
+      }
+
+      return {
+        success: true,
+        data: ticker,
+        meta: {
+          timestamp: new Date().toISOString(),
+          request_id: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        },
+      };
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      this.logger.error(`Ticker request failed after ${duration}ms: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * GET /api/v1/market/tickers?symbols=BTC_TRY,ETH_TRY
+   * Get real-time ticker data for multiple symbols (bulk query)
+   *
+   * @param query Query parameters (symbols: comma-separated list)
+   * @returns Array of tickers with market data
+   */
+  @Get('tickers')
+  async getMultipleTickers(
+    @Query() query: TickerQueryDto,
+  ): Promise<{
+    success: boolean;
+    data: BulkTickersResponseDto;
+    meta: {
+      timestamp: string;
+      request_id?: string;
+    };
+  }> {
+    const startTime = Date.now();
+
+    try {
+      // Parse comma-separated symbols
+      const symbolsArray = query.symbols
+        ? query.symbols.split(',').map(s => s.trim().toUpperCase())
+        : [];
+
+      const tickers = await this.tickerService.getMultipleTickers(symbolsArray);
+
+      const duration = Date.now() - startTime;
+
+      // Check latency SLA (<50ms p99 per symbol)
+      const avgDuration = symbolsArray.length > 0 ? duration / symbolsArray.length : duration;
+      if (avgDuration > 50) {
+        this.logger.warn(`Tickers request exceeded latency SLA: ${duration}ms for ${symbolsArray.length} symbols (${avgDuration.toFixed(1)}ms avg)`);
+      }
+
+      return {
+        success: true,
+        data: {
+          tickers,
+          timestamp: new Date().toISOString(),
+        },
+        meta: {
+          timestamp: new Date().toISOString(),
+          request_id: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        },
+      };
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      this.logger.error(`Tickers request failed after ${duration}ms: ${error.message}`);
       throw error;
     }
   }

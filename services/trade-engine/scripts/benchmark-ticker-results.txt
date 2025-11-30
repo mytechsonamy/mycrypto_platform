@@ -1,0 +1,736 @@
+Timing is on.
+=============================================================================
+DATA PREPARATION: Checking test data
+=============================================================================
+  symbol  | trade_count |          first_trade          |          last_trade           |    time_span    
+----------+-------------+-------------------------------+-------------------------------+-----------------
+ BTC/USDT |        1016 | 2025-11-23 07:23:45.85264+00  | 2025-11-23 19:22:28.084179+00 | 11:58:42.231539
+ SOL/USDT |        1009 | 2025-11-23 07:24:26.642199+00 | 2025-11-23 19:23:12.200919+00 | 11:58:45.55872
+ XRP/USDT |        1004 | 2025-11-23 07:23:59.146183+00 | 2025-11-23 19:22:28.578808+00 | 11:58:29.432625
+ BNB/USDT |         988 | 2025-11-23 07:25:06.711616+00 | 2025-11-23 19:23:41.003858+00 | 11:58:34.292242
+ ETH/USDT |         984 | 2025-11-23 07:24:46.245619+00 | 2025-11-23 19:23:28.34297+00  | 11:58:42.097351
+(5 rows)
+
+Time: 34.394 ms
+
+=============================================================================
+TEST 1: Recent Price Query (Last Trade)
+Purpose: Show current price in ticker
+Target: < 30ms
+=============================================================================
+                                                                                                        QUERY PLAN                                                                                                        
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=3.91..4.20 rows=1 width=18) (actual time=0.808..0.811 rows=1 loops=1)
+   Output: trades.price, trades.executed_at
+   Buffers: shared hit=61
+   ->  Append  (cost=3.91..307.42 rows=1045 width=18) (actual time=0.807..0.810 rows=1 loops=1)
+         Buffers: shared hit=61
+         ->  Index Only Scan Backward using trades_2025_12_22_symbol_executed_at_quantity_price_idx on public.trades_2025_12_22 trades_30  (cost=0.12..8.14 rows=1 width=28) (actual time=0.017..0.017 rows=0 loops=1)
+               Output: trades_30.price, trades_30.executed_at
+               Index Cond: (trades_30.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_21_symbol_executed_at_quantity_price_idx on public.trades_2025_12_21 trades_29  (cost=0.12..8.14 rows=1 width=28) (actual time=0.021..0.021 rows=0 loops=1)
+               Output: trades_29.price, trades_29.executed_at
+               Index Cond: (trades_29.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_20_symbol_executed_at_quantity_price_idx on public.trades_2025_12_20 trades_28  (cost=0.12..8.14 rows=1 width=28) (actual time=0.049..0.049 rows=0 loops=1)
+               Output: trades_28.price, trades_28.executed_at
+               Index Cond: (trades_28.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_19_symbol_executed_at_quantity_price_idx on public.trades_2025_12_19 trades_27  (cost=0.12..8.14 rows=1 width=28) (actual time=0.014..0.014 rows=0 loops=1)
+               Output: trades_27.price, trades_27.executed_at
+               Index Cond: (trades_27.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_18_symbol_executed_at_quantity_price_idx on public.trades_2025_12_18 trades_26  (cost=0.12..8.14 rows=1 width=28) (actual time=0.015..0.015 rows=0 loops=1)
+               Output: trades_26.price, trades_26.executed_at
+               Index Cond: (trades_26.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_17_symbol_executed_at_quantity_price_idx on public.trades_2025_12_17 trades_25  (cost=0.12..8.14 rows=1 width=28) (actual time=0.025..0.025 rows=0 loops=1)
+               Output: trades_25.price, trades_25.executed_at
+               Index Cond: (trades_25.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_16_symbol_executed_at_quantity_price_idx on public.trades_2025_12_16 trades_24  (cost=0.12..8.14 rows=1 width=28) (actual time=0.014..0.014 rows=0 loops=1)
+               Output: trades_24.price, trades_24.executed_at
+               Index Cond: (trades_24.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_15_symbol_executed_at_quantity_price_idx on public.trades_2025_12_15 trades_23  (cost=0.12..8.14 rows=1 width=28) (actual time=0.064..0.064 rows=0 loops=1)
+               Output: trades_23.price, trades_23.executed_at
+               Index Cond: (trades_23.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_14_symbol_executed_at_quantity_price_idx on public.trades_2025_12_14 trades_22  (cost=0.12..8.14 rows=1 width=28) (actual time=0.024..0.024 rows=0 loops=1)
+               Output: trades_22.price, trades_22.executed_at
+               Index Cond: (trades_22.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_13_symbol_executed_at_quantity_price_idx on public.trades_2025_12_13 trades_21  (cost=0.12..8.14 rows=1 width=28) (actual time=0.013..0.013 rows=0 loops=1)
+               Output: trades_21.price, trades_21.executed_at
+               Index Cond: (trades_21.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_12_symbol_executed_at_quantity_price_idx on public.trades_2025_12_12 trades_20  (cost=0.12..8.14 rows=1 width=28) (actual time=0.016..0.016 rows=0 loops=1)
+               Output: trades_20.price, trades_20.executed_at
+               Index Cond: (trades_20.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_11_symbol_executed_at_quantity_price_idx on public.trades_2025_12_11 trades_19  (cost=0.12..8.14 rows=1 width=28) (actual time=0.049..0.049 rows=0 loops=1)
+               Output: trades_19.price, trades_19.executed_at
+               Index Cond: (trades_19.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_10_symbol_executed_at_quantity_price_idx on public.trades_2025_12_10 trades_18  (cost=0.12..8.14 rows=1 width=28) (actual time=0.052..0.052 rows=0 loops=1)
+               Output: trades_18.price, trades_18.executed_at
+               Index Cond: (trades_18.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_09_symbol_executed_at_quantity_price_idx on public.trades_2025_12_09 trades_17  (cost=0.12..8.14 rows=1 width=28) (actual time=0.018..0.018 rows=0 loops=1)
+               Output: trades_17.price, trades_17.executed_at
+               Index Cond: (trades_17.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_08_symbol_executed_at_quantity_price_idx on public.trades_2025_12_08 trades_16  (cost=0.12..8.14 rows=1 width=28) (actual time=0.018..0.018 rows=0 loops=1)
+               Output: trades_16.price, trades_16.executed_at
+               Index Cond: (trades_16.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_07_symbol_executed_at_quantity_price_idx on public.trades_2025_12_07 trades_15  (cost=0.12..8.14 rows=1 width=28) (actual time=0.102..0.103 rows=0 loops=1)
+               Output: trades_15.price, trades_15.executed_at
+               Index Cond: (trades_15.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_06_symbol_executed_at_quantity_price_idx on public.trades_2025_12_06 trades_14  (cost=0.12..8.14 rows=1 width=28) (actual time=0.017..0.017 rows=0 loops=1)
+               Output: trades_14.price, trades_14.executed_at
+               Index Cond: (trades_14.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_05_symbol_executed_at_quantity_price_idx on public.trades_2025_12_05 trades_13  (cost=0.12..8.14 rows=1 width=28) (actual time=0.015..0.015 rows=0 loops=1)
+               Output: trades_13.price, trades_13.executed_at
+               Index Cond: (trades_13.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_04_symbol_executed_at_quantity_price_idx on public.trades_2025_12_04 trades_12  (cost=0.12..8.14 rows=1 width=28) (actual time=0.012..0.012 rows=0 loops=1)
+               Output: trades_12.price, trades_12.executed_at
+               Index Cond: (trades_12.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_03_symbol_executed_at_quantity_price_idx on public.trades_2025_12_03 trades_11  (cost=0.12..8.14 rows=1 width=28) (actual time=0.017..0.017 rows=0 loops=1)
+               Output: trades_11.price, trades_11.executed_at
+               Index Cond: (trades_11.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_02_symbol_executed_at_quantity_price_idx on public.trades_2025_12_02 trades_10  (cost=0.12..8.14 rows=1 width=28) (actual time=0.015..0.015 rows=0 loops=1)
+               Output: trades_10.price, trades_10.executed_at
+               Index Cond: (trades_10.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_12_01_symbol_executed_at_quantity_price_idx on public.trades_2025_12_01 trades_9  (cost=0.12..8.14 rows=1 width=28) (actual time=0.014..0.014 rows=0 loops=1)
+               Output: trades_9.price, trades_9.executed_at
+               Index Cond: (trades_9.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_11_30_symbol_executed_at_quantity_price_idx on public.trades_2025_11_30 trades_8  (cost=0.12..8.14 rows=1 width=28) (actual time=0.019..0.019 rows=0 loops=1)
+               Output: trades_8.price, trades_8.executed_at
+               Index Cond: (trades_8.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_11_29_symbol_executed_at_quantity_price_idx on public.trades_2025_11_29 trades_7  (cost=0.12..8.14 rows=1 width=28) (actual time=0.013..0.013 rows=0 loops=1)
+               Output: trades_7.price, trades_7.executed_at
+               Index Cond: (trades_7.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_11_28_symbol_executed_at_quantity_price_idx on public.trades_2025_11_28 trades_6  (cost=0.12..8.14 rows=1 width=28) (actual time=0.016..0.016 rows=0 loops=1)
+               Output: trades_6.price, trades_6.executed_at
+               Index Cond: (trades_6.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_11_27_symbol_executed_at_quantity_price_idx on public.trades_2025_11_27 trades_5  (cost=0.12..8.14 rows=1 width=28) (actual time=0.013..0.014 rows=0 loops=1)
+               Output: trades_5.price, trades_5.executed_at
+               Index Cond: (trades_5.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_11_26_symbol_executed_at_quantity_price_idx on public.trades_2025_11_26 trades_4  (cost=0.12..8.14 rows=1 width=28) (actual time=0.021..0.021 rows=0 loops=1)
+               Output: trades_4.price, trades_4.executed_at
+               Index Cond: (trades_4.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_11_25_symbol_executed_at_quantity_price_idx on public.trades_2025_11_25 trades_3  (cost=0.12..8.14 rows=1 width=28) (actual time=0.020..0.020 rows=0 loops=1)
+               Output: trades_3.price, trades_3.executed_at
+               Index Cond: (trades_3.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_11_24_symbol_executed_at_quantity_price_idx on public.trades_2025_11_24 trades_2  (cost=0.12..8.14 rows=1 width=28) (actual time=0.016..0.016 rows=0 loops=1)
+               Output: trades_2.price, trades_2.executed_at
+               Index Cond: (trades_2.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=2
+         ->  Index Only Scan Backward using trades_2025_11_23_symbol_executed_at_quantity_price_idx on public.trades_2025_11_23 trades_1  (cost=0.28..66.06 rows=1016 width=18) (actual time=0.083..0.083 rows=1 loops=1)
+               Output: trades_1.price, trades_1.executed_at
+               Index Cond: (trades_1.symbol = 'BTC/USDT'::text)
+               Heap Fetches: 0
+               Buffers: shared hit=3
+ Planning:
+   Buffers: shared hit=434
+ Planning Time: 1.834 ms
+ Execution Time: 1.210 ms
+(159 rows)
+
+Time: 6.570 ms
+
+=============================================================================
+TEST 2: 24h High/Low/Volume Statistics
+Purpose: Show 24h trading statistics
+Target: < 30ms
+=============================================================================
+                                                               QUERY PLAN                                                                
+-----------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=4.68..4.69 rows=1 width=96) (actual time=0.030..0.031 rows=1 loops=1)
+   Output: max(trades.price), min(trades.price), sum(trades.quantity)
+   ->  Append  (cost=0.29..4.46 rows=30 width=40) (actual time=0.026..0.027 rows=0 loops=1)
+         Subplans Removed: 6
+         ->  Seq Scan on public.trades_2025_11_29 trades_1  (cost=0.00..0.00 rows=1 width=40) (actual time=0.003..0.003 rows=0 loops=1)
+               Output: trades_1.price, trades_1.quantity
+               Filter: (((trades_1.symbol)::text = 'BTC/USDT'::text) AND (trades_1.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_11_30 trades_2  (cost=0.00..0.00 rows=1 width=40) (actual time=0.002..0.002 rows=0 loops=1)
+               Output: trades_2.price, trades_2.quantity
+               Filter: (((trades_2.symbol)::text = 'BTC/USDT'::text) AND (trades_2.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_01 trades_3  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_3.price, trades_3.quantity
+               Filter: (((trades_3.symbol)::text = 'BTC/USDT'::text) AND (trades_3.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_02 trades_4  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_4.price, trades_4.quantity
+               Filter: (((trades_4.symbol)::text = 'BTC/USDT'::text) AND (trades_4.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_03 trades_5  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_5.price, trades_5.quantity
+               Filter: (((trades_5.symbol)::text = 'BTC/USDT'::text) AND (trades_5.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_04 trades_6  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_6.price, trades_6.quantity
+               Filter: (((trades_6.symbol)::text = 'BTC/USDT'::text) AND (trades_6.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_05 trades_7  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_7.price, trades_7.quantity
+               Filter: (((trades_7.symbol)::text = 'BTC/USDT'::text) AND (trades_7.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_06 trades_8  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_8.price, trades_8.quantity
+               Filter: (((trades_8.symbol)::text = 'BTC/USDT'::text) AND (trades_8.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_07 trades_9  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_9.price, trades_9.quantity
+               Filter: (((trades_9.symbol)::text = 'BTC/USDT'::text) AND (trades_9.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_08 trades_10  (cost=0.00..0.00 rows=1 width=40) (actual time=0.002..0.002 rows=0 loops=1)
+               Output: trades_10.price, trades_10.quantity
+               Filter: (((trades_10.symbol)::text = 'BTC/USDT'::text) AND (trades_10.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_09 trades_11  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_11.price, trades_11.quantity
+               Filter: (((trades_11.symbol)::text = 'BTC/USDT'::text) AND (trades_11.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_10 trades_12  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_12.price, trades_12.quantity
+               Filter: (((trades_12.symbol)::text = 'BTC/USDT'::text) AND (trades_12.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_11 trades_13  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_13.price, trades_13.quantity
+               Filter: (((trades_13.symbol)::text = 'BTC/USDT'::text) AND (trades_13.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_12 trades_14  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_14.price, trades_14.quantity
+               Filter: (((trades_14.symbol)::text = 'BTC/USDT'::text) AND (trades_14.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_13 trades_15  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_15.price, trades_15.quantity
+               Filter: (((trades_15.symbol)::text = 'BTC/USDT'::text) AND (trades_15.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_14 trades_16  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_16.price, trades_16.quantity
+               Filter: (((trades_16.symbol)::text = 'BTC/USDT'::text) AND (trades_16.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_15 trades_17  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_17.price, trades_17.quantity
+               Filter: (((trades_17.symbol)::text = 'BTC/USDT'::text) AND (trades_17.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_16 trades_18  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_18.price, trades_18.quantity
+               Filter: (((trades_18.symbol)::text = 'BTC/USDT'::text) AND (trades_18.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_17 trades_19  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_19.price, trades_19.quantity
+               Filter: (((trades_19.symbol)::text = 'BTC/USDT'::text) AND (trades_19.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_18 trades_20  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_20.price, trades_20.quantity
+               Filter: (((trades_20.symbol)::text = 'BTC/USDT'::text) AND (trades_20.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_19 trades_21  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_21.price, trades_21.quantity
+               Filter: (((trades_21.symbol)::text = 'BTC/USDT'::text) AND (trades_21.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_20 trades_22  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_22.price, trades_22.quantity
+               Filter: (((trades_22.symbol)::text = 'BTC/USDT'::text) AND (trades_22.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_21 trades_23  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_23.price, trades_23.quantity
+               Filter: (((trades_23.symbol)::text = 'BTC/USDT'::text) AND (trades_23.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_22 trades_24  (cost=0.00..0.00 rows=1 width=40) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_24.price, trades_24.quantity
+               Filter: (((trades_24.symbol)::text = 'BTC/USDT'::text) AND (trades_24.executed_at >= (now() - '24:00:00'::interval)))
+ Planning:
+   Buffers: shared hit=695
+ Planning Time: 2.824 ms
+ Execution Time: 0.113 ms
+(80 rows)
+
+Time: 3.720 ms
+
+=============================================================================
+TEST 3: 24h OHLCV Statistics (with Open/Close)
+Purpose: Full ticker display data
+Target: < 30ms
+=============================================================================
+                                                                                               QUERY PLAN                                                                                                
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=4.92..4.92 rows=1 width=168) (actual time=0.038..0.039 rows=1 loops=1)
+   Output: (array_agg(trades.price ORDER BY trades.executed_at))[1], max(trades.price), min(trades.price), (array_agg(trades.price ORDER BY trades.executed_at DESC))[1], sum(trades.quantity), count(*)
+   Buffers: shared hit=3
+   ->  Append  (cost=0.29..4.46 rows=30 width=48) (actual time=0.013..0.015 rows=0 loops=1)
+         Subplans Removed: 6
+         ->  Seq Scan on public.trades_2025_11_29 trades_1  (cost=0.00..0.00 rows=1 width=48) (actual time=0.002..0.002 rows=0 loops=1)
+               Output: trades_1.price, trades_1.executed_at, trades_1.quantity
+               Filter: (((trades_1.symbol)::text = 'BTC/USDT'::text) AND (trades_1.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_11_30 trades_2  (cost=0.00..0.00 rows=1 width=48) (actual time=0.000..0.000 rows=0 loops=1)
+               Output: trades_2.price, trades_2.executed_at, trades_2.quantity
+               Filter: (((trades_2.symbol)::text = 'BTC/USDT'::text) AND (trades_2.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_01 trades_3  (cost=0.00..0.00 rows=1 width=48) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_3.price, trades_3.executed_at, trades_3.quantity
+               Filter: (((trades_3.symbol)::text = 'BTC/USDT'::text) AND (trades_3.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_02 trades_4  (cost=0.00..0.00 rows=1 width=48) (actual time=0.000..0.000 rows=0 loops=1)
+               Output: trades_4.price, trades_4.executed_at, trades_4.quantity
+               Filter: (((trades_4.symbol)::text = 'BTC/USDT'::text) AND (trades_4.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_03 trades_5  (cost=0.00..0.00 rows=1 width=48) (actual time=0.000..0.000 rows=0 loops=1)
+               Output: trades_5.price, trades_5.executed_at, trades_5.quantity
+               Filter: (((trades_5.symbol)::text = 'BTC/USDT'::text) AND (trades_5.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_04 trades_6  (cost=0.00..0.00 rows=1 width=48) (actual time=0.000..0.000 rows=0 loops=1)
+               Output: trades_6.price, trades_6.executed_at, trades_6.quantity
+               Filter: (((trades_6.symbol)::text = 'BTC/USDT'::text) AND (trades_6.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_05 trades_7  (cost=0.00..0.00 rows=1 width=48) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_7.price, trades_7.executed_at, trades_7.quantity
+               Filter: (((trades_7.symbol)::text = 'BTC/USDT'::text) AND (trades_7.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_06 trades_8  (cost=0.00..0.00 rows=1 width=48) (actual time=0.000..0.000 rows=0 loops=1)
+               Output: trades_8.price, trades_8.executed_at, trades_8.quantity
+               Filter: (((trades_8.symbol)::text = 'BTC/USDT'::text) AND (trades_8.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_07 trades_9  (cost=0.00..0.00 rows=1 width=48) (actual time=0.000..0.000 rows=0 loops=1)
+               Output: trades_9.price, trades_9.executed_at, trades_9.quantity
+               Filter: (((trades_9.symbol)::text = 'BTC/USDT'::text) AND (trades_9.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_08 trades_10  (cost=0.00..0.00 rows=1 width=48) (actual time=0.000..0.000 rows=0 loops=1)
+               Output: trades_10.price, trades_10.executed_at, trades_10.quantity
+               Filter: (((trades_10.symbol)::text = 'BTC/USDT'::text) AND (trades_10.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_09 trades_11  (cost=0.00..0.00 rows=1 width=48) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_11.price, trades_11.executed_at, trades_11.quantity
+               Filter: (((trades_11.symbol)::text = 'BTC/USDT'::text) AND (trades_11.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_10 trades_12  (cost=0.00..0.00 rows=1 width=48) (actual time=0.000..0.000 rows=0 loops=1)
+               Output: trades_12.price, trades_12.executed_at, trades_12.quantity
+               Filter: (((trades_12.symbol)::text = 'BTC/USDT'::text) AND (trades_12.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_11 trades_13  (cost=0.00..0.00 rows=1 width=48) (actual time=0.000..0.000 rows=0 loops=1)
+               Output: trades_13.price, trades_13.executed_at, trades_13.quantity
+               Filter: (((trades_13.symbol)::text = 'BTC/USDT'::text) AND (trades_13.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_12 trades_14  (cost=0.00..0.00 rows=1 width=48) (actual time=0.000..0.000 rows=0 loops=1)
+               Output: trades_14.price, trades_14.executed_at, trades_14.quantity
+               Filter: (((trades_14.symbol)::text = 'BTC/USDT'::text) AND (trades_14.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_13 trades_15  (cost=0.00..0.00 rows=1 width=48) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_15.price, trades_15.executed_at, trades_15.quantity
+               Filter: (((trades_15.symbol)::text = 'BTC/USDT'::text) AND (trades_15.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_14 trades_16  (cost=0.00..0.00 rows=1 width=48) (actual time=0.000..0.000 rows=0 loops=1)
+               Output: trades_16.price, trades_16.executed_at, trades_16.quantity
+               Filter: (((trades_16.symbol)::text = 'BTC/USDT'::text) AND (trades_16.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_15 trades_17  (cost=0.00..0.00 rows=1 width=48) (actual time=0.000..0.000 rows=0 loops=1)
+               Output: trades_17.price, trades_17.executed_at, trades_17.quantity
+               Filter: (((trades_17.symbol)::text = 'BTC/USDT'::text) AND (trades_17.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_16 trades_18  (cost=0.00..0.00 rows=1 width=48) (actual time=0.000..0.000 rows=0 loops=1)
+               Output: trades_18.price, trades_18.executed_at, trades_18.quantity
+               Filter: (((trades_18.symbol)::text = 'BTC/USDT'::text) AND (trades_18.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_17 trades_19  (cost=0.00..0.00 rows=1 width=48) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_19.price, trades_19.executed_at, trades_19.quantity
+               Filter: (((trades_19.symbol)::text = 'BTC/USDT'::text) AND (trades_19.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_18 trades_20  (cost=0.00..0.00 rows=1 width=48) (actual time=0.000..0.000 rows=0 loops=1)
+               Output: trades_20.price, trades_20.executed_at, trades_20.quantity
+               Filter: (((trades_20.symbol)::text = 'BTC/USDT'::text) AND (trades_20.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_19 trades_21  (cost=0.00..0.00 rows=1 width=48) (actual time=0.000..0.000 rows=0 loops=1)
+               Output: trades_21.price, trades_21.executed_at, trades_21.quantity
+               Filter: (((trades_21.symbol)::text = 'BTC/USDT'::text) AND (trades_21.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_20 trades_22  (cost=0.00..0.00 rows=1 width=48) (actual time=0.000..0.000 rows=0 loops=1)
+               Output: trades_22.price, trades_22.executed_at, trades_22.quantity
+               Filter: (((trades_22.symbol)::text = 'BTC/USDT'::text) AND (trades_22.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_21 trades_23  (cost=0.00..0.00 rows=1 width=48) (actual time=0.001..0.001 rows=0 loops=1)
+               Output: trades_23.price, trades_23.executed_at, trades_23.quantity
+               Filter: (((trades_23.symbol)::text = 'BTC/USDT'::text) AND (trades_23.executed_at >= (now() - '24:00:00'::interval)))
+         ->  Seq Scan on public.trades_2025_12_22 trades_24  (cost=0.00..0.00 rows=1 width=48) (actual time=0.000..0.000 rows=0 loops=1)
+               Output: trades_24.price, trades_24.executed_at, trades_24.quantity
+               Filter: (((trades_24.symbol)::text = 'BTC/USDT'::text) AND (trades_24.executed_at >= (now() - '24:00:00'::interval)))
+ Planning:
+   Buffers: shared hit=357
+ Planning Time: 1.441 ms
+ Execution Time: 0.102 ms
+(81 rows)
+
+Time: 2.100 ms
+
+=============================================================================
+TEST 4: 24h Price Change Calculation
+Purpose: Calculate % change for ticker
+Target: < 30ms
+=============================================================================
+                                                                                                                          QUERY PLAN                                                                                                                           
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Subquery Scan on current_stats  (cost=4.61..4.65 rows=1 width=128) (actual time=0.028..0.030 rows=1 loops=1)
+   Output: current_stats.open_price, current_stats.close_price, (current_stats.close_price - current_stats.open_price), round((((current_stats.close_price - current_stats.open_price) / NULLIF(current_stats.open_price, '0'::numeric)) * '100'::numeric), 2)
+   ->  Aggregate  (cost=4.61..4.62 rows=1 width=64) (actual time=0.028..0.029 rows=1 loops=1)
+         Output: (array_agg(trades.price ORDER BY trades.executed_at))[1], (array_agg(trades.price ORDER BY trades.executed_at DESC))[1]
+         ->  Append  (cost=0.29..4.46 rows=30 width=28) (actual time=0.011..0.012 rows=0 loops=1)
+               Subplans Removed: 6
+               ->  Seq Scan on public.trades_2025_11_29 trades_1  (cost=0.00..0.00 rows=1 width=28) (actual time=0.001..0.001 rows=0 loops=1)
+                     Output: trades_1.price, trades_1.executed_at
+                     Filter: (((trades_1.symbol)::text = 'BTC/USDT'::text) AND (trades_1.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_11_30 trades_2  (cost=0.00..0.00 rows=1 width=28) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_2.price, trades_2.executed_at
+                     Filter: (((trades_2.symbol)::text = 'BTC/USDT'::text) AND (trades_2.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_01 trades_3  (cost=0.00..0.00 rows=1 width=28) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_3.price, trades_3.executed_at
+                     Filter: (((trades_3.symbol)::text = 'BTC/USDT'::text) AND (trades_3.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_02 trades_4  (cost=0.00..0.00 rows=1 width=28) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_4.price, trades_4.executed_at
+                     Filter: (((trades_4.symbol)::text = 'BTC/USDT'::text) AND (trades_4.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_03 trades_5  (cost=0.00..0.00 rows=1 width=28) (actual time=0.001..0.001 rows=0 loops=1)
+                     Output: trades_5.price, trades_5.executed_at
+                     Filter: (((trades_5.symbol)::text = 'BTC/USDT'::text) AND (trades_5.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_04 trades_6  (cost=0.00..0.00 rows=1 width=28) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_6.price, trades_6.executed_at
+                     Filter: (((trades_6.symbol)::text = 'BTC/USDT'::text) AND (trades_6.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_05 trades_7  (cost=0.00..0.00 rows=1 width=28) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_7.price, trades_7.executed_at
+                     Filter: (((trades_7.symbol)::text = 'BTC/USDT'::text) AND (trades_7.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_06 trades_8  (cost=0.00..0.00 rows=1 width=28) (actual time=0.001..0.001 rows=0 loops=1)
+                     Output: trades_8.price, trades_8.executed_at
+                     Filter: (((trades_8.symbol)::text = 'BTC/USDT'::text) AND (trades_8.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_07 trades_9  (cost=0.00..0.00 rows=1 width=28) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_9.price, trades_9.executed_at
+                     Filter: (((trades_9.symbol)::text = 'BTC/USDT'::text) AND (trades_9.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_08 trades_10  (cost=0.00..0.00 rows=1 width=28) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_10.price, trades_10.executed_at
+                     Filter: (((trades_10.symbol)::text = 'BTC/USDT'::text) AND (trades_10.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_09 trades_11  (cost=0.00..0.00 rows=1 width=28) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_11.price, trades_11.executed_at
+                     Filter: (((trades_11.symbol)::text = 'BTC/USDT'::text) AND (trades_11.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_10 trades_12  (cost=0.00..0.00 rows=1 width=28) (actual time=0.001..0.001 rows=0 loops=1)
+                     Output: trades_12.price, trades_12.executed_at
+                     Filter: (((trades_12.symbol)::text = 'BTC/USDT'::text) AND (trades_12.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_11 trades_13  (cost=0.00..0.00 rows=1 width=28) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_13.price, trades_13.executed_at
+                     Filter: (((trades_13.symbol)::text = 'BTC/USDT'::text) AND (trades_13.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_12 trades_14  (cost=0.00..0.00 rows=1 width=28) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_14.price, trades_14.executed_at
+                     Filter: (((trades_14.symbol)::text = 'BTC/USDT'::text) AND (trades_14.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_13 trades_15  (cost=0.00..0.00 rows=1 width=28) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_15.price, trades_15.executed_at
+                     Filter: (((trades_15.symbol)::text = 'BTC/USDT'::text) AND (trades_15.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_14 trades_16  (cost=0.00..0.00 rows=1 width=28) (actual time=0.001..0.001 rows=0 loops=1)
+                     Output: trades_16.price, trades_16.executed_at
+                     Filter: (((trades_16.symbol)::text = 'BTC/USDT'::text) AND (trades_16.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_15 trades_17  (cost=0.00..0.00 rows=1 width=28) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_17.price, trades_17.executed_at
+                     Filter: (((trades_17.symbol)::text = 'BTC/USDT'::text) AND (trades_17.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_16 trades_18  (cost=0.00..0.00 rows=1 width=28) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_18.price, trades_18.executed_at
+                     Filter: (((trades_18.symbol)::text = 'BTC/USDT'::text) AND (trades_18.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_17 trades_19  (cost=0.00..0.00 rows=1 width=28) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_19.price, trades_19.executed_at
+                     Filter: (((trades_19.symbol)::text = 'BTC/USDT'::text) AND (trades_19.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_18 trades_20  (cost=0.00..0.00 rows=1 width=28) (actual time=0.001..0.001 rows=0 loops=1)
+                     Output: trades_20.price, trades_20.executed_at
+                     Filter: (((trades_20.symbol)::text = 'BTC/USDT'::text) AND (trades_20.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_19 trades_21  (cost=0.00..0.00 rows=1 width=28) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_21.price, trades_21.executed_at
+                     Filter: (((trades_21.symbol)::text = 'BTC/USDT'::text) AND (trades_21.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_20 trades_22  (cost=0.00..0.00 rows=1 width=28) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_22.price, trades_22.executed_at
+                     Filter: (((trades_22.symbol)::text = 'BTC/USDT'::text) AND (trades_22.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_21 trades_23  (cost=0.00..0.00 rows=1 width=28) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_23.price, trades_23.executed_at
+                     Filter: (((trades_23.symbol)::text = 'BTC/USDT'::text) AND (trades_23.executed_at >= (now() - '24:00:00'::interval)))
+               ->  Seq Scan on public.trades_2025_12_22 trades_24  (cost=0.00..0.00 rows=1 width=28) (actual time=0.001..0.001 rows=0 loops=1)
+                     Output: trades_24.price, trades_24.executed_at
+                     Filter: (((trades_24.symbol)::text = 'BTC/USDT'::text) AND (trades_24.executed_at >= (now() - '24:00:00'::interval)))
+ Planning:
+   Buffers: shared hit=351
+ Planning Time: 0.900 ms
+ Execution Time: 0.370 ms
+(82 rows)
+
+Time: 2.012 ms
+
+=============================================================================
+TEST 5: Multi-Symbol Ticker (All Pairs)
+Purpose: Display ticker for all trading pairs on homepage
+Target: < 100ms for all symbols
+=============================================================================
+                                                                                                       QUERY PLAN                                                                                                       
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ GroupAggregate  (cost=9.19..9.88 rows=5 width=224) (actual time=0.021..0.022 rows=0 loops=1)
+   Output: trades.symbol, (array_agg(trades.price ORDER BY trades.executed_at DESC))[1], (array_agg(trades.price ORDER BY trades.executed_at))[1], max(trades.price), min(trades.price), sum(trades.quantity), count(*)
+   Group Key: trades.symbol
+   Buffers: shared hit=3
+   ->  Sort  (cost=9.19..9.27 rows=30 width=104) (actual time=0.021..0.022 rows=0 loops=1)
+         Output: trades.symbol, trades.price, trades.executed_at, trades.quantity
+         Sort Key: trades.symbol
+         Sort Method: quicksort  Memory: 25kB
+         Buffers: shared hit=3
+         ->  Append  (cost=0.29..8.45 rows=30 width=104) (actual time=0.010..0.011 rows=0 loops=1)
+               Subplans Removed: 6
+               ->  Seq Scan on public.trades_2025_11_29 trades_1  (cost=0.00..0.00 rows=1 width=106) (actual time=0.001..0.001 rows=0 loops=1)
+                     Output: trades_1.symbol, trades_1.price, trades_1.executed_at, trades_1.quantity
+                     Filter: (trades_1.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_11_30 trades_2  (cost=0.00..0.00 rows=1 width=106) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_2.symbol, trades_2.price, trades_2.executed_at, trades_2.quantity
+                     Filter: (trades_2.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_01 trades_3  (cost=0.00..0.00 rows=1 width=106) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_3.symbol, trades_3.price, trades_3.executed_at, trades_3.quantity
+                     Filter: (trades_3.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_02 trades_4  (cost=0.00..0.00 rows=1 width=106) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_4.symbol, trades_4.price, trades_4.executed_at, trades_4.quantity
+                     Filter: (trades_4.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_03 trades_5  (cost=0.00..0.00 rows=1 width=106) (actual time=0.001..0.001 rows=0 loops=1)
+                     Output: trades_5.symbol, trades_5.price, trades_5.executed_at, trades_5.quantity
+                     Filter: (trades_5.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_04 trades_6  (cost=0.00..0.00 rows=1 width=106) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_6.symbol, trades_6.price, trades_6.executed_at, trades_6.quantity
+                     Filter: (trades_6.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_05 trades_7  (cost=0.00..0.00 rows=1 width=106) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_7.symbol, trades_7.price, trades_7.executed_at, trades_7.quantity
+                     Filter: (trades_7.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_06 trades_8  (cost=0.00..0.00 rows=1 width=106) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_8.symbol, trades_8.price, trades_8.executed_at, trades_8.quantity
+                     Filter: (trades_8.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_07 trades_9  (cost=0.00..0.00 rows=1 width=106) (actual time=0.001..0.001 rows=0 loops=1)
+                     Output: trades_9.symbol, trades_9.price, trades_9.executed_at, trades_9.quantity
+                     Filter: (trades_9.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_08 trades_10  (cost=0.00..0.00 rows=1 width=106) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_10.symbol, trades_10.price, trades_10.executed_at, trades_10.quantity
+                     Filter: (trades_10.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_09 trades_11  (cost=0.00..0.00 rows=1 width=106) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_11.symbol, trades_11.price, trades_11.executed_at, trades_11.quantity
+                     Filter: (trades_11.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_10 trades_12  (cost=0.00..0.00 rows=1 width=106) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_12.symbol, trades_12.price, trades_12.executed_at, trades_12.quantity
+                     Filter: (trades_12.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_11 trades_13  (cost=0.00..0.00 rows=1 width=106) (actual time=0.001..0.001 rows=0 loops=1)
+                     Output: trades_13.symbol, trades_13.price, trades_13.executed_at, trades_13.quantity
+                     Filter: (trades_13.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_12 trades_14  (cost=0.00..0.00 rows=1 width=106) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_14.symbol, trades_14.price, trades_14.executed_at, trades_14.quantity
+                     Filter: (trades_14.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_13 trades_15  (cost=0.00..0.00 rows=1 width=106) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_15.symbol, trades_15.price, trades_15.executed_at, trades_15.quantity
+                     Filter: (trades_15.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_14 trades_16  (cost=0.00..0.00 rows=1 width=106) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_16.symbol, trades_16.price, trades_16.executed_at, trades_16.quantity
+                     Filter: (trades_16.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_15 trades_17  (cost=0.00..0.00 rows=1 width=106) (actual time=0.001..0.001 rows=0 loops=1)
+                     Output: trades_17.symbol, trades_17.price, trades_17.executed_at, trades_17.quantity
+                     Filter: (trades_17.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_16 trades_18  (cost=0.00..0.00 rows=1 width=106) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_18.symbol, trades_18.price, trades_18.executed_at, trades_18.quantity
+                     Filter: (trades_18.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_17 trades_19  (cost=0.00..0.00 rows=1 width=106) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_19.symbol, trades_19.price, trades_19.executed_at, trades_19.quantity
+                     Filter: (trades_19.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_18 trades_20  (cost=0.00..0.00 rows=1 width=106) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_20.symbol, trades_20.price, trades_20.executed_at, trades_20.quantity
+                     Filter: (trades_20.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_19 trades_21  (cost=0.00..0.00 rows=1 width=106) (actual time=0.001..0.001 rows=0 loops=1)
+                     Output: trades_21.symbol, trades_21.price, trades_21.executed_at, trades_21.quantity
+                     Filter: (trades_21.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_20 trades_22  (cost=0.00..0.00 rows=1 width=106) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_22.symbol, trades_22.price, trades_22.executed_at, trades_22.quantity
+                     Filter: (trades_22.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_21 trades_23  (cost=0.00..0.00 rows=1 width=106) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_23.symbol, trades_23.price, trades_23.executed_at, trades_23.quantity
+                     Filter: (trades_23.executed_at >= (now() - '24:00:00'::interval))
+               ->  Seq Scan on public.trades_2025_12_22 trades_24  (cost=0.00..0.00 rows=1 width=106) (actual time=0.000..0.000 rows=0 loops=1)
+                     Output: trades_24.symbol, trades_24.price, trades_24.executed_at, trades_24.quantity
+                     Filter: (trades_24.executed_at >= (now() - '24:00:00'::interval))
+ Planning:
+   Buffers: shared hit=351
+ Planning Time: 0.756 ms
+ Execution Time: 0.076 ms
+(87 rows)
+
+Time: 1.199 ms
+
+=============================================================================
+TEST 6: Index Usage Analysis
+Purpose: Verify optimal index selection
+=============================================================================
+ERROR:  column "tablename" does not exist
+LINE 3:     tablename,
+            ^
+Time: 0.358 ms
+
+=============================================================================
+TEST 7: Existing Index Coverage
+Purpose: List all indexes on trades table
+=============================================================================
+            indexname            |                                                         indexdef                                                         
+---------------------------------+--------------------------------------------------------------------------------------------------------------------------
+ idx_trades_buyer_order          | CREATE INDEX idx_trades_buyer_order ON ONLY public.trades USING btree (buy_order_id) WHERE (buy_order_id IS NOT NULL)
+ idx_trades_buyer_user_executed  | CREATE INDEX idx_trades_buyer_user_executed ON ONLY public.trades USING btree (buyer_user_id, executed_at DESC)
+ idx_trades_buyer_user_id        | CREATE INDEX idx_trades_buyer_user_id ON ONLY public.trades USING btree (buyer_user_id)
+ idx_trades_executed_at          | CREATE INDEX idx_trades_executed_at ON ONLY public.trades USING btree (executed_at DESC)
+ idx_trades_maker_flag           | CREATE INDEX idx_trades_maker_flag ON ONLY public.trades USING btree (is_buyer_maker, executed_at DESC)
+ idx_trades_seller_order         | CREATE INDEX idx_trades_seller_order ON ONLY public.trades USING btree (sell_order_id) WHERE (sell_order_id IS NOT NULL)
+ idx_trades_seller_user_executed | CREATE INDEX idx_trades_seller_user_executed ON ONLY public.trades USING btree (seller_user_id, executed_at DESC)
+ idx_trades_seller_user_id       | CREATE INDEX idx_trades_seller_user_id ON ONLY public.trades USING btree (seller_user_id)
+ idx_trades_symbol               | CREATE INDEX idx_trades_symbol ON ONLY public.trades USING btree (symbol)
+ idx_trades_symbol_executed_at   | CREATE INDEX idx_trades_symbol_executed_at ON ONLY public.trades USING btree (symbol, executed_at DESC)
+ idx_trades_symbol_time_volume   | CREATE INDEX idx_trades_symbol_time_volume ON ONLY public.trades USING btree (symbol, executed_at, quantity, price)
+ trades_pkey                     | CREATE UNIQUE INDEX trades_pkey ON ONLY public.trades USING btree (trade_id, executed_at)
+(12 rows)
+
+Time: 5.509 ms
+
+=============================================================================
+TEST 8: Sequential Scan Detection
+Purpose: Identify queries using seq scan instead of index scan
+=============================================================================
+ schemaname |      relname      | seq_scan | seq_tup_read | idx_scan | idx_tup_fetch | inserts | updates | deletes 
+------------+-------------------+----------+--------------+----------+---------------+---------+---------+---------
+ public     | trades_2025_12_22 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_15 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_16 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_17 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_18 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_19 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_20 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_21 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_11_29 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_11_30 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_01 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_02 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_03 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_04 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_05 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_06 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_07 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_08 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_09 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_10 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_11 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_12 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_13 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_12_14 |       48 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_11_26 |       42 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_11_24 |       42 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_11_25 |       42 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_11_27 |       42 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_11_28 |       42 |            0 |       12 |             0 |       0 |       0 |       0
+ public     | trades_2025_11_23 |       40 |        20017 |       28 |           102 |    5001 |       0 |       0
+ public     | trades            |        0 |            0 |        0 |             0 |       0 |       0 |       0
+(31 rows)
+
+Time: 3.836 ms
+
+=============================================================================
+TEST 9: Real-Time Performance Test (10 consecutive queries)
+Purpose: Simulate real-time ticker updates
+Target: Consistent < 30ms
+=============================================================================
+SELECT price, executed_at FROM trades WHERE symbol = 'BTC/USDT' ORDER BY executed_at DESC LIMIT 1;
+     price      |          executed_at          
+----------------+-------------------------------
+ 43737.12204523 | 2025-11-23 19:22:28.084179+00
+(1 row)
+
+Time: 2.520 ms
+SELECT price, executed_at FROM trades WHERE symbol = 'ETH/USDT' ORDER BY executed_at DESC LIMIT 1;
+     price      |         executed_at          
+----------------+------------------------------
+ 43664.32296793 | 2025-11-23 19:23:28.34297+00
+(1 row)
+
+Time: 1.960 ms
+SELECT price, executed_at FROM trades WHERE symbol = 'SOL/USDT' ORDER BY executed_at DESC LIMIT 1;
+     price      |          executed_at          
+----------------+-------------------------------
+ 43718.42332341 | 2025-11-23 19:23:12.200919+00
+(1 row)
+
+Time: 1.366 ms
+SELECT price, executed_at FROM trades WHERE symbol = 'BNB/USDT' ORDER BY executed_at DESC LIMIT 1;
+     price      |          executed_at          
+----------------+-------------------------------
+ 45829.78495606 | 2025-11-23 19:23:41.003858+00
+(1 row)
+
+Time: 1.226 ms
+SELECT price, executed_at FROM trades WHERE symbol = 'XRP/USDT' ORDER BY executed_at DESC LIMIT 1;
+     price      |          executed_at          
+----------------+-------------------------------
+ 44870.21475955 | 2025-11-23 19:22:28.578808+00
+(1 row)
+
+Time: 1.214 ms
+SELECT price, executed_at FROM trades WHERE symbol = 'BTC/USDT' ORDER BY executed_at DESC LIMIT 1;
+     price      |          executed_at          
+----------------+-------------------------------
+ 43737.12204523 | 2025-11-23 19:22:28.084179+00
+(1 row)
+
+Time: 1.126 ms
+SELECT price, executed_at FROM trades WHERE symbol = 'ETH/USDT' ORDER BY executed_at DESC LIMIT 1;
+     price      |         executed_at          
+----------------+------------------------------
+ 43664.32296793 | 2025-11-23 19:23:28.34297+00
+(1 row)
+
+Time: 1.222 ms
+SELECT price, executed_at FROM trades WHERE symbol = 'SOL/USDT' ORDER BY executed_at DESC LIMIT 1;
+     price      |          executed_at          
+----------------+-------------------------------
+ 43718.42332341 | 2025-11-23 19:23:12.200919+00
+(1 row)
+
+Time: 1.034 ms
+SELECT price, executed_at FROM trades WHERE symbol = 'BNB/USDT' ORDER BY executed_at DESC LIMIT 1;
+     price      |          executed_at          
+----------------+-------------------------------
+ 45829.78495606 | 2025-11-23 19:23:41.003858+00
+(1 row)
+
+Time: 0.943 ms
+SELECT price, executed_at FROM trades WHERE symbol = 'XRP/USDT' ORDER BY executed_at DESC LIMIT 1;
+     price      |          executed_at          
+----------------+-------------------------------
+ 44870.21475955 | 2025-11-23 19:22:28.578808+00
+(1 row)
+
+Time: 0.902 ms
+
+=============================================================================
+TEST 10: Cache Performance (Warm Cache)
+Purpose: Test performance with data in buffer cache
+=============================================================================
+First run (cold cache):
+ high | low | volume 
+------+-----+--------
+      |     |       
+(1 row)
+
+Time: 1.043 ms
+
+Second run (warm cache):
+ high | low | volume 
+------+-----+--------
+      |     |       
+(1 row)
+
+Time: 0.905 ms
+
+=============================================================================
+BENCHMARK COMPLETE
+=============================================================================
+Next Steps:
+1. Review EXPLAIN ANALYZE outputs for index usage
+2. Identify any sequential scans
+3. Check if all queries meet < 30ms target
+4. Determine if partial index on 24h data would improve performance
+=============================================================================

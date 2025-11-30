@@ -31,6 +31,9 @@ export interface TickerComponentProps {
   symbol: string;
   loading?: boolean;
   error?: string | null;
+  realtime?: boolean; // Default: true
+  showVolume?: boolean; // Default: true
+  compact?: boolean; // Default: false
 }
 
 const TickerComponent: React.FC<TickerComponentProps> = ({
@@ -38,6 +41,9 @@ const TickerComponent: React.FC<TickerComponentProps> = ({
   symbol,
   loading = false,
   error = null,
+  realtime = true,
+  showVolume = true,
+  compact = false,
 }) => {
   const theme = useTheme();
 
@@ -142,6 +148,53 @@ const TickerComponent: React.FC<TickerComponentProps> = ({
   const isPositiveChange = parseFloat(ticker.priceChange) >= 0;
   const baseCurrency = getBaseCurrency(symbol);
 
+  // Compact mode renders a minimal version
+  if (compact) {
+    return (
+      <Paper
+        elevation={1}
+        sx={{
+          p: 1,
+          borderRadius: 1,
+          bgcolor: theme.palette.background.paper,
+        }}
+        role="region"
+        aria-label="Piyasa verileri (sıkıştırılmış)"
+      >
+        <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
+          {/* Symbol */}
+          <Typography variant="subtitle2" fontWeight={600}>
+            {symbol.replace('_', '/')}
+          </Typography>
+
+          {/* Last Price */}
+          <Typography
+            variant="h6"
+            sx={{
+              color: priceChangeColor,
+              fontWeight: 700,
+              fontSize: { xs: '1rem', sm: '1.25rem' },
+            }}
+          >
+            {formatPrice(ticker.lastPrice, 2)} TRY
+          </Typography>
+
+          {/* 24h Change */}
+          <Box display="flex" alignItems="center" gap={0.5}>
+            {isPositiveChange ? (
+              <TrendingUpIcon sx={{ fontSize: 16, color: priceChangeColor }} aria-hidden="true" />
+            ) : (
+              <TrendingDownIcon sx={{ fontSize: 16, color: priceChangeColor }} aria-hidden="true" />
+            )}
+            <Typography variant="body2" sx={{ color: priceChangeColor, fontWeight: 600 }}>
+              {formatPriceChange(ticker.priceChange)} ({isPositiveChange ? '+' : ''}{ticker.priceChangePercent}%)
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
+    );
+  }
+
   return (
     <Paper
       elevation={2}
@@ -155,7 +208,7 @@ const TickerComponent: React.FC<TickerComponentProps> = ({
     >
       <Grid container spacing={{ xs: 1, sm: 2 }}>
         {/* Last Price */}
-        <Grid item xs={6} sm={4} md={2.4}>
+        <Grid item xs={6} sm={4} md={showVolume ? 2.4 : 3}>
           <Box>
             <Typography
               variant="caption"
@@ -192,7 +245,7 @@ const TickerComponent: React.FC<TickerComponentProps> = ({
         </Grid>
 
         {/* 24h Change */}
-        <Grid item xs={6} sm={4} md={2.4}>
+        <Grid item xs={6} sm={4} md={showVolume ? 2.4 : 3}>
           <Box>
             <Typography
               variant="caption"
@@ -228,7 +281,7 @@ const TickerComponent: React.FC<TickerComponentProps> = ({
         </Grid>
 
         {/* 24h High */}
-        <Grid item xs={6} sm={4} md={2.4}>
+        <Grid item xs={6} sm={4} md={showVolume ? 2.4 : 3}>
           <Box>
             <Typography
               variant="caption"
@@ -251,7 +304,7 @@ const TickerComponent: React.FC<TickerComponentProps> = ({
         </Grid>
 
         {/* 24h Low */}
-        <Grid item xs={6} sm={4} md={2.4}>
+        <Grid item xs={6} sm={4} md={showVolume ? 2.4 : 3}>
           <Box>
             <Typography
               variant="caption"
@@ -273,7 +326,8 @@ const TickerComponent: React.FC<TickerComponentProps> = ({
           </Box>
         </Grid>
 
-        {/* 24h Volume */}
+        {/* 24h Volume - Only show if showVolume is true */}
+        {showVolume && (
         <Grid item xs={12} sm={4} md={2.4}>
           <Box>
             <Typography
@@ -302,6 +356,7 @@ const TickerComponent: React.FC<TickerComponentProps> = ({
             </Typography>
           </Box>
         </Grid>
+        )}
       </Grid>
     </Paper>
   );

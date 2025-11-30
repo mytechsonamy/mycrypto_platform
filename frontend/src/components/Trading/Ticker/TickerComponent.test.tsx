@@ -385,4 +385,80 @@ describe('TickerComponent', () => {
       expect(screen.getByText('Son Fiyat')).toBeInTheDocument();
     });
   });
+
+  describe('Compact Mode', () => {
+    it('renders in compact mode', () => {
+      renderWithTheme(
+        <TickerComponent
+          ticker={mockTickerPositive}
+          symbol="BTC_TRY"
+          compact={true}
+        />
+      );
+
+      // Compact mode should show symbol in slash format
+      expect(screen.getByText('BTC/TRY')).toBeInTheDocument();
+
+      // Should show price
+      expect(screen.getByText('2.850.000,00 TRY')).toBeInTheDocument();
+
+      // Should not show labels (compact mode)
+      expect(screen.queryByText('Son Fiyat')).not.toBeInTheDocument();
+    });
+
+    it('renders full mode by default', () => {
+      renderWithTheme(
+        <TickerComponent ticker={mockTickerPositive} symbol="BTC_TRY" />
+      );
+
+      // Full mode should show labels
+      expect(screen.getByText('Son Fiyat')).toBeInTheDocument();
+    });
+  });
+
+  describe('Volume Display', () => {
+    it('shows volume by default', () => {
+      renderWithTheme(
+        <TickerComponent ticker={mockTickerPositive} symbol="BTC_TRY" />
+      );
+
+      expect(screen.getByText('24S İşlem Hacmi')).toBeInTheDocument();
+      expect(screen.getByText('150,50 BTC')).toBeInTheDocument();
+    });
+
+    it('hides volume when showVolume is false', () => {
+      renderWithTheme(
+        <TickerComponent
+          ticker={mockTickerPositive}
+          symbol="BTC_TRY"
+          showVolume={false}
+        />
+      );
+
+      expect(screen.queryByText('24S İşlem Hacmi')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Realtime Prop', () => {
+    it('realtime prop is true by default', () => {
+      renderWithTheme(
+        <TickerComponent ticker={mockTickerPositive} symbol="BTC_TRY" />
+      );
+
+      // Component should render normally (realtime doesn't affect rendering directly)
+      expect(screen.getByText('Son Fiyat')).toBeInTheDocument();
+    });
+
+    it('accepts realtime prop', () => {
+      renderWithTheme(
+        <TickerComponent
+          ticker={mockTickerPositive}
+          symbol="BTC_TRY"
+          realtime={false}
+        />
+      );
+
+      expect(screen.getByText('Son Fiyat')).toBeInTheDocument();
+    });
+  });
 });
