@@ -1,5 +1,5 @@
 services:
-  # PostgreSQL Database
+  # PostgreSQL Database (Shared for Auth & Wallet Services)
   postgres:
     image: postgres:16-alpine
     container_name: exchange_postgres
@@ -13,6 +13,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./scripts/init-trade-engine-db.sql:/docker-entrypoint-initdb.d/02-init-trade-engine.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d exchange_dev"]
       interval: 10s
@@ -253,6 +254,135 @@ services:
   #     - "app=exchange"
   #     - "component=security-scanning"
 
+  # ==========================================================================
+  # TRADE ENGINE INFRASTRUCTURE
+  # ==========================================================================
+
+  # Zookeeper (Kafka Dependency)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: exchange_zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_logs:/var/lib/zookeeper/log
+    networks:
+      - exchange_network
+    labels:
+      - "app=exchange"
+      - "component=message-streaming"
+
+  # Kafka (Event Streaming for Trade Engine)
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: exchange_kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_LOG_RETENTION_HOURS: 168
+    ports:
+      - "29092:29092"
+      - "9092:9092"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - exchange_network
+    labels:
+      - "app=exchange"
+      - "component=message-streaming"
+
+  # Kafka UI (Optional - for development)
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: exchange_kafka_ui
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: exchange
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    ports:
+      - "8095:8080"
+    networks:
+      - exchange_network
+    labels:
+      - "app=exchange"
+      - "component=monitoring"
+    profiles:
+      - monitoring
+
+  # ==========================================================================
+  # MICROSERVICES
+  # ==========================================================================
+
+  # Trade Engine (Go Service)
+  trade-engine:
+    build:
+      context: ./services/trade-engine
+      dockerfile: Dockerfile
+    container_name: exchange_trade_engine
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      # Server
+      PORT: 8080
+      GIN_MODE: debug
+
+      # Database (Trade Engine database)
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: mytrader_trade_engine
+      DB_USER: trade_engine_app
+      DB_PASSWORD: dev_password_change_in_prod
+
+      # Redis (shared instance)
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: redis_dev_password
+
+      # Kafka
+      KAFKA_BROKERS: kafka:9092
+
+      # Logging
+      LOG_LEVEL: info
+    ports:
+      - "8085:8080"
+    volumes:
+      - ./services/trade-engine/config.yaml:/app/config.yaml
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - exchange_network
+    labels:
+      - "app=exchange"
+      - "component=trade-engine"
+      - "version=1.0.0"
+    restart: unless-stopped
+
   # Wallet Service
   wallet-service:
     build:
@@ -326,6 +456,13 @@ volumes:
   minio_data:
     driver: local
   clamav_data:
+    driver: local
+  # Trade Engine volumes
+  zookeeper_data:
+    driver: local
+  zookeeper_logs:
+    driver: local
+  kafka_data:
     driver: local
 
 networks:
