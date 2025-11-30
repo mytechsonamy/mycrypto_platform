@@ -8,6 +8,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { Box, CircularProgress } from '@mui/material';
 
 // Lazy load pages for better performance
+const PublicDashboardPage = lazy(() => import('../pages/PublicDashboardPage'));
 const RegisterPage = lazy(() => import('../pages/RegisterPage'));
 const VerifyEmailPage = lazy(() => import('../pages/VerifyEmailPage'));
 const LoginPage = lazy(() => import('../pages/LoginPage'));
@@ -40,7 +41,10 @@ const AppRoutes: React.FC = () => {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        {/* Public routes */}
+        {/* Public landing page - shown when user first visits */}
+        <Route path="/" element={<PublicDashboardPage />} />
+
+        {/* Authentication routes */}
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -67,12 +71,8 @@ const AppRoutes: React.FC = () => {
         <Route path="/price-alerts" element={<PriceAlertsPage />} />
 
         {/* Placeholder routes - to be implemented */}
-        <Route path="/dashboard" element={<div>Dashboard - Coming Soon</div>} />
         <Route path="/terms" element={<div>Terms of Service - Coming Soon</div>} />
         <Route path="/kvkk" element={<div>KVKK Privacy Policy - Coming Soon</div>} />
-
-        {/* Default redirect */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
 
         {/* 404 fallback */}
         <Route path="*" element={<div>404 - Page Not Found</div>} />
