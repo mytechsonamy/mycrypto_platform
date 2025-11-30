@@ -36,12 +36,25 @@ import { HealthController } from './common/health.controller';
     // Rate limiting - configured per controller
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => [
-        {
-          ttl: configService.get('RATE_LIMIT_TTL', 3600) * 1000, // Convert to milliseconds
-          limit: configService.get('RATE_LIMIT_LIMIT', 5),
-        },
-      ],
+      useFactory: (configService: ConfigService) => {
+        const nodeEnv = configService.get('NODE_ENV', 'development');
+        // In development/testing, use much higher limits to allow QA testing
+        if (nodeEnv !== 'production') {
+          return [
+            {
+              ttl: 60000, // 1 minute window
+              limit: 1000, // 1000 requests per minute (essentially unlimited for testing)
+            },
+          ];
+        }
+        // In production, use stricter limits
+        return [
+          {
+            ttl: configService.get('RATE_LIMIT_WINDOW_MS', 60000),
+            limit: configService.get('RATE_LIMIT_MAX_REQUESTS', 100),
+          },
+        ];
+      },
       inject: [ConfigService],
     }),
 
