@@ -1,0 +1,905 @@
+{
+  "info": {
+    "name": "MyCrypto Platform - EPIC 2 Wallet Management",
+    "description": "Comprehensive API test collection for wallet management, deposits, and withdrawals",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "Story 2.1: Balance Display",
+      "item": [
+        {
+          "name": "TC-2.1.1: Get All Balances",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{$guid}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/wallet/balances",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallet",
+                "balances"
+              ]
+            },
+            "description": "Get all wallet balances for authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "TC-2.1.2: Get TRY Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{$guid}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/wallet/balance/TRY",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallet",
+                "balance",
+                "TRY"
+              ]
+            },
+            "description": "Get TRY balance for authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "TC-2.1.3: Get BTC Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{$guid}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/wallet/balance/BTC",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallet",
+                "balance",
+                "BTC"
+              ]
+            },
+            "description": "Get Bitcoin balance for authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "TC-2.1.4: Get Invalid Currency (404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/wallet/balance/XYZ",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallet",
+                "balance",
+                "XYZ"
+              ]
+            },
+            "description": "Attempt to get unsupported currency (should return 404)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Story 2.2: TRY Deposits",
+      "item": [
+        {
+          "name": "TC-2.2.1: Initiate TRY Deposit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{$guid}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currency\": \"TRY\",\n  \"amount\": \"1000.00\",\n  \"bankAccountId\": \"acct_123\"\n}"
+            },
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/deposit/fiat/initiate",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "deposit",
+                "fiat",
+                "initiate"
+              ]
+            },
+            "description": "Initiate TRY bank deposit"
+          },
+          "response": []
+        },
+        {
+          "name": "TC-2.2.2: Get Bank Account List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/bank-accounts",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bank-accounts"
+              ]
+            },
+            "description": "Get list of user's registered bank accounts"
+          },
+          "response": []
+        },
+        {
+          "name": "TC-2.2.3: Add Bank Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountHolder\": \"Test User\",\n  \"iban\": \"TR930006100519786457841326\",\n  \"bankName\": \"Test Bank\",\n  \"accountType\": \"CHECKING\"\n}"
+            },
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/bank-accounts",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bank-accounts"
+              ]
+            },
+            "description": "Add new bank account for deposits/withdrawals"
+          },
+          "response": []
+        },
+        {
+          "name": "TC-2.2.4: Invalid IBAN Format",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountHolder\": \"Test User\",\n  \"iban\": \"INVALID_IBAN\",\n  \"bankName\": \"Test Bank\",\n  \"accountType\": \"CHECKING\"\n}"
+            },
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/bank-accounts",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bank-accounts"
+              ]
+            },
+            "description": "Attempt to add account with invalid IBAN (should return validation error)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Story 2.3: TRY Withdrawals",
+      "item": [
+        {
+          "name": "TC-2.3.1: Initiate TRY Withdrawal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{$guid}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currency\": \"TRY\",\n  \"amount\": \"1000.00\",\n  \"bankAccountId\": \"acct_456\",\n  \"totpCode\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/withdrawal/fiat/initiate",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "withdrawal",
+                "fiat",
+                "initiate"
+              ]
+            },
+            "description": "Initiate TRY bank withdrawal with 2FA"
+          },
+          "response": []
+        },
+        {
+          "name": "TC-2.3.2: Get Withdrawal History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/withdrawal/history?limit=10&offset=0",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "withdrawal",
+                "history"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Get withdrawal history for authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "TC-2.3.3: Get Withdrawal Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/withdrawal/{{withdrawal_id}}",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "withdrawal",
+                "{{withdrawal_id}}"
+              ]
+            },
+            "description": "Get details of specific withdrawal"
+          },
+          "response": []
+        },
+        {
+          "name": "TC-2.3.4: Cancel Withdrawal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/withdrawal/{{withdrawal_id}}/cancel",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "withdrawal",
+                "{{withdrawal_id}}",
+                "cancel"
+              ]
+            },
+            "description": "Cancel pending withdrawal"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Story 2.4: Crypto Deposits",
+      "item": [
+        {
+          "name": "TC-2.4.1: Generate BTC Deposit Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{$guid}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currency\": \"BTC\"\n}"
+            },
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/deposit/crypto/address/generate",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "deposit",
+                "crypto",
+                "address",
+                "generate"
+              ]
+            },
+            "description": "Generate Bitcoin deposit address for user"
+          },
+          "response": []
+        },
+        {
+          "name": "TC-2.4.2: Generate ETH Deposit Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currency\": \"ETH\"\n}"
+            },
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/deposit/crypto/address/generate",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "deposit",
+                "crypto",
+                "address",
+                "generate"
+              ]
+            },
+            "description": "Generate Ethereum deposit address for user"
+          },
+          "response": []
+        },
+        {
+          "name": "TC-2.4.3: Get Crypto Deposit Addresses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/deposit/crypto/addresses",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "deposit",
+                "crypto",
+                "addresses"
+              ]
+            },
+            "description": "Get all active crypto deposit addresses for user"
+          },
+          "response": []
+        },
+        {
+          "name": "TC-2.4.4: Get Deposit History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/deposit/history?limit=10&offset=0&currency=BTC",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "deposit",
+                "history"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "currency",
+                  "value": "BTC"
+                }
+              ]
+            },
+            "description": "Get deposit history for user, optionally filtered by currency"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Story 2.5: Crypto Withdrawals",
+      "item": [
+        {
+          "name": "TC-2.5.1: Initiate BTC Withdrawal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Request-ID",
+                "value": "{{$guid}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currency\": \"BTC\",\n  \"amount\": \"0.001\",\n  \"toAddress\": \"bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh\",\n  \"totpCode\": \"123456\",\n  \"networkFeeLevel\": \"standard\"\n}"
+            },
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/withdrawal/crypto/initiate",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "withdrawal",
+                "crypto",
+                "initiate"
+              ]
+            },
+            "description": "Initiate Bitcoin withdrawal with 2FA"
+          },
+          "response": []
+        },
+        {
+          "name": "TC-2.5.2: Estimate Crypto Withdrawal Fee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currency\": \"BTC\",\n  \"amount\": \"0.001\",\n  \"networkFeeLevel\": \"standard\"\n}"
+            },
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/withdrawal/crypto/fee-estimate",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "withdrawal",
+                "crypto",
+                "fee-estimate"
+              ]
+            },
+            "description": "Get network fee estimate for crypto withdrawal"
+          },
+          "response": []
+        },
+        {
+          "name": "TC-2.5.3: Get Crypto Withdrawal History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/withdrawal/crypto/history?limit=10&offset=0",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "withdrawal",
+                "crypto",
+                "history"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Get crypto withdrawal history for user"
+          },
+          "response": []
+        },
+        {
+          "name": "TC-2.5.4: Get Withdrawal Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/withdrawal/{{withdrawal_id}}",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "withdrawal",
+                "{{withdrawal_id}}"
+              ]
+            },
+            "description": "Get details of specific crypto withdrawal"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Story 2.6: Transaction History",
+      "item": [
+        {
+          "name": "TC-2.6.1: Get Transaction History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/transactions?page=1&limit=10",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get paginated transaction history for authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "TC-2.6.2: Filter Transactions by Currency",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/transactions?currency=BTC&page=1&limit=10",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "currency",
+                  "value": "BTC"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get transactions filtered by currency"
+          },
+          "response": []
+        },
+        {
+          "name": "TC-2.6.3: Export Transactions as CSV",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/transactions/export/csv",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions",
+                "export",
+                "csv"
+              ]
+            },
+            "description": "Export all transactions as CSV file"
+          },
+          "response": []
+        },
+        {
+          "name": "TC-2.6.4: Export Transactions as PDF",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{wallet_service_url}}/api/v1/transactions/export/pdf",
+              "host": [
+                "{{wallet_service_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions",
+                "export",
+                "pdf"
+              ]
+            },
+            "description": "Export all transactions as PDF file"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "wallet_service_url",
+      "value": "http://localhost:3002",
+      "type": "string"
+    },
+    {
+      "key": "auth_service_url",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "withdrawal_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "deposit_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
