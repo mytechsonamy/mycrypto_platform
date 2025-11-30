@@ -1,10 +1,12 @@
 # Build Stage
-FROM node:20-alpine AS builder
+FROM node:20-bullseye AS builder
 
 WORKDIR /app
 
 # Install build dependencies
-RUN apk add --no-cache python3 make g++
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 make g++ \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy package files
 COPY package*.json ./
@@ -31,34 +33,31 @@ RUN npm run build
 #     npm cache clean --force
 
 # Runtime Stage
-FROM node:20-alpine
+FROM node:20-bullseye-slim
 
 WORKDIR /app
 
 # Install dumb-init for proper signal handling and runtime dependencies
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     dumb-init \
     curl \
-    tini
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy compiled application from builder
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/keys ./keys
 
-# Install ALL dependencies fresh in runtime (ensures all packages available)
-# We install all dependencies (not just prod) to work around platform-specific issues
-# Production builds should use npm ci without --omit=dev to ensure all dependencies are present
-RUN npm ci && npm cache clean --force
-
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001 && \
-    chown -R nodejs:nodejs /app && \
-    mkdir -p /tmp && \
-    chown nodejs:nodejs /tmp
-
-USER nodejs
+# Note: Running as root in development mode
+# For production, uncomment below and adjust file ownership
+# RUN groupadd -g 1001 nodejs && \
+#     useradd -u 1001 -g nodejs nodejs && \
+#     chown -R nodejs:nodejs /app && \
+#     mkdir -p /tmp && \
+#     chown nodejs:nodejs /tmp
+# USER nodejs
 
 # Expose port
 EXPOSE 3000
