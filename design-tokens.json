@@ -1,0 +1,186 @@
+{
+  "color": {
+    "brand": {
+      "primary": { "value": "#0052FF", "type": "color", "description": "Primary brand color - Blue" },
+      "secondary": { "value": "#00D4AA", "type": "color", "description": "Secondary brand color - Crypto Green" }
+    },
+    "semantic": {
+      "success": { "value": "#00C853", "type": "color" },
+      "warning": { "value": "#FFB300", "type": "color" },
+      "error": { "value": "#E53935", "type": "color" },
+      "info": { "value": "#2196F3", "type": "color" }
+    },
+    "neutral": {
+      "black": { "value": "#000000", "type": "color" },
+      "900": { "value": "#212121", "type": "color" },
+      "800": { "value": "#424242", "type": "color" },
+      "700": { "value": "#616161", "type": "color" },
+      "600": { "value": "#757575", "type": "color" },
+      "500": { "value": "#9E9E9E", "type": "color" },
+      "400": { "value": "#BDBDBD", "type": "color" },
+      "300": { "value": "#E0E0E0", "type": "color" },
+      "200": { "value": "#EEEEEE", "type": "color" },
+      "100": { "value": "#F5F5F5", "type": "color" },
+      "50": { "value": "#FAFAFA", "type": "color" },
+      "white": { "value": "#FFFFFF", "type": "color" }
+    },
+    "background": {
+      "dark": { "value": "#0A0E27", "type": "color", "description": "Dark theme background" },
+      "light": { "value": "#FFFFFF", "type": "color", "description": "Light theme background" }
+    },
+    "surface": {
+      "dark": { "value": "#1A1F3A", "type": "color", "description": "Dark theme surface/card background" },
+      "light": { "value": "#F8F9FA", "type": "color", "description": "Light theme surface/card background" }
+    },
+    "crypto": {
+      "bitcoin": { "value": "#F7931A", "type": "color" },
+      "ethereum": { "value": "#627EEA", "type": "color" },
+      "positive": { "value": "#00C853", "type": "color", "description": "Price increase" },
+      "negative": { "value": "#E53935", "type": "color", "description": "Price decrease" }
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "primary": { "value": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", "type": "fontFamily" },
+      "code": { "value": "'Roboto Mono', 'Courier New', monospace", "type": "fontFamily" }
+    },
+    "fontSize": {
+      "h1": { "value": "48px", "type": "fontSize" },
+      "h2": { "value": "36px", "type": "fontSize" },
+      "h3": { "value": "28px", "type": "fontSize" },
+      "h4": { "value": "24px", "type": "fontSize" },
+      "h5": { "value": "20px", "type": "fontSize" },
+      "h6": { "value": "18px", "type": "fontSize" },
+      "bodyLarge": { "value": "18px", "type": "fontSize" },
+      "body": { "value": "16px", "type": "fontSize" },
+      "bodySmall": { "value": "14px", "type": "fontSize" },
+      "caption": { "value": "12px", "type": "fontSize" },
+      "tiny": { "value": "10px", "type": "fontSize" }
+    },
+    "lineHeight": {
+      "h1": { "value": "56px", "type": "lineHeight" },
+      "h2": { "value": "44px", "type": "lineHeight" },
+      "h3": { "value": "36px", "type": "lineHeight" },
+      "h4": { "value": "32px", "type": "lineHeight" },
+      "h5": { "value": "28px", "type": "lineHeight" },
+      "h6": { "value": "28px", "type": "lineHeight" },
+      "bodyLarge": { "value": "28px", "type": "lineHeight" },
+      "body": { "value": "24px", "type": "lineHeight" },
+      "bodySmall": { "value": "20px", "type": "lineHeight" },
+      "caption": { "value": "16px", "type": "lineHeight" },
+      "tiny": { "value": "14px", "type": "lineHeight" }
+    },
+    "fontWeight": {
+      "regular": { "value": "400", "type": "fontWeight" },
+      "medium": { "value": "500", "type": "fontWeight" },
+      "semibold": { "value": "600", "type": "fontWeight" },
+      "bold": { "value": "700", "type": "fontWeight" }
+    }
+  },
+  "spacing": {
+    "xs": { "value": "4px", "type": "spacing" },
+    "sm": { "value": "8px", "type": "spacing" },
+    "md": { "value": "12px", "type": "spacing" },
+    "base": { "value": "16px", "type": "spacing" },
+    "lg": { "value": "24px", "type": "spacing" },
+    "xl": { "value": "32px", "type": "spacing" },
+    "2xl": { "value": "48px", "type": "spacing" },
+    "3xl": { "value": "64px", "type": "spacing" },
+    "4xl": { "value": "96px", "type": "spacing" }
+  },
+  "borderRadius": {
+    "none": { "value": "0px", "type": "borderRadius" },
+    "sm": { "value": "4px", "type": "borderRadius" },
+    "md": { "value": "8px", "type": "borderRadius" },
+    "lg": { "value": "16px", "type": "borderRadius" },
+    "xl": { "value": "24px", "type": "borderRadius" },
+    "round": { "value": "9999px", "type": "borderRadius" },
+    "circle": { "value": "50%", "type": "borderRadius" }
+  },
+  "borderWidth": {
+    "none": { "value": "0px", "type": "borderWidth" },
+    "thin": { "value": "1px", "type": "borderWidth" },
+    "medium": { "value": "2px", "type": "borderWidth" },
+    "thick": { "value": "4px", "type": "borderWidth" }
+  },
+  "shadow": {
+    "sm": {
+      "value": {
+        "x": "0px",
+        "y": "1px",
+        "blur": "2px",
+        "spread": "0px",
+        "color": "rgba(0, 0, 0, 0.05)"
+      },
+      "type": "boxShadow"
+    },
+    "md": {
+      "value": {
+        "x": "0px",
+        "y": "4px",
+        "blur": "6px",
+        "spread": "0px",
+        "color": "rgba(0, 0, 0, 0.07)"
+      },
+      "type": "boxShadow"
+    },
+    "lg": {
+      "value": {
+        "x": "0px",
+        "y": "10px",
+        "blur": "15px",
+        "spread": "-3px",
+        "color": "rgba(0, 0, 0, 0.1)"
+      },
+      "type": "boxShadow"
+    },
+    "xl": {
+      "value": {
+        "x": "0px",
+        "y": "20px",
+        "blur": "25px",
+        "spread": "-5px",
+        "color": "rgba(0, 0, 0, 0.15)"
+      },
+      "type": "boxShadow"
+    },
+    "2xl": {
+      "value": {
+        "x": "0px",
+        "y": "25px",
+        "blur": "50px",
+        "spread": "-12px",
+        "color": "rgba(0, 0, 0, 0.25)"
+      },
+      "type": "boxShadow"
+    }
+  },
+  "opacity": {
+    "disabled": { "value": "0.4", "type": "opacity" },
+    "hover": { "value": "0.8", "type": "opacity" },
+    "overlay": { "value": "0.6", "type": "opacity" }
+  },
+  "zIndex": {
+    "dropdown": { "value": "1000", "type": "zIndex" },
+    "sticky": { "value": "1020", "type": "zIndex" },
+    "fixed": { "value": "1030", "type": "zIndex" },
+    "modalBackdrop": { "value": "1040", "type": "zIndex" },
+    "modal": { "value": "1050", "type": "zIndex" },
+    "popover": { "value": "1060", "type": "zIndex" },
+    "tooltip": { "value": "1070", "type": "zIndex" },
+    "toast": { "value": "1080", "type": "zIndex" }
+  },
+  "transition": {
+    "fast": { "value": "150ms", "type": "duration" },
+    "normal": { "value": "250ms", "type": "duration" },
+    "slow": { "value": "400ms", "type": "duration" }
+  },
+  "breakpoint": {
+    "xs": { "value": "320px", "type": "breakpoint" },
+    "sm": { "value": "640px", "type": "breakpoint" },
+    "md": { "value": "768px", "type": "breakpoint" },
+    "lg": { "value": "1024px", "type": "breakpoint" },
+    "xl": { "value": "1280px", "type": "breakpoint" },
+    "2xl": { "value": "1536px", "type": "breakpoint" }
+  }
+}

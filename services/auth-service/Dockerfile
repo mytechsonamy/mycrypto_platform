@@ -43,9 +43,13 @@ RUN apk add --no-cache \
 
 # Copy compiled application from builder
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/keys ./keys
+
+# Install ALL dependencies fresh in runtime (ensures all packages available)
+# We install all dependencies (not just prod) to work around platform-specific issues
+# Production builds should use npm ci without --omit=dev to ensure all dependencies are present
+RUN npm ci && npm cache clean --force
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \

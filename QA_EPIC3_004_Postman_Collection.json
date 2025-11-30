@@ -1,0 +1,865 @@
+{
+  "info": {
+    "name": "QA-EPIC3-004: Story 3.3 - Advanced Market Data (Price Alerts & Technical Indicators)",
+    "description": "Comprehensive API testing collection for Story 3.3: Price Alerts and Technical Indicators",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0",
+    "_postman_id": "qa-epic3-004-collection"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Price Alerts",
+      "item": [
+        {
+          "name": "Create Alert - Above Threshold",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTC_TRY\",\n  \"alertType\": \"above\",\n  \"targetPrice\": \"2550000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/alerts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "alerts"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 Created', function() {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has alert ID', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('id');",
+                  "  pm.environment.set('alert_id', jsonData.data.id);",
+                  "});",
+                  "",
+                  "pm.test('Alert is active', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data.isActive).to.equal(true);",
+                  "});",
+                  "",
+                  "pm.test('Response time < 100ms', function() {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(100);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Alert - Below Threshold",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"ETH_TRY\",\n  \"alertType\": \"below\",\n  \"targetPrice\": \"150000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/alerts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "alerts"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 Created', function() {",
+                  "  pm.response.to.have.status(201);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List User's Alerts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/alerts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "alerts"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response is array', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Each alert has required fields', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  jsonData.data.forEach(function(alert) {",
+                  "    pm.expect(alert).to.have.property('id');",
+                  "    pm.expect(alert).to.have.property('symbol');",
+                  "    pm.expect(alert).to.have.property('alertType');",
+                  "    pm.expect(alert).to.have.property('targetPrice');",
+                  "    pm.expect(alert).to.have.property('isActive');",
+                  "  });",
+                  "});",
+                  "",
+                  "pm.test('Response time < 50ms', function() {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(50);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Alert by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/alerts/{{alert_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "alerts", "{{alert_id}}"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Edit Alert - Change Price",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetPrice\": \"2600000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/alerts/{{alert_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "alerts", "{{alert_id}}"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Target price updated', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data.targetPrice).to.equal('2600000');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Edit Alert - Change Type",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"alertType\": \"below\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/alerts/{{alert_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "alerts", "{{alert_id}}"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Alert type updated', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data.alertType).to.equal('below');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Toggle Alert On/Off",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/alerts/{{alert_id}}/toggle",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "alerts", "{{alert_id}}", "toggle"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('isActive toggled', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('isActive');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Alert",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/alerts/{{alert_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "alerts", "{{alert_id}}"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 204 No Content', function() {",
+                  "  pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid Symbol - Should Fail",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"INVALID_PAIR\",\n  \"alertType\": \"above\",\n  \"targetPrice\": \"1000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/alerts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "alerts"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function() {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message present', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.error).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid Price - Should Fail",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTC_TRY\",\n  \"alertType\": \"above\",\n  \"targetPrice\": \"-1000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/alerts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "alerts"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function() {",
+                  "  pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Technical Indicators",
+      "item": [
+        {
+          "name": "Get SMA-20",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/indicators/BTC_TRY?period=20&type=sma",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "indicators", "BTC_TRY"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "20"
+                },
+                {
+                  "key": "type",
+                  "value": "sma"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has value field', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('value');",
+                  "  pm.expect(jsonData.data.value).to.be.a('number');",
+                  "});",
+                  "",
+                  "pm.test('Response time < 50ms', function() {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(50);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get SMA-50",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/indicators/BTC_TRY?period=50&type=sma",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "indicators", "BTC_TRY"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "50"
+                },
+                {
+                  "key": "type",
+                  "value": "sma"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get SMA-200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/indicators/BTC_TRY?period=200&type=sma",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "indicators", "BTC_TRY"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "200"
+                },
+                {
+                  "key": "type",
+                  "value": "sma"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get EMA-12",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/indicators/BTC_TRY?period=12&type=ema",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "indicators", "BTC_TRY"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "12"
+                },
+                {
+                  "key": "type",
+                  "value": "ema"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get EMA-26",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/indicators/BTC_TRY?period=26&type=ema",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "indicators", "BTC_TRY"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "26"
+                },
+                {
+                  "key": "type",
+                  "value": "ema"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get RSI-14",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/indicators/BTC_TRY?period=14&type=rsi",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "indicators", "BTC_TRY"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "14"
+                },
+                {
+                  "key": "type",
+                  "value": "rsi"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('RSI value is between 0-100', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data.value).to.be.above(0);",
+                  "  pm.expect(jsonData.data.value).to.be.below(100);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get MACD",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/indicators/BTC_TRY?period=26&type=macd",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "indicators", "BTC_TRY"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "26"
+                },
+                {
+                  "key": "type",
+                  "value": "macd"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('MACD response has all components', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('macdLine');",
+                  "  pm.expect(jsonData.data).to.have.property('signalLine');",
+                  "  pm.expect(jsonData.data).to.have.property('histogram');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid Period - Should Fail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/indicators/BTC_TRY?period=999&type=sma",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "indicators", "BTC_TRY"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "999"
+                },
+                {
+                  "key": "type",
+                  "value": "sma"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function() {",
+                  "  pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid Type - Should Fail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/indicators/BTC_TRY?period=20&type=invalid",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "indicators", "BTC_TRY"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "20"
+                },
+                {
+                  "key": "type",
+                  "value": "invalid"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function() {",
+                  "  pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Integration Tests",
+      "item": [
+        {
+          "name": "Get Order Book + Ticker + Alerts Integration",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/orderbook/BTC_TRY",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "orderbook", "BTC_TRY"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Order book available', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify Price Consistency Across APIs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/ticker/BTC_TRY",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "ticker", "BTC_TRY"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Ticker available', function() {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Price data consistent', function() {",
+                  "  var jsonData = pm.response.json();",
+                  "  pm.expect(jsonData.data).to.have.property('lastPrice');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Performance & Load Tests",
+      "item": [
+        {
+          "name": "Alert API Load Test (Sequential)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTC_TRY\",\n  \"alertType\": \"above\",\n  \"targetPrice\": \"2550000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/alerts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "alerts"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Indicator Cache Test (Same Request)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/market/indicators/BTC_TRY?period=20&type=sma",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "market", "indicators", "BTC_TRY"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "20"
+                },
+                {
+                  "key": "type",
+                  "value": "sma"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Cached response should be <10ms', function() {",
+                  "  if (pm.response.headers.get('X-Cache') === 'HIT') {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(10);",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "alert_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
