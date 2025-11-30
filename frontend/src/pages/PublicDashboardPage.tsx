@@ -1,10 +1,10 @@
 /**
  * Public Dashboard Page
- * Landing page for users who haven't logged in yet
- * Displays information about the platform and call-to-action buttons
+ * Professional landing page for the MyCrypto Platform
+ * Inspired by mytrader.tech design patterns with Turkish localization
  */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -14,63 +14,135 @@ import {
   Button,
   Card,
   CardContent,
-  CardActions,
   AppBar,
   Toolbar,
   Stack,
   useTheme,
   useMediaQuery,
+  Divider,
+  Paper,
 } from '@mui/material';
 import {
   Security as SecurityIcon,
   Speed as SpeedIcon,
   TrendingUp as TrendingUpIcon,
   AccountBalance as AccountBalanceIcon,
+  CheckCircle as CheckCircleIcon,
+  LocalAtm as LocalAtmIcon,
+  VerifiedUser as VerifiedUserIcon,
+  ArrowForward as ArrowForwardIcon,
 } from '@mui/icons-material';
 
 const PublicDashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // Track scroll position for header styling
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const features = [
     {
       icon: SecurityIcon,
-      title: 'Güvenli Alım-Satım',
-      description: 'End-to-end şifrelenmiş işlemlerle güvenli kripto alım-satımı yapın',
+      title: 'Güvenli İşlem',
+      description: 'End-to-end şifrelenmiş, 2FA korumalı ve güvenli alım-satım',
     },
     {
       icon: SpeedIcon,
-      title: 'Hızlı İşlemler',
-      description: 'Gerçek zamanlı fiyat güncellemeleri ve anlık sipariş işleme',
+      title: 'Anlık Fiyatlar',
+      description: 'WebSocket ile gerçek zamanlı pazar verileri ve fiyat güncellemeleri',
     },
     {
       icon: AccountBalanceIcon,
-      title: 'Çoklu Para Desteği',
-      description: 'TRY, BTC, ETH ve daha birçok kripto para ile işlem yapın',
+      title: 'Çoklu Para',
+      description: 'TRY, BTC, ETH, SOL, BNB ve daha birçok kripto para desteği',
     },
     {
       icon: TrendingUpIcon,
-      title: 'Gelişmiş Grafikler',
-      description: 'Detaylı pazar analitiği ve fiyat tahmin araçları',
+      title: 'Gelişmiş Araçlar',
+      description: 'Limit order, piyasa emri ve otomatik fiyat uyarıları',
     },
+    {
+      icon: LocalAtmIcon,
+      title: 'Kolay Para Transferi',
+      description: 'Banka transferi ile TRY yatırma ve çekme işlemleri',
+    },
+    {
+      icon: VerifiedUserIcon,
+      title: 'KYC Doğrulaması',
+      description: 'Hızlı ve güvenli kimlik doğrulama süreci',
+    },
+  ];
+
+  const advantages = [
+    'Düşük ücretler (Maker 0.1%, Taker 0.2%)',
+    '24/7 müşteri desteği',
+    'Mobil uyumlu arayüz',
+    'Gelişmiş güvenlik özellikleri',
   ];
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       {/* Header/Navigation */}
-      <AppBar position="static" sx={{ backgroundColor: '#f5f5f5', color: 'text.primary', boxShadow: 'none', borderBottom: '1px solid #e0e0e0' }}>
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold', color: '#1976d2' }}>
-            MyCrypto Platform
+      <AppBar
+        position="sticky"
+        sx={{
+          backgroundColor: isScrolled ? 'rgba(255, 255, 255, 0.95)' : 'white',
+          color: '#1f2937',
+          boxShadow: isScrolled ? '0 2px 8px rgba(0, 0, 0, 0.1)' : 'none',
+          transition: 'all 0.3s ease',
+          borderBottom: isScrolled ? 'none' : '1px solid #e5e7eb',
+        }}
+      >
+        <Toolbar
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            py: 1,
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 800,
+              fontSize: '1.3rem',
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            MyCrypto
           </Typography>
           <Stack direction="row" spacing={1}>
-            <Button color="primary" onClick={() => navigate('/login')}>
+            <Button
+              color="inherit"
+              sx={{ color: '#6b7280', fontWeight: 600, textTransform: 'none' }}
+              onClick={() => navigate('/login')}
+            >
               Giriş Yap
             </Button>
             <Button
               variant="contained"
-              color="primary"
+              sx={{
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                color: 'white',
+                textTransform: 'none',
+                fontWeight: 600,
+                borderRadius: 2,
+                px: 3,
+                '&:hover': {
+                  boxShadow: '0 10px 20px rgba(139, 92, 246, 0.3)',
+                },
+              }}
               onClick={() => navigate('/register')}
             >
               Kayıt Ol
@@ -79,275 +151,425 @@ const PublicDashboardPage: React.FC = () => {
         </Toolbar>
       </AppBar>
 
-      {/* Main Content */}
-      <Container maxWidth="lg" sx={{ py: { xs: 4, md: 8 }, flexGrow: 1 }}>
-        {/* Hero Section */}
-        <Box sx={{ textAlign: 'center', mb: 8 }}>
-          <Typography
-            variant="h2"
-            component="h1"
-            sx={{
-              fontWeight: 'bold',
-              mb: 2,
-              background: 'linear-gradient(135deg, #1976d2 0%, #dc004e 100%)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              fontSize: { xs: '2rem', md: '3rem' },
-            }}
-          >
-            Kripto Alım-Satımı Basitleştirildi
-          </Typography>
-          <Typography
-            variant="h5"
-            sx={{
-              color: 'text.secondary',
-              mb: 4,
-              fontSize: { xs: '1rem', md: '1.25rem' },
-            }}
-          >
-            MyCrypto Platform ile güvenli ve hızlı kripto para işlemleri yapın
-          </Typography>
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            spacing={2}
-            justifyContent="center"
-          >
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              onClick={() => navigate('/register')}
-              sx={{
-                padding: '12px 32px',
-                fontSize: '1rem',
-                minWidth: { xs: '100%', sm: 'auto' },
-              }}
-            >
-              Şimdi Başla
-            </Button>
-            <Button
-              variant="outlined"
-              color="primary"
-              size="large"
-              onClick={() => navigate('/login')}
-              sx={{
-                padding: '12px 32px',
-                fontSize: '1rem',
-                minWidth: { xs: '100%', sm: 'auto' },
-              }}
-            >
-              Var olan hesaba gir
-            </Button>
-          </Stack>
-        </Box>
+      {/* Hero Section */}
+      <Box
+        sx={{
+          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+          py: { xs: 6, md: 10 },
+          borderBottom: '1px solid #e2e8f0',
+        }}
+      >
+        <Container maxWidth="lg">
+          <Grid container spacing={4} alignItems="center">
+            <Grid item xs={12} md={6}>
+              <Typography
+                variant="h2"
+                sx={{
+                  fontWeight: 800,
+                  mb: 2,
+                  fontSize: { xs: '2rem', md: '3rem' },
+                  lineHeight: 1.2,
+                  color: '#1f2937',
+                }}
+              >
+                Kripto Trading Artık Çok Kolay
+              </Typography>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: '#6b7280',
+                  mb: 4,
+                  fontSize: { xs: '1rem', md: '1.1rem' },
+                  fontWeight: 400,
+                  lineHeight: 1.6,
+                }}
+              >
+                MyCrypto Platform ile güvenli, hızlı ve düşük ücretli kripto alım-satımı yapın.
+                Profesyonel araçlar ve başlangıç dostu arayüz.
+              </Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  sx={{
+                    background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                    color: 'white',
+                    textTransform: 'none',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    py: 1.5,
+                    px: 4,
+                    borderRadius: 2,
+                    '&:hover': {
+                      boxShadow: '0 15px 30px rgba(139, 92, 246, 0.4)',
+                      transform: 'translateY(-2px)',
+                    },
+                  }}
+                  endIcon={<ArrowForwardIcon />}
+                  onClick={() => navigate('/register')}
+                >
+                  Şimdi Başla
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="large"
+                  sx={{
+                    borderColor: '#8b5cf6',
+                    color: '#8b5cf6',
+                    textTransform: 'none',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    py: 1.5,
+                    px: 4,
+                    borderRadius: 2,
+                    '&:hover': {
+                      backgroundColor: 'rgba(139, 92, 246, 0.05)',
+                    },
+                  }}
+                  onClick={() => navigate('/login')}
+                >
+                  Hesabına Gir
+                </Button>
+              </Stack>
+            </Grid>
+            <Grid item xs={12} md={6} sx={{ textAlign: 'center' }}>
+              <Box
+                sx={{
+                  background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                  borderRadius: 3,
+                  p: 3,
+                  color: 'white',
+                  boxShadow: '0 20px 40px rgba(139, 92, 246, 0.2)',
+                }}
+              >
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
+                  📱 Platform Özellikleri
+                </Typography>
+                <Stack spacing={1}>
+                  {advantages.map((adv, idx) => (
+                    <Stack key={idx} direction="row" spacing={1} alignItems="center">
+                      <CheckCircleIcon sx={{ fontSize: '1.2rem' }} />
+                      <Typography variant="body2">{adv}</Typography>
+                    </Stack>
+                  ))}
+                </Stack>
+              </Box>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
 
-        {/* Features Section */}
-        <Box sx={{ mb: 8 }}>
-          <Typography
-            variant="h3"
-            sx={{
-              fontWeight: 'bold',
-              textAlign: 'center',
-              mb: 6,
-              fontSize: { xs: '1.5rem', md: '2rem' },
-            }}
-          >
-            Neden MyCrypto Platform?
-          </Typography>
+      {/* Features Section */}
+      <Box sx={{ py: { xs: 6, md: 10 } }}>
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: 'center', mb: 8 }}>
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 800,
+                mb: 2,
+                fontSize: { xs: '1.8rem', md: '2.5rem' },
+                color: '#1f2937',
+              }}
+            >
+              Neden MyCrypto?
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{
+                color: '#6b7280',
+                fontSize: '1.1rem',
+                maxWidth: '600px',
+                mx: 'auto',
+              }}
+            >
+              Hem başlangıç seviyesi hem de profesyonel yatırımcılar için tasarlanmış
+            </Typography>
+          </Box>
+
           <Grid container spacing={3}>
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <Grid item xs={12} sm={6} md={3} key={index}>
-                  <Card
+                <Grid item xs={12} sm={6} md={4} key={index}>
+                  <Paper
                     sx={{
+                      p: 3,
+                      borderRadius: 2,
+                      border: '1px solid #e5e7eb',
                       height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      borderRadius: 3,
-                      border: '1px solid #e0e0e0',
-                      transition: 'transform 0.3s, box-shadow 0.3s',
+                      transition: 'all 0.3s ease',
                       '&:hover': {
-                        transform: 'translateY(-8px)',
-                        boxShadow: 4,
+                        borderColor: '#8b5cf6',
+                        boxShadow: '0 10px 20px rgba(139, 92, 246, 0.1)',
+                        transform: 'translateY(-5px)',
                       },
                     }}
                   >
-                    <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
-                      <Icon
-                        sx={{
-                          fontSize: 48,
-                          color: 'primary.main',
-                          mb: 2,
-                        }}
-                      />
-                      <Typography
-                        variant="h6"
-                        component="h3"
-                        sx={{ fontWeight: 'bold', mb: 1 }}
-                      >
-                        {feature.title}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {feature.description}
-                      </Typography>
-                    </CardContent>
-                  </Card>
+                    <Icon
+                      sx={{
+                        fontSize: 40,
+                        color: '#8b5cf6',
+                        mb: 2,
+                      }}
+                    />
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: 700,
+                        mb: 1,
+                        color: '#1f2937',
+                      }}
+                    >
+                      {feature.title}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: '#6b7280',
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      {feature.description}
+                    </Typography>
+                  </Paper>
                 </Grid>
               );
             })}
           </Grid>
-        </Box>
+        </Container>
+      </Box>
 
-        {/* Stats Section */}
-        <Box
-          sx={{
-            backgroundColor: '#f5f5f5',
-            borderRadius: 3,
-            p: 4,
-            mb: 8,
-          }}
-        >
-          <Grid container spacing={4} textAlign="center">
-            <Grid item xs={12} sm={6} md={3}>
+      {/* Stats Section */}
+      <Box
+        sx={{
+          background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+          color: 'white',
+          py: { xs: 6, md: 8 },
+        }}
+      >
+        <Container maxWidth="lg">
+          <Grid container spacing={4}>
+            <Grid item xs={6} md={3} sx={{ textAlign: 'center' }}>
               <Typography
                 variant="h4"
-                sx={{ fontWeight: 'bold', color: 'primary.main' }}
+                sx={{
+                  fontWeight: 800,
+                  mb: 0.5,
+                  fontSize: { xs: '1.8rem', md: '2.5rem' },
+                }}
               >
                 1000+
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
                 Aktif Kullanıcı
               </Typography>
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={6} md={3} sx={{ textAlign: 'center' }}>
               <Typography
                 variant="h4"
-                sx={{ fontWeight: 'bold', color: 'primary.main' }}
-              >
-                24/7
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                İşlem Desteği
-              </Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Typography
-                variant="h4"
-                sx={{ fontWeight: 'bold', color: 'primary.main' }}
+                sx={{
+                  fontWeight: 800,
+                  mb: 0.5,
+                  fontSize: { xs: '1.8rem', md: '2.5rem' },
+                }}
               >
                 $1M+
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
                 Günlük İşlem Hacmi
               </Typography>
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={6} md={3} sx={{ textAlign: 'center' }}>
               <Typography
                 variant="h4"
-                sx={{ fontWeight: 'bold', color: 'primary.main' }}
+                sx={{
+                  fontWeight: 800,
+                  mb: 0.5,
+                  fontSize: { xs: '1.8rem', md: '2.5rem' },
+                }}
+              >
+                24/7
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                Müşteri Desteği
+              </Typography>
+            </Grid>
+            <Grid item xs={6} md={3} sx={{ textAlign: 'center' }}>
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 800,
+                  mb: 0.5,
+                  fontSize: { xs: '1.8rem', md: '2.5rem' },
+                }}
               >
                 5+
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Desteklenen Kripto Para
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                Kripto Para
               </Typography>
             </Grid>
           </Grid>
-        </Box>
+        </Container>
+      </Box>
 
-        {/* CTA Section */}
-        <Box
-          sx={{
-            background: 'linear-gradient(135deg, #1976d2 0%, #dc004e 100%)',
-            borderRadius: 3,
-            p: 4,
-            color: 'white',
-            textAlign: 'center',
-          }}
-        >
+      {/* CTA Section */}
+      <Box sx={{ py: { xs: 6, md: 8 }, backgroundColor: '#f9fafb' }}>
+        <Container maxWidth="md" sx={{ textAlign: 'center' }}>
           <Typography
-            variant="h4"
+            variant="h3"
             sx={{
-              fontWeight: 'bold',
+              fontWeight: 800,
               mb: 2,
-              fontSize: { xs: '1.5rem', md: '2rem' },
+              fontSize: { xs: '1.8rem', md: '2.2rem' },
+              color: '#1f2937',
             }}
           >
             Hemen Başlamaya Hazır mısınız?
           </Typography>
-          <Typography variant="body1" sx={{ mb: 3, fontSize: '1rem' }}>
-            Ücretsiz bir hesap oluşturun ve kripto alım-satımına başlayın
+          <Typography
+            variant="body1"
+            sx={{
+              color: '#6b7280',
+              mb: 4,
+              fontSize: '1.05rem',
+            }}
+          >
+            Ücretsiz hesap oluşturun ve kripto trading dünyasına adım atın
           </Typography>
           <Button
             variant="contained"
+            size="large"
             sx={{
-              backgroundColor: 'white',
-              color: 'primary.main',
-              padding: '12px 32px',
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+              color: 'white',
+              textTransform: 'none',
               fontSize: '1rem',
-              fontWeight: 'bold',
+              fontWeight: 600,
+              py: 1.5,
+              px: 5,
+              borderRadius: 2,
               '&:hover': {
-                backgroundColor: '#f5f5f5',
+                boxShadow: '0 15px 30px rgba(139, 92, 246, 0.4)',
+                transform: 'translateY(-2px)',
               },
             }}
             onClick={() => navigate('/register')}
+            endIcon={<ArrowForwardIcon />}
           >
             Ücretsiz Hesap Oluştur
           </Button>
-        </Box>
-      </Container>
+        </Container>
+      </Box>
 
       {/* Footer */}
       <Box
         sx={{
-          backgroundColor: '#f5f5f5',
-          borderTop: '1px solid #e0e0e0',
-          py: 3,
+          backgroundColor: '#1f2937',
+          color: 'white',
+          py: 4,
           mt: 'auto',
+          borderTop: '1px solid #374151',
         }}
       >
         <Container maxWidth="lg">
-          <Grid container spacing={2} justifyContent="space-between">
-            <Grid item xs={12} sm={6}>
-              <Typography variant="body2" color="text.secondary">
-                © 2025 MyCrypto Platform. Tüm hakları saklıdır.
+          <Grid container spacing={4} sx={{ mb: 3 }}>
+            <Grid item xs={12} sm={6} md={3}>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 700,
+                  mb: 2,
+                  background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                }}
+              >
+                MyCrypto
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#9ca3af' }}>
+                Güvenli kripto trading platformu
               </Typography>
             </Grid>
-            <Grid item xs={12} sm={6} sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
-              <Stack direction="row" spacing={2}>
-                <Typography
-                  component="button"
-                  variant="body2"
-                  sx={{
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: 'primary.main',
-                    textDecoration: 'underline',
-                  }}
-                  onClick={() => navigate('/terms')}
-                >
-                  Şartlar
-                </Typography>
-                <Typography
-                  component="button"
-                  variant="body2"
-                  sx={{
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: 'primary.main',
-                    textDecoration: 'underline',
-                  }}
-                  onClick={() => navigate('/kvkk')}
-                >
-                  Gizlilik
-                </Typography>
-              </Stack>
+            <Grid item xs={12} sm={6} md={3}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+                Platform
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#9ca3af' }}>
+                <Box sx={{ cursor: 'pointer', '&:hover': { color: '#8b5cf6' } }}>
+                  Trading
+                </Box>
+                <Box sx={{ cursor: 'pointer', '&:hover': { color: '#8b5cf6' } }}>
+                  Wallet
+                </Box>
+                <Box sx={{ cursor: 'pointer', '&:hover': { color: '#8b5cf6' } }}>
+                  Ücretler
+                </Box>
+              </Typography>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+                Destek
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#9ca3af' }}>
+                <Box sx={{ cursor: 'pointer', '&:hover': { color: '#8b5cf6' } }}>
+                  İletişim
+                </Box>
+                <Box sx={{ cursor: 'pointer', '&:hover': { color: '#8b5cf6' } }}>
+                  SSS
+                </Box>
+              </Typography>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+                Hukuki
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#9ca3af',
+                  cursor: 'pointer',
+                  '&:hover': { color: '#8b5cf6' },
+                }}
+                onClick={() => navigate('/terms')}
+              >
+                Şartlar
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#9ca3af',
+                  cursor: 'pointer',
+                  '&:hover': { color: '#8b5cf6' },
+                }}
+                onClick={() => navigate('/kvkk')}
+              >
+                Gizlilik
+              </Typography>
             </Grid>
           </Grid>
+
+          <Divider sx={{ borderColor: '#374151', my: 2 }} />
+
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexDirection: { xs: 'column', md: 'row' },
+              gap: 2,
+              color: '#9ca3af',
+            }}
+          >
+            <Typography variant="body2">
+              © 2025 MyCrypto Platform. Tüm hakları saklıdır.
+            </Typography>
+            <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
+              Kripto para yatırımı yüksek risk taşır. Lütfen finansal danışmanla görüşün.
+            </Typography>
+          </Box>
         </Container>
       </Box>
     </Box>
