@@ -33,20 +33,30 @@ cd mycrypto-platform
 # 2. Copy environment file
 cp .env.example .env
 
-# 3. Start all services with Docker Compose
+# 3. Start all services with Docker Compose (includes Trade Engine)
 docker-compose up -d
 
-# 4. Wait for services to be healthy
+# 4. Wait for services to be healthy (this may take 2-3 minutes)
 docker-compose ps
 
-# 5. Verify all services
-./scripts/verify-services.sh
+# 5. Verify all services are running
+docker-compose ps | grep healthy
 
-# 6. Seed database (optional)
+# 6. Access services:
+# - Auth Service: http://localhost:3001/health
+# - Wallet Service: http://localhost:3002/health
+# - Trade Engine: http://localhost:8085/health
+# - RabbitMQ UI: http://localhost:15672 (rabbitmq / rabbitmq_dev_password)
+# - Kafka UI: http://localhost:8095 (monitoring profile only)
+# - Mailpit UI: http://localhost:8025
+
+# 7. Seed database (optional)
 npm run db:seed --prefix services/auth-service
 ```
 
 **Expected output:** All services showing "healthy" status
+
+**New in this version:** The Trade Engine (Go service) is now fully integrated and starts automatically with a single `docker-compose up` command.
 
 ## Local Development Setup
 
@@ -99,11 +109,37 @@ docker-compose ps
 # exchange_auth_serv  "docker-entrypoint..."   auth-service healthy     0.0.0.0:3001->3000/tcp
 ```
 
+## Architecture Overview
+
+The MyCrypto Platform is a microservices-based cryptocurrency exchange with three core services:
+
+### Microservices
+1. **Auth Service (NestJS)** - Port 3001
+   - User registration, login, 2FA
+   - JWT authentication with RSA keys
+   - Session management
+
+2. **Wallet Service (NestJS)** - Port 3002
+   - Fiat and crypto deposits/withdrawals
+   - Balance management with caching
+   - Bank account (IBAN/SWIFT) validation
+
+3. **Trade Engine (Go)** - Port 8085
+   - High-performance order matching
+   - Real-time WebSocket updates
+   - Order book management
+
+For complete architecture details, see [architecture-documentation.md](./architecture-documentation.md)
+
 ## Docker Compose Services
 
 ### PostgreSQL (Port 5432)
 
-**Purpose:** Primary data store for users, orders, transactions
+**Purpose:** Primary data store for users, wallets, orders, transactions
+
+**Databases:**
+- `exchange_dev` - Auth and Wallet services
+- `mytrader_trade_engine` - Trade Engine service
 
 ```bash
 # Connect to database
@@ -163,6 +199,23 @@ FLUSHDB                # Clear all data (development only)
 
 **Health Check:** `rabbitmq-diagnostics ping`
 
+### Kafka (Ports 9092, 29092)
+
+**Purpose:** Event streaming for trade events and order events
+
+**Zookeeper Port:** 2181
+
+**Kafka UI:** http://localhost:8095 (only with `--profile monitoring`)
+
+**Topics:**
+- `trade-events` - Trade executions (12 partitions, 7-day retention)
+- `order-events` - Order status changes (12 partitions, 7-day retention)
+
+```bash
+# View Kafka topics and messages
+open http://localhost:8095
+```
+
 ### Auth Service (Port 3001)
 
 **Purpose:** User authentication and authorization
@@ -187,6 +240,39 @@ curl http://localhost:3001/health/ready
 - `POST /api/auth/register` - User registration
 - `POST /api/auth/login` - User login
 - `GET /api/auth/profile` - Get current user profile
+
+### Trade Engine (Port 8085)
+
+**Purpose:** High-performance order matching and trade execution
+
+```bash
+# Test health endpoint
+curl http://localhost:8085/health
+
+# Expected response:
+# {"status": "ok", "version": "1.0.0"}
+
+# Get order book for a symbol
+curl http://localhost:8085/api/v1/orderbook/BTCUSDT
+```
+
+**Key Endpoints:**
+- `GET /health` - Health check
+- `POST /api/v1/orders` - Place order
+- `GET /api/v1/orders/:id` - Get order details
+- `DELETE /api/v1/orders/:id` - Cancel order
+- `GET /api/v1/orderbook/:symbol` - Get order book snapshot
+- `WS /ws/orderbook/:symbol` - Real-time order book updates
+- `WS /ws/orders` - User order updates (authenticated)
+
+**Database:** `mytrader_trade_engine` (separate PostgreSQL database)
+
+**Features:**
+- Price-time priority matching algorithm
+- Real-time WebSocket updates
+- Partitioned tables (orders by month, trades by day)
+- In-memory order book with Redis cache
+- Kafka event streaming for trade executions
 
 ## Kubernetes Deployment
 
@@ -412,6 +498,63 @@ curl -f http://localhost:3001/health/ready || echo "Auth service not ready"
 
 ## Troubleshooting
 
+### All Services Won't Start
+
+```bash
+# If docker-compose fails to start all services
+docker-compose down
+docker-compose up -d
+
+# Check which services failed
+docker-compose ps
+
+# Common issue: Port conflicts
+lsof -i :5432    # PostgreSQL
+lsof -i :6379    # Redis
+lsof -i :3001    # Auth Service
+lsof -i :3002    # Wallet Service
+lsof -i :8085    # Trade Engine
+lsof -i :9092    # Kafka
+
+# Stop conflicting processes or change ports in docker-compose.yml
+```
+
+### Trade Engine Won't Start
+
+```bash
+# Check Trade Engine logs
+docker-compose logs trade-engine
+
+# Common issues:
+# 1. Kafka not ready - wait 30 seconds and restart
+docker-compose restart trade-engine
+
+# 2. Database not initialized - check PostgreSQL logs
+docker-compose logs postgres | grep "mytrader_trade_engine"
+
+# 3. Missing config.yaml
+ls -la services/trade-engine/config.yaml
+
+# Rebuild Trade Engine
+docker-compose build trade-engine
+docker-compose up -d trade-engine
+```
+
+### Kafka Connection Issues
+
+```bash
+# Kafka takes ~30 seconds to start - be patient
+docker-compose logs kafka
+
+# Check Zookeeper is healthy first
+docker-compose ps zookeeper
+
+# Restart Kafka if needed
+docker-compose restart zookeeper
+sleep 10
+docker-compose restart kafka
+```
+
 ### Service Won't Start
 
 ```bash
@@ -507,9 +650,14 @@ kubectl delete pod <pod-name> -n exchange
 | PostgreSQL | localhost:5432 | postgres | postgres |
 | Redis | localhost:6379 | - | redis_dev_password |
 | RabbitMQ Management | http://localhost:15672 | rabbitmq | rabbitmq_dev_password |
+| Kafka UI | http://localhost:8095 | - | - |
 | Auth Service | http://localhost:3001 | - | - |
+| Wallet Service | http://localhost:3002 | - | - |
+| Trade Engine | http://localhost:8085 | - | - |
 | Prometheus | http://localhost:9090 | - | - |
 | Grafana | http://localhost:3000 | admin | admin |
+| Mailpit UI | http://localhost:8025 | - | - |
+| MinIO Console | http://localhost:9001 | minioadmin | minioadmin_password |
 
 ### Kubernetes (Dev)
 
