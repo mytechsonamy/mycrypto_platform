@@ -94,7 +94,6 @@ const TradingPage: React.FC = () => {
   // Load initial data
   useEffect(() => {
     const loadInitialData = async () => {
-      console.log('loadInitialData started');
       try {
         dispatch(setLoading(true));
 
@@ -115,7 +114,6 @@ const TradingPage: React.FC = () => {
         dispatch(setTicker(tickerData));
         dispatch(setRecentTrades(tradesData));
         dispatch(setRecentTrades(tradesData));
-        console.log('loadInitialData finished, setting initialLoadComplete=true');
         setInitialLoadComplete(true);
       } catch (err) {
         console.error('loadInitialData failed:', err);
@@ -129,7 +127,6 @@ const TradingPage: React.FC = () => {
   // Setup WebSocket connection
   useEffect(() => {
     const setupWebSocket = async () => {
-      console.warn('setupWebSocket started');
       try {
         // Connect to WebSocket
         const token = localStorage.getItem('accessToken');

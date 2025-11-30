@@ -9,7 +9,7 @@ const MIN_PASSWORD_LENGTH = 8;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const UPPERCASE_REGEX = /[A-Z]/;
 const NUMBER_REGEX = /[0-9]/;
-const SPECIAL_CHAR_REGEX = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/;
+const SPECIAL_CHAR_REGEX = /[!@#$%^&*()_+=\[\]{};':"\\|,./<>?\-]/;
 
 /**
  * Validate email format

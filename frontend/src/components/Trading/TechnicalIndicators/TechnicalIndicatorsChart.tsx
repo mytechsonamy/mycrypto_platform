@@ -114,7 +114,7 @@ const TechnicalIndicatorsChart: React.FC<TechnicalIndicatorsChartProps> = ({
 
     // Reset periods based on indicator type
     if (newIndicator === IndicatorType.RSI) {
-      setSelectedPeriods([14]); // Default RSI period
+      setSelectedPeriods([20]); // Default RSI period (14 not supported, use 20)
     } else if (newIndicator === IndicatorType.MACD) {
       setSelectedPeriods([]); // MACD doesn't use period selection
     } else {

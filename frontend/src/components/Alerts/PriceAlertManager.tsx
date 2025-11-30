@@ -36,6 +36,7 @@ import {
   selectAlertsError,
   selectTriggeredAlerts,
   clearError,
+  clearTriggeredHistory,
 } from '../../store/slices/alertsSlice';
 import CreateAlertForm from './CreateAlertForm';
 import AlertsList from './AlertsList';
@@ -324,7 +325,7 @@ const PriceAlertManager: React.FC = () => {
         <TabPanel value={activeTab} index={1}>
           <AlertHistory
             triggeredAlerts={triggeredAlerts}
-            currentPrices={currentPrices}
+            onClearHistory={() => dispatch(clearTriggeredHistory())}
           />
         </TabPanel>
       </Paper>

@@ -159,7 +159,7 @@ const MarketAnalysisPanel: React.FC<MarketAnalysisPanelProps> = ({
   };
 
   // Get SMA signal text and color
-  const getSMAInfo = (signal: SMASignal): { text: string; color: string; icon: React.ReactNode } => {
+  const getSMAInfo = (signal: SMASignal): { text: string; color: string; icon?: React.ReactNode } => {
     switch (signal) {
       case SMASignal.ABOVE:
         return {
@@ -418,7 +418,7 @@ const MarketAnalysisPanel: React.FC<MarketAnalysisPanelProps> = ({
                 <Chip
                   label={getSMAInfo(analysis.smaSignals.sma20).text}
                   size="small"
-                  icon={getSMAInfo(analysis.smaSignals.sma20).icon}
+                  icon={getSMAInfo(analysis.smaSignals.sma20).icon as any}
                   sx={{
                     bgcolor: getSMAInfo(analysis.smaSignals.sma20).color,
                     color: 'white',
@@ -447,7 +447,7 @@ const MarketAnalysisPanel: React.FC<MarketAnalysisPanelProps> = ({
                 <Chip
                   label={getSMAInfo(analysis.smaSignals.sma50).text}
                   size="small"
-                  icon={getSMAInfo(analysis.smaSignals.sma50).icon}
+                  icon={getSMAInfo(analysis.smaSignals.sma50).icon as any}
                   sx={{
                     bgcolor: getSMAInfo(analysis.smaSignals.sma50).color,
                     color: 'white',
@@ -476,7 +476,7 @@ const MarketAnalysisPanel: React.FC<MarketAnalysisPanelProps> = ({
                 <Chip
                   label={getSMAInfo(analysis.smaSignals.sma200).text}
                   size="small"
-                  icon={getSMAInfo(analysis.smaSignals.sma200).icon}
+                  icon={getSMAInfo(analysis.smaSignals.sma200).icon as any}
                   sx={{
                     bgcolor: getSMAInfo(analysis.smaSignals.sma200).color,
                     color: 'white',

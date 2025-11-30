@@ -78,8 +78,8 @@ const OrderStatusPanel: React.FC<OrderStatusPanelProps> = ({ refreshTrigger }) =
     try {
       setLoading(true);
       setError(null);
-      const response = await getOrderHistory(1, 50);
-      dispatch(setOrderHistory(response.orders));
+      const orders = await getOrderHistory({});
+      dispatch(setOrderHistory(orders));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Geçmiş yüklenemedi';
       setError(errorMessage);

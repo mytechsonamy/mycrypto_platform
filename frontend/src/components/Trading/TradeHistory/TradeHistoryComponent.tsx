@@ -39,6 +39,7 @@ import {
   Card,
   CardContent,
   SelectChangeEvent,
+  TextField,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
@@ -47,10 +48,8 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import DownloadIcon from '@mui/icons-material/Download';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { tr } from 'date-fns/locale';
+// Removed date-pickers imports to avoid peer dependency issues
+// Using native date inputs instead
 import { useAppDispatch, useAppSelector } from '../../../store';
 import {
   selectTradeHistory,
@@ -120,7 +119,7 @@ const TradeHistoryComponent: React.FC = () => {
   // Initial load
   useEffect(() => {
     loadTradeHistory();
-  }, []);
+  }, [dispatch]);
 
   // Apply date range preset
   useEffect(() => {
@@ -488,8 +487,7 @@ const TradeHistoryComponent: React.FC = () => {
   };
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={tr}>
-      <Box>
+    <Box>
         {/* Statistics Cards */}
         <Grid container spacing={2} sx={{ mb: 2 }}>
           <Grid item xs={6} sm={3}>
@@ -645,29 +643,33 @@ const TradeHistoryComponent: React.FC = () => {
                 {dateRangePreset === 'custom' && (
                   <>
                     <Grid item xs={12} sm={6} md={3}>
-                      <DatePicker
+                      <TextField
                         label="Başlangıç Tarihi"
-                        value={startDate}
-                        onChange={(newValue) => setStartDate(newValue)}
-                        slotProps={{
-                          textField: {
-                            size: 'small',
-                            fullWidth: true,
-                          },
+                        type="date"
+                        size="small"
+                        fullWidth
+                        value={startDate ? startDate.toISOString().split('T')[0] : ''}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          if (e.target.value) {
+                            setStartDate(new Date(e.target.value));
+                          }
                         }}
+                        InputLabelProps={{ shrink: true }}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6} md={3}>
-                      <DatePicker
+                      <TextField
                         label="Bitiş Tarihi"
-                        value={endDate}
-                        onChange={(newValue) => setEndDate(newValue)}
-                        slotProps={{
-                          textField: {
-                            size: 'small',
-                            fullWidth: true,
-                          },
+                        type="date"
+                        size="small"
+                        fullWidth
+                        value={endDate ? endDate.toISOString().split('T')[0] : ''}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          if (e.target.value) {
+                            setEndDate(new Date(e.target.value));
+                          }
                         }}
+                        InputLabelProps={{ shrink: true }}
                       />
                     </Grid>
                   </>
@@ -791,7 +793,6 @@ const TradeHistoryComponent: React.FC = () => {
           )}
         </Paper>
       </Box>
-    </LocalizationProvider>
   );
 };
 
