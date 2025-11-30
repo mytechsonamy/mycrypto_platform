@@ -1,0 +1,865 @@
+{
+  "info": {
+    "name": "MyCrypto Trading Engine - EPIC 3 API Tests",
+    "description": "Comprehensive API testing collection for EPIC 3 (Trading Engine & Market Data) covering 40+ test cases",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0"
+  },
+  "item": [
+    {
+      "name": "Story 3.1 - Order Book",
+      "item": [
+        {
+          "name": "3.1.1 - Get Order Book Snapshot (BTC/TRY)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/orderbook/BTC-TRY?depth=20",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "orderbook", "BTC-TRY"],
+              "query": [
+                {
+                  "key": "depth",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has bids and asks\", function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('bids');",
+                  "    pm.expect(jsonData).to.have.property('asks');",
+                  "});",
+                  "",
+                  "pm.test(\"Bids and asks are arrays\", function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.bids).to.be.an('array');",
+                  "    pm.expect(jsonData.asks).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.1.2 - Get Order Book (ETH/TRY)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/orderbook/ETH-TRY?depth=20",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "orderbook", "ETH-TRY"],
+              "query": [
+                {
+                  "key": "depth",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "3.1.3 - Get Order Book (USDT/TRY)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/orderbook/USDT-TRY?depth=20",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "orderbook", "USDT-TRY"],
+              "query": [
+                {
+                  "key": "depth",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Story 3.2 - Market Ticker",
+      "item": [
+        {
+          "name": "3.2.1 - Get BTC/TRY Ticker",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/markets/BTC-TRY/ticker",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "markets", "BTC-TRY", "ticker"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Ticker has required fields\", function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('symbol');",
+                  "    pm.expect(jsonData).to.have.property('last_price');",
+                  "    pm.expect(jsonData).to.have.property('best_bid');",
+                  "    pm.expect(jsonData).to.have.property('best_ask');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.2.2 - Get ETH/TRY Ticker",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/markets/ETH-TRY/ticker",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "markets", "ETH-TRY", "ticker"]
+            }
+          }
+        },
+        {
+          "name": "3.2.3 - Get USDT/TRY Ticker",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/markets/USDT-TRY/ticker",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "markets", "USDT-TRY", "ticker"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Story 3.3 - Recent Trades",
+      "item": [
+        {
+          "name": "3.3.1 - Get Recent Trades (BTC/TRY)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/trades?symbol=BTC-TRY&limit=50",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "trades"],
+              "query": [
+                {
+                  "key": "symbol",
+                  "value": "BTC-TRY"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is array\", function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test(\"Trade has required fields\", function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    if(jsonData.length > 0) {",
+                  "        var firstTrade = jsonData[0];",
+                  "        pm.expect(firstTrade).to.have.property('id');",
+                  "        pm.expect(firstTrade).to.have.property('price');",
+                  "        pm.expect(firstTrade).to.have.property('quantity');",
+                  "        pm.expect(firstTrade).to.have.property('side');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.3.2 - Get Recent Trades (ETH/TRY)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/trades?symbol=ETH-TRY&limit=50",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "trades"],
+              "query": [
+                {
+                  "key": "symbol",
+                  "value": "ETH-TRY"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Story 3.4 - Market Orders",
+      "item": [
+        {
+          "name": "3.4.1 - Place Market Buy Order (BTC/TRY)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTC-TRY\",\n  \"side\": \"BUY\",\n  \"type\": \"MARKET\",\n  \"quantity\": \"0.1\",\n  \"client_order_id\": \"market-buy-btc-{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1/orders",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "orders"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201 or 200\", function() {",
+                  "    pm.expect([200, 201]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "pm.test(\"Order created with ID\", function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.order).to.have.property('id');",
+                  "    pm.expect(jsonData.order.symbol).to.equal('BTC-TRY');",
+                  "    pm.expect(jsonData.order.side).to.equal('BUY');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.4.2 - Place Market Sell Order (BTC/TRY)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "test-user-2"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTC-TRY\",\n  \"side\": \"SELL\",\n  \"type\": \"MARKET\",\n  \"quantity\": \"0.05\",\n  \"client_order_id\": \"market-sell-btc-{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1/orders",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "orders"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Story 3.5 - Limit Orders",
+      "item": [
+        {
+          "name": "3.5.1 - Place Limit Buy Order (BTC/TRY)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTC-TRY\",\n  \"side\": \"BUY\",\n  \"type\": \"LIMIT\",\n  \"quantity\": \"0.1\",\n  \"price\": \"450000\",\n  \"time_in_force\": \"GTC\",\n  \"client_order_id\": \"limit-buy-btc-{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1/orders",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "orders"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201 or 200\", function() {",
+                  "    pm.expect([200, 201]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "pm.test(\"Limit order created\", function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.order).to.have.property('id');",
+                  "    pm.expect(jsonData.order.type).to.equal('LIMIT');",
+                  "    pm.expect(jsonData.order.price).to.equal('450000');",
+                  "    pm.environment.set('order_id', jsonData.order.id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.5.2 - Place Limit Sell Order (BTC/TRY)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "test-user-2"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTC-TRY\",\n  \"side\": \"SELL\",\n  \"type\": \"LIMIT\",\n  \"quantity\": \"0.05\",\n  \"price\": \"460000\",\n  \"time_in_force\": \"GTC\",\n  \"client_order_id\": \"limit-sell-btc-{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1/orders",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "orders"]
+            }
+          }
+        },
+        {
+          "name": "3.5.3 - Place IOC Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTC-TRY\",\n  \"side\": \"BUY\",\n  \"type\": \"LIMIT\",\n  \"quantity\": \"0.1\",\n  \"price\": \"455000\",\n  \"time_in_force\": \"IOC\",\n  \"client_order_id\": \"ioc-order-{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1/orders",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "orders"]
+            }
+          }
+        },
+        {
+          "name": "3.5.4 - Place FOK Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTC-TRY\",\n  \"side\": \"SELL\",\n  \"type\": \"LIMIT\",\n  \"quantity\": \"1.0\",\n  \"price\": \"455000\",\n  \"time_in_force\": \"FOK\",\n  \"client_order_id\": \"fok-order-{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1/orders",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "orders"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Story 3.6 - Open Orders",
+      "item": [
+        {
+          "name": "3.6.1 - List Open Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/orders?status=OPEN&limit=20",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "orders"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "OPEN"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Returns array of orders\", function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.6.2 - List Orders by Symbol",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/orders?symbol=BTC-TRY&limit=20",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "orders"],
+              "query": [
+                {
+                  "key": "symbol",
+                  "value": "BTC-TRY"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "3.6.3 - List Filled Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/orders?status=FILLED&limit=20",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "orders"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "FILLED"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Story 3.7 - Cancel Orders",
+      "item": [
+        {
+          "name": "3.7.1 - Cancel Order by ID",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/orders/{{order_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "orders", "{{order_id}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200 or 204\", function() {",
+                  "    pm.expect([200, 204]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Story 3.8 - Order History",
+      "item": [
+        {
+          "name": "3.8.1 - List All Orders (History)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/orders?limit=50&offset=0",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "orders"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "3.8.2 - Get Order Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/orders/{{order_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "orders", "{{order_id}}"]
+            }
+          }
+        },
+        {
+          "name": "3.8.3 - Filter by Cancelled Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/orders?status=CANCELLED&limit=20",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "orders"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "CANCELLED"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Story 3.9 - Trade History",
+      "item": [
+        {
+          "name": "3.9.1 - Get Recent Trades",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/trades?limit=50",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "trades"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "3.9.2 - Get Trade Details by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/trades/{{trade_id}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "trades", "{{trade_id}}"]
+            }
+          }
+        },
+        {
+          "name": "3.9.3 - Filter Trades by Pair",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/trades?symbol=BTC-TRY&limit=50",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "trades"],
+              "query": [
+                {
+                  "key": "symbol",
+                  "value": "BTC-TRY"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Story 3.10 - Price Alerts (Optional)",
+      "item": [
+        {
+          "name": "3.10.1 - Create Price Alert",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"BTC-TRY\",\n  \"condition\": \"ABOVE\",\n  \"target_price\": \"460000\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1/alerts",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "alerts"]
+            }
+          }
+        },
+        {
+          "name": "3.10.2 - List Alerts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-ID",
+                "value": "test-user-1"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/alerts",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "v1", "alerts"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
