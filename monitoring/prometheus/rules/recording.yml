@@ -1,0 +1,219 @@
+# Prometheus Recording Rules for MyCrypto Platform
+# Pre-computed metrics to improve dashboard performance
+# These rules run every 15 seconds and store the results
+# Helps avoid expensive calculations on dashboards
+
+groups:
+  - name: exchange_recording_rules
+    interval: 15s
+    rules:
+      # ============================================================
+      # Request Rate & Throughput
+      # ============================================================
+
+      # RPS (requests per second) by service
+      - record: job:http_requests_per_second
+        expr: sum(rate(http_requests_total[1m])) by (job)
+
+      # RPS by service and method
+      - record: job_method:http_requests_per_second
+        expr: sum(rate(http_requests_total[1m])) by (job, method)
+
+      # RPS by service and status code
+      - record: job_status:http_requests_per_second
+        expr: sum(rate(http_requests_total[1m])) by (job, status)
+
+      # ============================================================
+      # Error Rates
+      # ============================================================
+
+      # Overall error rate (5xx) by service
+      - record: job:http_error_rate
+        expr: |
+          sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
+          /
+          sum(rate(http_requests_total[5m])) by (job)
+          * 100
+
+      # HTTP 4xx error rate (client errors)
+      - record: job:http_client_error_rate
+        expr: |
+          sum(rate(http_requests_total{status=~"4.."}[5m])) by (job)
+          /
+          sum(rate(http_requests_total[5m])) by (job)
+          * 100
+
+      # ============================================================
+      # Latency Percentiles (Response Time)
+      # ============================================================
+
+      # P50 latency (median)
+      - record: job:http_request_duration_p50
+        expr: histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job))
+
+      # P95 latency (95th percentile)
+      - record: job:http_request_duration_p95
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job))
+
+      # P99 latency (99th percentile)
+      - record: job:http_request_duration_p99
+        expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job))
+
+      # P99.9 latency (99.9th percentile - tail latency)
+      - record: job:http_request_duration_p999
+        expr: histogram_quantile(0.999, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job))
+
+      # ============================================================
+      # Latency by Endpoint
+      # ============================================================
+
+      # P95 latency by service and endpoint
+      - record: job_endpoint:http_request_duration_p95
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job, endpoint))
+
+      # ============================================================
+      # Database Metrics
+      # ============================================================
+
+      # PostgreSQL query latency percentiles
+      - record: job:pg_query_duration_p50
+        expr: histogram_quantile(0.50, sum(rate(pg_query_duration_seconds_bucket[5m])) by (le, job))
+
+      - record: job:pg_query_duration_p95
+        expr: histogram_quantile(0.95, sum(rate(pg_query_duration_seconds_bucket[5m])) by (le, job))
+
+      - record: job:pg_query_duration_p99
+        expr: histogram_quantile(0.99, sum(rate(pg_query_duration_seconds_bucket[5m])) by (le, job))
+
+      # Database connection pool usage
+      - record: job:pg_connection_pool_usage
+        expr: pg_stat_database_numbackends / 20 * 100
+
+      # Database cache hit ratio
+      - record: job:pg_cache_hit_ratio
+        expr: |
+          sum(increase(pg_stat_database_heap_blks_hit[5m])) by (job)
+          /
+          (sum(increase(pg_stat_database_heap_blks_hit[5m])) by (job) + sum(increase(pg_stat_database_heap_blks_read[5m])) by (job))
+          * 100
+
+      # ============================================================
+      # Redis Metrics
+      # ============================================================
+
+      # Redis memory usage percentage
+      - record: job:redis_memory_usage_percent
+        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100
+
+      # Redis cache hit rate
+      - record: job:redis_hit_rate
+        expr: |
+          sum(increase(redis_keyspace_hits_total[5m])) by (job)
+          /
+          (sum(increase(redis_keyspace_hits_total[5m])) by (job) + sum(increase(redis_keyspace_misses_total[5m])) by (job))
+          * 100
+
+      # Redis operations per second
+      - record: job:redis_ops_per_second
+        expr: sum(rate(redis_commands_processed_total[1m])) by (job)
+
+      # ============================================================
+      # Business Metrics (Application-Level)
+      # ============================================================
+
+      # Orders per minute
+      - record: job:orders_per_minute
+        expr: sum(rate(orders_created_total[1m])) by (job) * 60
+
+      # Order matching latency percentiles
+      - record: job:matching_latency_p50
+        expr: histogram_quantile(0.50, sum(rate(matching_engine_latency_seconds_bucket[5m])) by (le, job))
+
+      - record: job:matching_latency_p95
+        expr: histogram_quantile(0.95, sum(rate(matching_engine_latency_seconds_bucket[5m])) by (le, job))
+
+      - record: job:matching_latency_p99
+        expr: histogram_quantile(0.99, sum(rate(matching_engine_latency_seconds_bucket[5m])) by (le, job))
+
+      # Order matching success rate
+      - record: job:order_match_success_rate
+        expr: |
+          sum(rate(orders_matched_total[5m])) by (job)
+          /
+          sum(rate(orders_created_total[5m])) by (job)
+          * 100
+
+      # Trade volume in TRY
+      - record: job:trade_volume_try_per_hour
+        expr: sum(increase(trade_volume_try[1h])) by (job)
+
+      # Fee collection rate
+      - record: job:trading_fees_per_hour
+        expr: sum(increase(trading_fees_collected_try[1h])) by (job)
+
+      # ============================================================
+      # User & Account Metrics
+      # ============================================================
+
+      # Daily active users
+      - record: job:dau
+        expr: count(increase(user_login_total[24h]) > 0)
+
+      # Monthly active users
+      - record: job:mau
+        expr: count(increase(user_login_total[30d]) > 0)
+
+      # KYC completion rate
+      - record: job:kyc_completion_rate
+        expr: |
+          count(kyc_status{status="approved"})
+          /
+          count(kyc_status)
+          * 100
+
+      # ============================================================
+      # Availability & Uptime
+      # ============================================================
+
+      # Service uptime (1 = up, 0 = down)
+      - record: job:uptime_status
+        expr: up{job=~".*-service"}
+
+      # Service availability percentage (last 24h)
+      - record: job:availability_24h
+        expr: |
+          sum(increase(up{job=~".*-service"}[24h])) by (job)
+          /
+          (24 * 60)  # 24 hours in minutes
+          * 100
+
+      # ============================================================
+      # Resource Utilization
+      # ============================================================
+
+      # CPU usage by node
+      - record: node:cpu_usage_percent
+        expr: |
+          100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance) * 100)
+
+      # Memory usage by node
+      - record: node:memory_usage_percent
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
+
+      # Disk usage by mount point
+      - record: node:disk_usage_percent
+        expr: |
+          (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes{fstype!~"tmpfs"})) * 100
+
+      # ============================================================
+      # System Health Indicators
+      # ============================================================
+
+      # Service health check failures
+      - record: job:health_check_failures
+        expr: increase(health_check_failures_total[5m]) by (job)
+
+      # Slow query count (>100ms)
+      - record: job:slow_queries_total
+        expr: sum(increase(pg_query_duration_seconds_bucket{le="+Inf"}[5m])) by (job)

@@ -1,86 +1,182 @@
 # Prometheus Configuration for MyCrypto Platform
-# Development environment
+# Production-grade monitoring setup for cryptocurrency exchange MVP
+# Last Updated: 2025-11-30
 
 global:
   scrape_interval: 15s           # How often to scrape targets
   evaluation_interval: 15s       # How often to evaluate rules
   external_labels:
-    cluster: 'development'
-    environment: 'dev'
-    region: 'local'
+    cluster: 'production'
+    environment: 'prod'
+    region: 'eu-west-1'
 
-# Alertmanager configuration
+# Alert configuration
 alerting:
   alertmanagers:
     - static_configs:
         - targets:
             - 'alertmanager:9093'
+      scheme: http
+      timeout: 10s
 
-# Load rules once and periodically evaluate them
+# Load rule files
 rule_files:
-  - 'alerts/critical.yml'
-  - 'alerts/warning.yml'
-  - 'rules/auth-alerts.yml'
+  - '/etc/prometheus/rules/recording.yml'
+  - '/etc/prometheus/rules/critical.yml'
+  - '/etc/prometheus/rules/warning.yml'
+  - '/etc/prometheus/rules/auth-alerts.yml'
 
-# Scrape configurations
+# Scrape configurations for all services and infrastructure
 scrape_configs:
   # Prometheus itself
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+    scrape_interval: 30s
+    scrape_timeout: 10s
 
-  # Auth Service
+  # ============================================================
+  # Application Services
+  # ============================================================
+
+  # Auth Service (port 3001, metrics on 3001:3000)
   - job_name: 'auth-service'
     static_configs:
       - targets: ['auth-service:3000']
     metrics_path: '/metrics'
     scrape_interval: 15s
     scrape_timeout: 10s
+    relabel_configs:
+      - source_labels: [__scheme__, __address__, __metrics_path__]
+        regex: (.+);(.+);(.+)
+        target_label: __instance__
+        replacement: '${1}://${2}${3}'
 
-  # PostgreSQL (via postgres_exporter)
-  - job_name: 'postgres'
-    static_configs:
-      - targets: ['postgres-exporter:9187']
-    scrape_interval: 30s
-
-  # Redis (via redis_exporter)
-  - job_name: 'redis'
-    static_configs:
-      - targets: ['redis-exporter:9121']
-    scrape_interval: 30s
-
-  # RabbitMQ (via rabbitmq_exporter)
-  - job_name: 'rabbitmq'
-    static_configs:
-      - targets: ['rabbitmq-exporter:9419']
-    scrape_interval: 30s
-
-  # Node Exporter (system metrics)
-  - job_name: 'node-exporter'
-    static_configs:
-      - targets: ['node-exporter:9100']
-    scrape_interval: 30s
-
-  # MinIO Object Storage
-  - job_name: 'minio'
-    static_configs:
-      - targets: ['minio:9000']
-    metrics_path: '/minio/v2/metrics/cluster'
-    scrape_interval: 30s
-    scrape_timeout: 10s
-    bearer_token: 'minioadmin'
-
-  # Wallet Service
+  # Wallet Service (port 3002)
   - job_name: 'wallet-service'
     static_configs:
       - targets: ['wallet-service:3000']
     metrics_path: '/metrics'
     scrape_interval: 15s
     scrape_timeout: 10s
+    relabel_configs:
+      - source_labels: [__scheme__, __address__, __metrics_path__]
+        regex: (.+);(.+);(.+)
+        target_label: __instance__
+        replacement: '${1}://${2}${3}'
 
-  # ClamAV Virus Scanner
-  - job_name: 'clamav'
+  # Trading Engine (port 8080)
+  # Note: Update when trading-engine service is deployed
+  - job_name: 'trading-engine'
     static_configs:
-      - targets: ['clamav:3310']
-    scrape_interval: 60s
+      - targets: ['trading-engine:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'trading-engine:8080'
+
+  # ============================================================
+  # Infrastructure & Exporters
+  # ============================================================
+
+  # PostgreSQL via postgres_exporter
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 30s
     scrape_timeout: 10s
+    metrics_relabel_configs:
+      # Drop high-cardinality metrics to reduce memory
+      - source_labels: [__name__]
+        regex: 'pg_stat_statements.*'
+        action: drop
+
+  # Redis via redis_exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # RabbitMQ via rabbitmq_exporter
+  - job_name: 'rabbitmq'
+    static_configs:
+      - targets: ['rabbitmq-exporter:9419']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'rabbitmq_queue_.*'
+        action: keep
+
+  # Node Exporter (system metrics)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '([^:]+)(?::\d+)?'
+        replacement: '${1}:9100'
+
+  # ============================================================
+  # Kubernetes Metrics (if deployed on K8s)
+  # ============================================================
+
+  # Kubelet (Kubernetes node metrics)
+  # Uncomment when deploying to Kubernetes
+  # - job_name: 'kubernetes-nodes'
+  #   kubernetes_sd_configs:
+  #     - role: node
+  #   scheme: https
+  #   tls_config:
+  #     ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+  #   bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+  #   relabel_configs:
+  #     - action: labelmap
+  #       regex: __meta_kubernetes_node_label_(.+)
+
+  # kube-state-metrics (Kubernetes object metrics)
+  # Uncomment when deploying to Kubernetes
+  # - job_name: 'kube-state-metrics'
+  #   static_configs:
+  #     - targets: ['kube-state-metrics:8080']
+  #   scrape_interval: 30s
+
+  # ============================================================
+  # Application-Specific Service Discovery (Optional)
+  # ============================================================
+
+  # Service discovery via DNS (for microservices)
+  # Uncomment for dynamic service discovery
+  # - job_name: 'exchange-services'
+  #   dns_sd_configs:
+  #     - names:
+  #         - '*.exchange.local'
+  #   relabel_configs:
+  #     - source_labels: [__meta_dns_name]
+  #       target_label: instance
+  #     - source_labels: [__meta_dns_srv_name]
+  #       target_label: service
+
+# ============================================================
+# Remote Storage & Retention
+# ============================================================
+# Uncomment for remote storage (e.g., Thanos, Cortex)
+# remote_write:
+#   - url: "http://remote-storage:9009/api/v1/push"
+#     queue_config:
+#       capacity: 10000
+#       max_shards: 50
+#       max_samples_per_send: 500
+
+# ============================================================
+# Recording Rules (evaluated continuously)
+# Pre-compute expensive queries for dashboard performance
+# See: /etc/prometheus/rules/recording.yml
+# ============================================================

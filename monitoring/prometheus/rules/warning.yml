@@ -1,0 +1,326 @@
+# Prometheus Warning Alert Rules for MyCrypto Platform
+# These alerts indicate degraded service but not complete failure
+# Should be reviewed and acted upon within business hours
+
+groups:
+  - name: exchange_warning_alerts
+    interval: 30s
+    rules:
+      # ============================================================
+      # Error Rates (WARNING)
+      # ============================================================
+
+      - alert: HighErrorRateWarning
+        expr: |
+          (sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
+          /
+          sum(rate(http_requests_total[5m])) by (job)) > 0.01
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Elevated error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} (threshold: 1%). Investigate cause."
+          dashboard: "http://grafana:3000/d/app-performance"
+          runbook: "https://runbooks.exchange.com/alerts/high-error-rate"
+
+      # ============================================================
+      # API Latency (WARNING)
+      # ============================================================
+
+      - alert: APILatencyWarning
+        expr: |
+          histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job)) > 1
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Elevated API latency on {{ $labels.job }}"
+          description: "P95 latency: {{ $value | humanizeDuration }} (threshold: 1s). Performance degraded."
+          dashboard: "http://grafana:3000/d/app-performance"
+          runbook: "https://runbooks.exchange.com/alerts/api-latency-warning"
+
+      - alert: DatabaseQueryLatencyWarning
+        expr: |
+          histogram_quantile(0.95, sum(rate(pg_query_duration_seconds_bucket[5m])) by (le)) > 1
+        for: 10m
+        labels:
+          severity: warning
+          team: database
+        annotations:
+          summary: "Database query latency elevated"
+          description: "P95 query latency: {{ $value | humanizeDuration }} (threshold: 1s). Slow queries detected."
+          dashboard: "http://grafana:3000/d/database-cache"
+          runbook: "https://runbooks.exchange.com/alerts/slow-queries"
+
+      # ============================================================
+      # Resource Utilization (WARNING)
+      # ============================================================
+
+      - alert: HighCPUUsage
+        expr: |
+          (100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance) * 100)) > 80
+        for: 15m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage: {{ $value | humanize }}% (threshold: 80%). May need scaling."
+          runbook: "https://runbooks.exchange.com/alerts/high-cpu-usage"
+
+      - alert: HighMemoryUsage
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 80
+        for: 15m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage: {{ $value | humanize }}% (threshold: 80%). OOM killer may activate."
+          runbook: "https://runbooks.exchange.com/alerts/high-memory-usage"
+
+      - alert: DiskSpaceWarning
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 20
+        for: 15m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Disk space running low on {{ $labels.instance }}"
+          description: "Available: {{ $value | humanize }}% (threshold: 20%). Plan cleanup."
+          runbook: "https://runbooks.exchange.com/alerts/disk-space-low"
+
+      # ============================================================
+      # Database (WARNING)
+      # ============================================================
+
+      - alert: DatabaseConnectionPoolWarning
+        expr: pg_stat_database_numbackends / 20 > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          team: database
+        annotations:
+          summary: "Database connection pool over 80% utilized"
+          description: "Active connections: {{ $value }}/20. May need to increase pool size."
+          dashboard: "http://grafana:3000/d/database-cache"
+          runbook: "https://runbooks.exchange.com/alerts/connection-pool-high"
+
+      - alert: LowCacheHitRate
+        expr: |
+          sum(increase(pg_stat_database_heap_blks_hit[5m])) by (job)
+          /
+          (sum(increase(pg_stat_database_heap_blks_hit[5m])) by (job) + sum(increase(pg_stat_database_heap_blks_read[5m])) by (job))
+          * 100 < 70
+        for: 15m
+        labels:
+          severity: warning
+          team: database
+        annotations:
+          summary: "Database cache hit rate below 70%"
+          description: "Cache hit rate: {{ $value | humanize }}%. May need indexes or increased shared_buffers."
+          dashboard: "http://grafana:3000/d/database-cache"
+          runbook: "https://runbooks.exchange.com/alerts/low-cache-hit-rate"
+
+      - alert: SlowQueriesDetected
+        expr: increase(pg_query_duration_seconds_bucket{le="+Inf"}[5m]) > 10
+        for: 10m
+        labels:
+          severity: warning
+          team: database
+        annotations:
+          summary: "Slow queries detected (>100ms)"
+          description: "{{ $value | humanize }} slow queries in last 5 minutes. Review pg_stat_statements."
+          dashboard: "http://grafana:3000/d/database-cache"
+          runbook: "https://runbooks.exchange.com/alerts/slow-queries"
+
+      # ============================================================
+      # Redis (WARNING)
+      # ============================================================
+
+      - alert: RedisMemoryWarning
+        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Redis memory usage over 80%"
+          description: "Memory usage: {{ $value | humanize }}%. Evictions may occur soon."
+          dashboard: "http://grafana:3000/d/database-cache"
+          runbook: "https://runbooks.exchange.com/alerts/redis-memory-high"
+
+      - alert: RedisCacheHitRateLow
+        expr: |
+          sum(increase(redis_keyspace_hits_total[5m])) by (job)
+          /
+          (sum(increase(redis_keyspace_hits_total[5m])) by (job) + sum(increase(redis_keyspace_misses_total[5m])) by (job))
+          * 100 < 70
+        for: 15m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Redis cache hit rate below 70%"
+          description: "Hit rate: {{ $value | humanize }}%. Cache effectiveness is low."
+          dashboard: "http://grafana:3000/d/database-cache"
+          runbook: "https://runbooks.exchange.com/alerts/redis-hit-rate-low"
+
+      # ============================================================
+      # RabbitMQ (WARNING)
+      # ============================================================
+
+      - alert: RabbitMQQueueBacklogWarning
+        expr: rabbitmq_queue_messages_ready > 1000
+        for: 15m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "RabbitMQ queue backlog building up"
+          description: "Queue: {{ $labels.queue }}, Messages: {{ $value }}. Message processing slow."
+          dashboard: "http://grafana:3000/d/infrastructure"
+          runbook: "https://runbooks.exchange.com/alerts/rabbitmq-backlog-warning"
+
+      - alert: RabbitMQConsumerWarning
+        expr: rabbitmq_queue_consumer_count < 1 and rabbitmq_queue_messages_ready > 0
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "RabbitMQ queue has no consumers"
+          description: "Queue: {{ $labels.queue }}. No workers processing messages."
+          runbook: "https://runbooks.exchange.com/alerts/rabbitmq-no-consumers"
+
+      # ============================================================
+      # Trading Metrics (WARNING)
+      # ============================================================
+
+      - alert: LowOrderMatchSuccessRate
+        expr: |
+          (sum(rate(orders_matched_total[5m])) by (job)
+          /
+          sum(rate(orders_created_total[5m])) by (job))
+          * 100 < 90
+        for: 15m
+        labels:
+          severity: warning
+          team: trading
+        annotations:
+          summary: "Order matching success rate below 90%"
+          description: "Success rate: {{ $value | humanize }}%. Many orders rejected."
+          dashboard: "http://grafana:3000/d/trading-engine"
+          runbook: "https://runbooks.exchange.com/alerts/low-match-success-rate"
+
+      - alert: HighOrderRejectionRate
+        expr: rate(orders_rejected_total[5m]) > 10
+        for: 10m
+        labels:
+          severity: warning
+          team: trading
+        annotations:
+          summary: "High order rejection rate"
+          description: "{{ $value | humanize }} rejections/sec. Check balance validation."
+          dashboard: "http://grafana:3000/d/trading-engine"
+          runbook: "https://runbooks.exchange.com/alerts/high-rejection-rate"
+
+      # ============================================================
+      # Wallet & Transactions (WARNING)
+      # ============================================================
+
+      - alert: HighWithdrawalFailureRate
+        expr: |
+          (sum(increase(withdrawals_failed_total[5m])) by (job)
+          /
+          sum(increase(withdrawals_total[5m])) by (job))
+          * 100 > 5
+        for: 10m
+        labels:
+          severity: warning
+          team: finance
+        annotations:
+          summary: "Withdrawal failure rate elevated"
+          description: "Failure rate: {{ $value | humanize }}% (threshold: 5%). Check blockchain connectivity."
+          dashboard: "http://grafana:3000/d/wallet-transactions"
+          runbook: "https://runbooks.exchange.com/alerts/high-withdrawal-failure"
+
+      - alert: LargePendingDepositsBacklog
+        expr: count(deposit_status{status="pending"}) > 100
+        for: 20m
+        labels:
+          severity: warning
+          team: finance
+        annotations:
+          summary: "Large pending deposits backlog"
+          description: "{{ $value }} pending deposits. Processing may be delayed."
+          dashboard: "http://grafana:3000/d/wallet-transactions"
+          runbook: "https://runbooks.exchange.com/alerts/pending-deposits-backlog"
+
+      # ============================================================
+      # KYC & Compliance (WARNING)
+      # ============================================================
+
+      - alert: KYCBacklog
+        expr: count(kyc_status{status="pending"}) > 500
+        for: 1h
+        labels:
+          severity: warning
+          team: compliance
+        annotations:
+          summary: "KYC review backlog exceeded"
+          description: "{{ $value }} pending KYC reviews (threshold: 500). SLA at risk."
+          dashboard: "http://grafana:3000/d/compliance"
+          runbook: "https://runbooks.exchange.com/alerts/kyc-backlog"
+
+      - alert: LowKYCApprovalRate
+        expr: |
+          (count(kyc_status{status="approved"})
+          /
+          (count(kyc_status{status="approved"}) + count(kyc_status{status="rejected"})))
+          * 100 < 60
+        for: 1h
+        labels:
+          severity: warning
+          team: compliance
+        annotations:
+          summary: "KYC approval rate below 60%"
+          description: "Approval rate: {{ $value | humanize }}%. High rejection rate detected."
+          dashboard: "http://grafana:3000/d/compliance"
+          runbook: "https://runbooks.exchange.com/alerts/low-approval-rate"
+
+      # ============================================================
+      # Rate Limiting (WARNING)
+      # ============================================================
+
+      - alert: HighRateLimitViolations
+        expr: rate(http_requests_limited_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High rate limit violations detected"
+          description: "{{ $value | humanize }} violations/sec. Check for legitimate traffic spikes."
+          dashboard: "http://grafana:3000/d/app-performance"
+          runbook: "https://runbooks.exchange.com/alerts/rate-limit-violations"
+
+      # ============================================================
+      # Service Health (WARNING)
+      # ============================================================
+
+      - alert: ServiceHighRestartRate
+        expr: increase(container_last_seen{job=~".*-service"}[1h]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "{{ $labels.job }} restarting frequently"
+          description: "{{ $value | humanize }} restarts in last hour. Memory leak or crash loop suspected."
+          runbook: "https://runbooks.exchange.com/alerts/service-restart-frequency"

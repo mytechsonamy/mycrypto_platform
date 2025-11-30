@@ -1,0 +1,258 @@
+# Prometheus Critical Alert Rules for MyCrypto Platform
+# These alerts require immediate attention (24/7 on-call response)
+# Violations indicate potential service outages or data loss
+
+groups:
+  - name: exchange_critical_alerts
+    interval: 30s
+    rules:
+      # ============================================================
+      # Service Availability (CRITICAL)
+      # ============================================================
+
+      - alert: ServiceDown
+        expr: up{job=~".*-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: platform
+          page: "true"
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.job }} has been unavailable for more than 1 minute. Instance: {{ $labels.instance }}"
+          dashboard: "http://grafana:3000/d/system-overview"
+          runbook: "https://runbooks.exchange.com/alerts/service-down"
+
+      - alert: DatabaseConnectionPoolExhausted
+        expr: pg_stat_database_numbackends{datname="exchange_prod"} >= 18
+        for: 5m
+        labels:
+          severity: critical
+          team: database
+          page: "true"
+        annotations:
+          summary: "Database connection pool near exhaustion"
+          description: "Active connections: {{ $value }}/20. New connections will fail."
+          dashboard: "http://grafana:3000/d/database-cache"
+          runbook: "https://runbooks.exchange.com/alerts/db-connection-pool-exhausted"
+
+      # ============================================================
+      # Error Rate (CRITICAL)
+      # ============================================================
+
+      - alert: HighErrorRate
+        expr: |
+          (sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)
+          /
+          sum(rate(http_requests_total[5m])) by (job)) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+          page: "true"
+        annotations:
+          summary: "High error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} (threshold: 5%). Service degradation detected."
+          dashboard: "http://grafana:3000/d/app-performance"
+          runbook: "https://runbooks.exchange.com/alerts/high-error-rate"
+
+      # ============================================================
+      # Trading Engine (CRITICAL)
+      # ============================================================
+
+      - alert: MatchingEngineDown
+        expr: up{job="trading-engine"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          team: trading
+          page: "true"
+        annotations:
+          summary: "Matching engine is down"
+          description: "Trading functionality is unavailable. Orders cannot be matched."
+          dashboard: "http://grafana:3000/d/trading-engine"
+          runbook: "https://runbooks.exchange.com/alerts/matching-engine-down"
+
+      - alert: MatchingEngineLatencyHigh
+        expr: |
+          histogram_quantile(0.99, sum(rate(matching_engine_latency_seconds_bucket[1m])) by (le)) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+          team: trading
+          page: "true"
+        annotations:
+          summary: "Matching engine latency critically high"
+          description: "P99 latency: {{ $value | humanizeDuration }} (threshold: 100ms). Order matching is delayed."
+          dashboard: "http://grafana:3000/d/trading-engine"
+          runbook: "https://runbooks.exchange.com/alerts/matching-engine-latency"
+
+      # ============================================================
+      # Wallet & Blockchain (CRITICAL)
+      # ============================================================
+
+      - alert: BlockchainNodeNotSynced
+        expr: (bitcoin_node_synced == 0 or ethereum_node_synced == 0)
+        for: 15m
+        labels:
+          severity: critical
+          team: blockchain
+          page: "true"
+        annotations:
+          summary: "Blockchain node out of sync"
+          description: "{{ $labels.network }} node is not synced for 15+ minutes. Deposits/withdrawals may fail."
+          runbook: "https://runbooks.exchange.com/alerts/blockchain-node-not-synced"
+
+      - alert: PendingWithdrawalsBacklog
+        expr: count(withdrawal_status{status="pending"}) > 500
+        for: 30m
+        labels:
+          severity: critical
+          team: finance
+          page: "true"
+        annotations:
+          summary: "Large pending withdrawals backlog"
+          description: "{{ $value }} pending withdrawals (threshold: 500). Users may be unable to access funds."
+          dashboard: "http://grafana:3000/d/wallet-transactions"
+          runbook: "https://runbooks.exchange.com/alerts/pending-withdrawals-backlog"
+
+      # ============================================================
+      # API Latency (CRITICAL)
+      # ============================================================
+
+      - alert: APILatencyCritical
+        expr: |
+          histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, job)) > 2
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+          page: "true"
+        annotations:
+          summary: "Critical API latency on {{ $labels.job }}"
+          description: "P99 latency: {{ $value | humanizeDuration }} (threshold: 2s). Users experiencing slow responses."
+          dashboard: "http://grafana:3000/d/app-performance"
+          runbook: "https://runbooks.exchange.com/alerts/api-latency-critical"
+
+      # ============================================================
+      # Security & Fraud (CRITICAL)
+      # ============================================================
+
+      - alert: DDoSDetected
+        expr: |
+          rate(http_requests_total[1m]) > 1000 and
+          rate(http_requests_total[1m]) > (avg_over_time(rate(http_requests_total[1m])[24h]) * 10)
+        for: 2m
+        labels:
+          severity: critical
+          team: security
+          page: "true"
+        annotations:
+          summary: "Potential DDoS attack detected"
+          description: "Request rate spiked to {{ $value }} req/s (10x normal baseline)"
+          dashboard: "http://grafana:3000/d/security-anomaly"
+          runbook: "https://runbooks.exchange.com/alerts/ddos-detected"
+
+      - alert: SuspiciousLoginAttempts
+        expr: rate(auth_failed_login_attempts_total[5m]) > 100
+        for: 3m
+        labels:
+          severity: critical
+          team: security
+          page: "true"
+        annotations:
+          summary: "High rate of failed login attempts"
+          description: "{{ $value | humanize }} failed logins in last 5 minutes. Possible brute-force attack."
+          dashboard: "http://grafana:3000/d/security-anomaly"
+          runbook: "https://runbooks.exchange.com/alerts/suspicious-login-attempts"
+
+      - alert: UnusualOrderPattern
+        expr: |
+          (rate(orders_created_total[5m]) > (avg_over_time(rate(orders_created_total[5m])[24h]) * 5)) and
+          (rate(orders_cancelled_total[5m]) > (avg_over_time(rate(orders_cancelled_total[5m])[24h]) * 5))
+        for: 5m
+        labels:
+          severity: critical
+          team: compliance
+          page: "true"
+        annotations:
+          summary: "Unusual trading pattern detected"
+          description: "Spike in order creation and cancellation. May indicate market manipulation."
+          dashboard: "http://grafana:3000/d/trading-engine"
+          runbook: "https://runbooks.exchange.com/alerts/unusual-order-pattern"
+
+      # ============================================================
+      # Storage & Capacity (CRITICAL)
+      # ============================================================
+
+      - alert: DiskSpaceCritical
+        expr: |
+          (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+          page: "true"
+        annotations:
+          summary: "Disk space critically low on {{ $labels.instance }}"
+          description: "Available: {{ $value | humanize }}% (threshold: 10%). System may crash."
+          runbook: "https://runbooks.exchange.com/alerts/disk-space-critical"
+
+      - alert: RedisMemoryCritical
+        expr: |
+          redis_memory_used_bytes / redis_memory_max_bytes * 100 > 95
+        for: 3m
+        labels:
+          severity: critical
+          team: platform
+          page: "true"
+        annotations:
+          summary: "Redis memory nearly exhausted"
+          description: "Memory usage: {{ $value | humanize }}% (threshold: 95%). Evictions may occur."
+          dashboard: "http://grafana:3000/d/database-cache"
+          runbook: "https://runbooks.exchange.com/alerts/redis-memory-critical"
+
+      # ============================================================
+      # Message Queue (CRITICAL)
+      # ============================================================
+
+      - alert: RabbitMQQueueBacklogCritical
+        expr: rabbitmq_queue_messages_ready > 10000
+        for: 10m
+        labels:
+          severity: critical
+          team: platform
+          page: "true"
+        annotations:
+          summary: "RabbitMQ queue backlog critically high"
+          description: "Queue: {{ $labels.queue }}, Messages: {{ $value }}. Message processing is falling behind."
+          dashboard: "http://grafana:3000/d/infrastructure"
+          runbook: "https://runbooks.exchange.com/alerts/rabbitmq-backlog-critical"
+
+      # ============================================================
+      # Data Integrity (CRITICAL)
+      # ============================================================
+
+      - alert: DatabaseReplicationLagCritical
+        expr: pg_replication_lag_seconds > 30
+        for: 5m
+        labels:
+          severity: critical
+          team: database
+          page: "true"
+        annotations:
+          summary: "Database replication lag critical"
+          description: "Replication lag: {{ $value | humanizeDuration }} (threshold: 30s). Read replicas are stale."
+          runbook: "https://runbooks.exchange.com/alerts/replication-lag-critical"
+
+      - alert: DatabaseFailover
+        expr: pg_is_in_recovery == 1 and pg_is_wal_replay_paused == 1
+        for: 2m
+        labels:
+          severity: critical
+          team: database
+          page: "true"
+        annotations:
+          summary: "Database failover detected"
+          description: "Database is in recovery mode with WAL replay paused. Manual intervention required."
+          runbook: "https://runbooks.exchange.com/alerts/database-failover"

@@ -1,0 +1,316 @@
+# Docker Compose for MyCrypto Monitoring Stack
+# Run with: docker-compose -f docker-compose.monitoring.yml up -d
+# This file extends the main docker-compose.yml with monitoring services
+
+version: '3.8'
+
+services:
+  # ============================================================
+  # Prometheus - Metrics Collection & Alerting
+  # ============================================================
+  prometheus:
+    image: prom/prometheus:v2.48.1
+    container_name: exchange_prometheus
+    hostname: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--storage.tsdb.max-block-duration=2h'
+      - '--storage.tsdb.min-block-duration=2h'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--log.level=info'
+    networks:
+      - exchange_network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    labels:
+      - "app=exchange"
+      - "component=monitoring-prometheus"
+
+  # ============================================================
+  # Grafana - Dashboarding & Visualization
+  # ============================================================
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: exchange_grafana
+    hostname: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_INSTALL_PLUGINS: "grafana-piechart-panel"
+      GF_LOG_LEVEL: info
+      GF_SERVER_ROOT_URL: "http://localhost:3000"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "false"
+      GF_AUTH_DISABLE_LOGIN_FORM: "false"
+      GF_EXPLORE_ENABLED: "true"
+      GF_ALERTING_ENABLED: "true"
+      GF_FEATURE_TOGGLES_ENABLE: "alertingSimplifiedRouting"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    networks:
+      - exchange_network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    labels:
+      - "app=exchange"
+      - "component=monitoring-grafana"
+
+  # ============================================================
+  # AlertManager - Alert Routing & Notification
+  # ============================================================
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: exchange_alertmanager
+    hostname: alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--log.level=info'
+    networks:
+      - exchange_network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9093/-/healthy"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+    labels:
+      - "app=exchange"
+      - "component=monitoring-alertmanager"
+
+  # ============================================================
+  # Exporters - Metrics from Infrastructure
+  # ============================================================
+
+  # PostgreSQL Exporter
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.13.2
+    container_name: exchange_postgres_exporter
+    hostname: postgres-exporter
+    ports:
+      - "9187:9187"
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:postgres@postgres:5432/exchange_dev?sslmode=disable"
+    depends_on:
+      - postgres
+    networks:
+      - exchange_network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9187"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+    labels:
+      - "app=exchange"
+      - "component=monitoring-exporter"
+
+  # Redis Exporter
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: exchange_redis_exporter
+    hostname: redis-exporter
+    ports:
+      - "9121:9121"
+    environment:
+      REDIS_ADDR: "redis:6379"
+      REDIS_PASSWORD: "redis_dev_password"
+    depends_on:
+      - redis
+    networks:
+      - exchange_network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9121"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+    labels:
+      - "app=exchange"
+      - "component=monitoring-exporter"
+
+  # RabbitMQ Exporter
+  rabbitmq-exporter:
+    image: kbudde/rabbitmq-exporter:v1.0.0.48
+    container_name: exchange_rabbitmq_exporter
+    hostname: rabbitmq-exporter
+    ports:
+      - "9419:9419"
+    environment:
+      RABBIT_URL: "http://rabbitmq:15672"
+      RABBIT_USER: "rabbitmq"
+      RABBIT_PASSWORD: "rabbitmq_dev_password"
+      PUBLISH_PORT: "9419"
+      LOG_LEVEL: "info"
+    depends_on:
+      - rabbitmq
+    networks:
+      - exchange_network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9419"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+    labels:
+      - "app=exchange"
+      - "component=monitoring-exporter"
+
+  # Node Exporter (System metrics)
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: exchange_node_exporter
+    hostname: node-exporter
+    ports:
+      - "9100:9100"
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--collector.netclass.ignored-devices=^(veth|docker|br-|virbr-|lo)'
+      - '--collector.netdev.device-exclude=^(veth|docker|br-|virbr-|lo)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - exchange_network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9100"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+    labels:
+      - "app=exchange"
+      - "component=monitoring-exporter"
+
+  # ============================================================
+  # Loki - Log Aggregation (Optional)
+  # ============================================================
+  loki:
+    image: grafana/loki:2.9.4
+    container_name: exchange_loki
+    hostname: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/loki-config.yml:/etc/loki/local-config.yml:ro
+      - loki_data:/loki
+    command:
+      - -config.file=/etc/loki/local-config.yml
+    networks:
+      - exchange_network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3100/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+    labels:
+      - "app=exchange"
+      - "component=monitoring-loki"
+
+  # Promtail - Log Shipper for Loki
+  promtail:
+    image: grafana/promtail:2.9.4
+    container_name: exchange_promtail
+    hostname: promtail
+    volumes:
+      - ./promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    networks:
+      - exchange_network
+    restart: unless-stopped
+    labels:
+      - "app=exchange"
+      - "component=monitoring-promtail"
+
+  # ============================================================
+  # Jaeger - Distributed Tracing (Optional)
+  # ============================================================
+  jaeger:
+    image: jaegertracing/all-in-one:1.50
+    container_name: exchange_jaeger
+    hostname: jaeger
+    ports:
+      - "6831:6831/udp"     # Jaeger agent accept spans from SDKs
+      - "16686:16686"       # Jaeger UI
+      - "14250:14250"       # gRPC receiver
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    volumes:
+      - jaeger_data:/badger/data
+    networks:
+      - exchange_network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:16686/search"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+    labels:
+      - "app=exchange"
+      - "component=monitoring-jaeger"
+
+volumes:
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  alertmanager_data:
+    driver: local
+  loki_data:
+    driver: local
+  jaeger_data:
+    driver: local
+
+networks:
+  exchange_network:
+    driver: bridge
+    name: exchange_network
