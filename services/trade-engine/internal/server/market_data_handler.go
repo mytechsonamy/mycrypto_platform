@@ -100,7 +100,10 @@ type PaginationInfo struct {
 // @Router /api/v1/candles/{symbol} [get]
 func (h *MarketDataHandler) GetCandles(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	requestID := r.Context().Value("request_id").(string)
+	requestID := w.Header().Get("X-Request-ID")
+	if requestID == "" {
+		requestID = "unknown"
+	}
 
 	// Get symbol from URL
 	symbol := chi.URLParam(r, "symbol")
@@ -209,7 +212,10 @@ func (h *MarketDataHandler) GetCandles(w http.ResponseWriter, r *http.Request) {
 // @Router /api/v1/historical/trades/{symbol} [get]
 func (h *MarketDataHandler) GetHistoricalTrades(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	requestID := r.Context().Value("request_id").(string)
+	requestID := w.Header().Get("X-Request-ID")
+	if requestID == "" {
+		requestID = "unknown"
+	}
 
 	// Get symbol from URL
 	symbol := chi.URLParam(r, "symbol")
@@ -339,7 +345,10 @@ func (h *MarketDataHandler) GetHistoricalTrades(w http.ResponseWriter, r *http.R
 // @Router /api/v1/statistics/24h/{symbol} [get]
 func (h *MarketDataHandler) Get24hStats(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	requestID := r.Context().Value("request_id").(string)
+	requestID := w.Header().Get("X-Request-ID")
+	if requestID == "" {
+		requestID = "unknown"
+	}
 
 	// Get symbol from URL
 	symbol := chi.URLParam(r, "symbol")
