@@ -46,14 +46,18 @@ export class RateLimiterGuard implements CanActivate {
 
       if (configurableOptions) {
         // Build rate limit options from environment variables
-        const limit = this.configService.get<number>(
+        // Parse as integers since environment variables are strings
+        const limitValue = this.configService.get<string>(
           configurableOptions.limitConfigKey,
-          configurableOptions.defaultLimit || 5,
+          String(configurableOptions.defaultLimit || 5),
         );
-        const windowMs = this.configService.get<number>(
+        const windowValue = this.configService.get<string>(
           configurableOptions.windowConfigKey,
-          configurableOptions.defaultWindowMs || 3600000,
+          String(configurableOptions.defaultWindowMs || 3600000),
         );
+
+        const limit = parseInt(limitValue, 10);
+        const windowMs = parseInt(windowValue, 10);
 
         rateLimitOptions = {
           limit,

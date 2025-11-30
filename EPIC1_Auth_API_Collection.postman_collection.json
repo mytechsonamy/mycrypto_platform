@@ -1,0 +1,887 @@
+{
+  "info": {
+    "name": "EPIC 1 - User Authentication & Onboarding",
+    "description": "Comprehensive API test collection for EPIC 1 (User Registration, Login, 2FA, Password Reset, KYC)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "User Registration",
+      "item": [
+        {
+          "name": "TC-001: Happy Path - Valid Registration",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response has success flag', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});",
+                  "",
+                  "pm.test('Response contains user object', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('user');",
+                  "    pm.expect(jsonData.data.user).to.have.property('id');",
+                  "    pm.expect(jsonData.data.user).to.have.property('email');",
+                  "});",
+                  "",
+                  "pm.test('Email is not verified initially', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.user.email_verified).to.eql(false);",
+                  "});",
+                  "",
+                  "pm.test('Response includes success message', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.message).to.include('Kayıt başarılı');",
+                  "});",
+                  "",
+                  "// Save user ID for subsequent tests",
+                  "var jsonData = pm.response.json();",
+                  "pm.environment.set('user_id', jsonData.data.user.id);",
+                  "pm.environment.set('user_email', jsonData.data.user.email);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Recaptcha-Token",
+                "value": "dummy_token_dev",
+                "description": "Mock reCAPTCHA token (replaced with real token in production)"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"testuser001@example.com\",\n  \"password\": \"SecurePassword123!\",\n  \"confirmPassword\": \"SecurePassword123!\",\n  \"terms\": true,\n  \"kvkk\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "TC-002: Duplicate Email Error",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 409 Conflict', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "",
+                  "pm.test('Error code is EMAIL_ALREADY_EXISTS', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error.code).to.eql('EMAIL_ALREADY_EXISTS');",
+                  "});",
+                  "",
+                  "pm.test('Error message is correct', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error.message).to.include('Bu email zaten kayıtlı');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Recaptcha-Token",
+                "value": "dummy_token_dev"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"testuser001@example.com\",\n  \"password\": \"DifferentPassword456!\",\n  \"confirmPassword\": \"DifferentPassword456!\",\n  \"terms\": true,\n  \"kvkk\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "TC-003: Invalid Password - Too Short",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error code is VALIDATION_ERROR', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error.code).to.eql('VALIDATION_ERROR');",
+                  "});",
+                  "",
+                  "pm.test('Response includes validation details', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error.details).to.be.an('array');",
+                  "    pm.expect(jsonData.error.details.length).to.be.greaterThan(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Recaptcha-Token",
+                "value": "dummy_token_dev"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"testuser002@example.com\",\n  \"password\": \"short\",\n  \"confirmPassword\": \"short\",\n  \"terms\": true,\n  \"kvkk\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "TC-004: Invalid Password - No Uppercase",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Validation error includes password field', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var passwordError = jsonData.error.details.find(e => e.field === 'password');",
+                  "    pm.expect(passwordError).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Recaptcha-Token",
+                "value": "dummy_token_dev"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"testuser003@example.com\",\n  \"password\": \"lowercase123!\",\n  \"confirmPassword\": \"lowercase123!\",\n  \"terms\": true,\n  \"kvkk\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "TC-005: Invalid Email Format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Validation error includes email field', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var emailError = jsonData.error.details.find(e => e.field === 'email');",
+                  "    pm.expect(emailError).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Recaptcha-Token",
+                "value": "dummy_token_dev"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"notanemail\",\n  \"password\": \"ValidPassword123!\",\n  \"confirmPassword\": \"ValidPassword123!\",\n  \"terms\": true,\n  \"kvkk\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Login",
+      "item": [
+        {
+          "name": "TC-006: Happy Path - Valid Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains access token', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('accessToken');",
+                  "});",
+                  "",
+                  "pm.test('Response contains refresh token', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('refreshToken');",
+                  "});",
+                  "",
+                  "pm.test('Access token is valid JWT', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var token = jsonData.data.accessToken;",
+                  "    var parts = token.split('.');",
+                  "    pm.expect(parts.length).to.eql(3);",
+                  "});",
+                  "",
+                  "// Save tokens for subsequent tests",
+                  "var jsonData = pm.response.json();",
+                  "pm.environment.set('access_token', jsonData.data.accessToken);",
+                  "pm.environment.set('refresh_token', jsonData.data.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"testuser001@example.com\",\n  \"password\": \"SecurePassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "TC-007: Invalid Credentials - Wrong Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401 Unauthorized', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Error code is INVALID_CREDENTIALS', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error.code).to.eql('INVALID_CREDENTIALS');",
+                  "});",
+                  "",
+                  "pm.test('Error message is generic (no enumeration)', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error.message).to.include('Email veya şifre hatalı');",
+                  "});",
+                  "",
+                  "pm.test('No tokens in response', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.not.have.property('accessToken');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"testuser001@example.com\",\n  \"password\": \"WrongPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "TC-008: Invalid Credentials - Non-existent Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401 Unauthorized', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Error message is generic', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error.message).to.include('Email veya şifre hatalı');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nonexistent@example.com\",\n  \"password\": \"AnyPassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Two-Factor Authentication",
+      "item": [
+        {
+          "name": "TC-009: 2FA Setup - Generate QR Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains QR code', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('qrCode');",
+                  "});",
+                  "",
+                  "pm.test('Response contains secret key', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('secret');",
+                  "});",
+                  "",
+                  "pm.test('Response contains backup codes', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('backupCodes');",
+                  "    pm.expect(jsonData.data.backupCodes).to.be.an('array');",
+                  "    pm.expect(jsonData.data.backupCodes.length).to.eql(10);",
+                  "});",
+                  "",
+                  "// Save secret for TOTP generation",
+                  "var jsonData = pm.response.json();",
+                  "pm.environment.set('totp_secret', jsonData.data.secret);",
+                  "pm.environment.set('backup_codes', JSON.stringify(jsonData.data.backupCodes));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/2fa/setup",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "2fa", "setup"]
+            }
+          }
+        },
+        {
+          "name": "TC-010: 2FA Verify - Enable with TOTP Code",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Generate TOTP code from secret",
+                  "// Note: In actual testing, generate real TOTP using speakeasy or similar",
+                  "// This is a placeholder that should be replaced with actual TOTP code",
+                  "pm.environment.set('totp_code', '123456');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates 2FA enabled', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.include('2FA etkinleştirildi');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{totp_code}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/2fa/verify",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "2fa", "verify"]
+            }
+          }
+        },
+        {
+          "name": "TC-011: 2FA Backup Code Usage",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK on valid backup code', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response includes remaining codes count', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('remainingCodes');",
+                  "});",
+                  "",
+                  "pm.test('Remaining codes decreased by 1', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.remainingCodes).to.eql(9);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"BACKUP_CODE_FROM_LIST\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/2fa/verify",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "2fa", "verify"]
+            }
+          }
+        },
+        {
+          "name": "TC-012: 2FA Rate Limiting - Too Many Attempts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 429 Too Many Requests after 3 attempts', function () {",
+                  "    pm.response.to.have.status(429);",
+                  "});",
+                  "",
+                  "pm.test('Error message indicates rate limit', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error.message).to.include('Çok fazla');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"000000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/2fa/verify",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "2fa", "verify"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Password Reset",
+      "item": [
+        {
+          "name": "TC-013: Password Reset Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates email sent', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.include('Şifre sıfırlama emaili gönderildi');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"testuser001@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/password-reset-request",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "password-reset-request"]
+            }
+          }
+        },
+        {
+          "name": "TC-014: Password Reset Rate Limiting",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 429 after 3 requests within 1 hour', function () {",
+                  "    pm.response.to.have.status(429);",
+                  "});",
+                  "",
+                  "pm.test('Error message indicates rate limit', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error.message).to.include('Çok fazla');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"testuser001@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/password-reset-request",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "password-reset-request"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "KYC Submission",
+      "item": [
+        {
+          "name": "TC-015: KYC Submission - Upload Documents",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK or 202 Accepted', function () {",
+                  "    var status = pm.response.code;",
+                  "    pm.expect([200, 202]).to.include(status);",
+                  "});",
+                  "",
+                  "pm.test('Response contains KYC submission ID', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('submissionId');",
+                  "});",
+                  "",
+                  "pm.test('KYC status is PENDING', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.status).to.eql('PENDING');",
+                  "});",
+                  "",
+                  "pm.test('Response includes estimated review time', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.message).to.include('24-48');",
+                  "});",
+                  "",
+                  "// Save submission ID for status check",
+                  "var jsonData = pm.response.json();",
+                  "pm.environment.set('kyc_submission_id', jsonData.data.submissionId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "fullName",
+                  "value": "John Doe",
+                  "type": "text"
+                },
+                {
+                  "key": "tcKimlikNo",
+                  "value": "12345678900",
+                  "type": "text"
+                },
+                {
+                  "key": "birthDate",
+                  "value": "1990-01-15",
+                  "type": "text"
+                },
+                {
+                  "key": "phone",
+                  "value": "+905301234567",
+                  "type": "text"
+                },
+                {
+                  "key": "idFront",
+                  "type": "file",
+                  "src": "/path/to/id_front.jpg"
+                },
+                {
+                  "key": "idBack",
+                  "type": "file",
+                  "src": "/path/to/id_back.jpg"
+                },
+                {
+                  "key": "selfie",
+                  "type": "file",
+                  "src": "/path/to/selfie.jpg"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/kyc/submit",
+              "host": ["{{base_url}}"],
+              "path": ["kyc", "submit"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "KYC Status",
+      "item": [
+        {
+          "name": "TC-016: KYC Status Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains KYC status', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('status');",
+                  "});",
+                  "",
+                  "pm.test('Status is one of valid values', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var validStatuses = ['PENDING', 'APPROVED', 'REJECTED'];",
+                  "    pm.expect(validStatuses).to.include(jsonData.data.status);",
+                  "});",
+                  "",
+                  "pm.test('Response includes KYC level', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('level');",
+                  "    pm.expect(jsonData.data.level).to.eql('LEVEL_1');",
+                  "});",
+                  "",
+                  "pm.test('Response includes deposit limit', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('depositLimit');",
+                  "});",
+                  "",
+                  "pm.test('Response includes withdrawal limit', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('withdrawalLimit');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/kyc/status",
+              "host": ["{{base_url}}"],
+              "path": ["kyc", "status"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_email",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "totp_secret",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "totp_code",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "backup_codes",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "kyc_submission_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
