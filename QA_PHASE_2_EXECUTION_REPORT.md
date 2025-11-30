@@ -553,13 +553,30 @@ at Object.<anonymous> (/app/dist/market/gateways/market.gateway.js:17:22)
 Auth service cannot run - BLOCKS ALL TESTING
 
 **Root Cause:**
-Likely issue with npm ci or node_modules copy in Docker build stage. The Dockerfile copies node_modules correctly, but there may be platform-specific issues between build and runtime stages.
+Complex Docker multi-stage build issue with npm dependency resolution in Alpine Linux runtime image. The dependencies are properly listed in package.json and install successfully locally, but don't properly resolve in Docker runtime stage.
+
+**Attempts Made to Fix:**
+1. Added dependency verification check to Dockerfile - still failed
+2. Modified Dockerfile to run `npm ci --omit=dev` in runtime - still failed
+3. Modified Dockerfile to run `npm ci` (all deps) in runtime - still failed
+4. Verified package.json has all required packages listed
+
+**Possible Root Causes:**
+1. Platform-specific binary modules (Alpine Linux vs macOS/Linux)
+2. Node version compatibility issue
+3. npm lockfile corruption
+4. Missing binary dependencies for native modules
 
 **Suggested Fix:**
-1. Clear npm cache: `npm cache clean --force`
-2. Ensure npm ci uses correct lockfile
-3. Run `npm install --production` in builder stage
-4. Test with clean Docker build without cache
+1. Try using node:20-bullseye instead of node:20-alpine (Debian-based)
+2. Or: Don't use Alpine - larger image but more compatible
+3. Or: Add explicit `npm install` with verbose output to see what's failing
+4. Or: Use pnpm instead of npm (better lockfile format)
+5. Test npm ci locally with `--prefer-offline` flag
+6. Check if any packages have optional binary dependencies not installing
+
+**QA Note:**
+This is a critical infrastructure issue that blocks all testing. Recommend escalating to DevOps/Backend team with higher priority.
 
 ---
 
