@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Paper,
@@ -38,6 +39,8 @@ const AlertHistory: React.FC<AlertHistoryProps> = ({
   onClearHistory,
   onCreateSimilar,
 }) => {
+  const { t } = useTranslation();
+
   // Format date and time
   const formatDateTime = (timestamp: number): string => {
     return new Date(timestamp).toLocaleString('tr-TR', {
@@ -67,7 +70,7 @@ const AlertHistory: React.FC<AlertHistoryProps> = ({
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
         <Typography variant="body1" color="text.secondary">
-          Henüz tetiklenmiş uyarınız bulunmamaktadır.
+          {t('alerts.noTriggered')}
         </Typography>
       </Box>
     );
@@ -83,14 +86,14 @@ const AlertHistory: React.FC<AlertHistoryProps> = ({
           mb: 2,
         }}
       >
-        <Typography variant="h6">Tetiklenmiş Uyarılar</Typography>
+        <Typography variant="h6">{t('alerts.triggeredAlerts')}</Typography>
         <Button
           startIcon={<DeleteIcon />}
           onClick={onClearHistory}
           size="small"
           color="error"
         >
-          Geçmişi Temizle
+          {t('alerts.clearHistory')}
         </Button>
       </Box>
 
@@ -98,13 +101,13 @@ const AlertHistory: React.FC<AlertHistoryProps> = ({
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Sembol</TableCell>
-              <TableCell>Koşul</TableCell>
-              <TableCell align="right">Hedef Fiyat</TableCell>
-              <TableCell align="right">Tetiklenme Fiyatı</TableCell>
-              <TableCell align="center">Fark</TableCell>
-              <TableCell>Tetiklenme Zamanı</TableCell>
-              <TableCell align="center">İşlem</TableCell>
+              <TableCell>{t('alerts.table.symbol')}</TableCell>
+              <TableCell>{t('alerts.table.condition')}</TableCell>
+              <TableCell align="right">{t('alerts.table.targetPrice')}</TableCell>
+              <TableCell align="right">{t('alerts.table.triggeredPrice')}</TableCell>
+              <TableCell align="center">{t('alerts.table.difference')}</TableCell>
+              <TableCell>{t('alerts.table.triggeredAt')}</TableCell>
+              <TableCell align="center">{t('alerts.table.actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -123,19 +126,19 @@ const AlertHistory: React.FC<AlertHistoryProps> = ({
                       {alert.condition === AlertCondition.ABOVE ? (
                         <>
                           <TrendingUpIcon fontSize="small" color="success" />
-                          <Typography variant="body2">Yükseldi</Typography>
+                          <Typography variant="body2">{t('alerts.form.rose')}</Typography>
                         </>
                       ) : (
                         <>
                           <TrendingDownIcon fontSize="small" color="error" />
-                          <Typography variant="body2">Düştü</Typography>
+                          <Typography variant="body2">{t('alerts.form.fell')}</Typography>
                         </>
                       )}
                     </Box>
                   </TableCell>
                   <TableCell align="right">
                     <Typography variant="body2">
-                      {alert.price.toLocaleString('tr-TR', {
+                      {alert.price.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })} TRY
@@ -151,7 +154,7 @@ const AlertHistory: React.FC<AlertHistoryProps> = ({
                           : 'error.main'
                       }
                     >
-                      {alert.currentPrice.toLocaleString('tr-TR', {
+                      {alert.currentPrice.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })} TRY
@@ -159,7 +162,7 @@ const AlertHistory: React.FC<AlertHistoryProps> = ({
                   </TableCell>
                   <TableCell align="center">
                     <Tooltip
-                      title={`${priceDiff.diff > 0 ? '+' : ''}${priceDiff.diff.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TRY`}
+                      title={`${priceDiff.diff > 0 ? '+' : ''}${priceDiff.diff.toLocaleString(undefined, { minimumFractionDigits: 2 })} TRY`}
                     >
                       <Chip
                         label={`${priceDiff.percent > 0 ? '+' : ''}${priceDiff.percent.toFixed(2)}%`}
@@ -175,11 +178,11 @@ const AlertHistory: React.FC<AlertHistoryProps> = ({
                   </TableCell>
                   <TableCell align="center">
                     {onCreateSimilar && (
-                      <Tooltip title="Benzer Uyarı Oluştur">
+                      <Tooltip title={t('alerts.actions.createSimilar')}>
                         <IconButton
                           size="small"
                           onClick={() => onCreateSimilar(alert)}
-                          aria-label="Benzer uyarı oluştur"
+                          aria-label={t('alerts.actions.createSimilar')}
                         >
                           <RefreshIcon fontSize="small" />
                         </IconButton>
@@ -194,7 +197,7 @@ const AlertHistory: React.FC<AlertHistoryProps> = ({
       </TableContainer>
 
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-        Son {triggeredAlerts.length} tetiklenmiş uyarı gösteriliyor
+        {t('alerts.showingTriggered', { count: triggeredAlerts.length })}
       </Typography>
     </Box>
   );

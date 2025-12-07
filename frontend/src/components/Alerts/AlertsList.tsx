@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Paper,
@@ -57,6 +58,7 @@ const AlertsList: React.FC<AlertsListProps> = ({
   onDelete,
   loading,
 }) => {
+  const { t } = useTranslation();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<PriceAlert | null>(null);
@@ -133,7 +135,7 @@ const AlertsList: React.FC<AlertsListProps> = ({
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
         <Typography variant="body1" color="text.secondary">
-          Henüz aktif uyarınız bulunmamaktadır. Yukarıdaki formdan yeni uyarı oluşturabilirsiniz.
+          {t('alerts.noActiveAlerts')}
         </Typography>
       </Box>
     );
@@ -145,13 +147,13 @@ const AlertsList: React.FC<AlertsListProps> = ({
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Sembol</TableCell>
-              <TableCell>Koşul</TableCell>
-              <TableCell align="right">Hedef Fiyat</TableCell>
-              <TableCell align="right">Güncel Fiyat</TableCell>
-              <TableCell align="center">Durum</TableCell>
-              <TableCell>Oluşturulma</TableCell>
-              <TableCell align="center">İşlemler</TableCell>
+              <TableCell>{t('alerts.table.symbol')}</TableCell>
+              <TableCell>{t('alerts.table.condition')}</TableCell>
+              <TableCell align="right">{t('alerts.table.targetPrice')}</TableCell>
+              <TableCell align="right">{t('alerts.table.currentPrice')}</TableCell>
+              <TableCell align="center">{t('alerts.table.status')}</TableCell>
+              <TableCell>{t('alerts.table.createdAt')}</TableCell>
+              <TableCell align="center">{t('alerts.table.actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -172,12 +174,12 @@ const AlertsList: React.FC<AlertsListProps> = ({
                       {alert.condition === AlertCondition.ABOVE ? (
                         <>
                           <TrendingUpIcon fontSize="small" color="success" />
-                          <Typography variant="body2">Yükselirse</Typography>
+                          <Typography variant="body2">{t('alerts.form.rises')}</Typography>
                         </>
                       ) : (
                         <>
                           <TrendingDownIcon fontSize="small" color="error" />
-                          <Typography variant="body2">Düşerse</Typography>
+                          <Typography variant="body2">{t('alerts.form.falls')}</Typography>
                         </>
                       )}
                     </Box>
@@ -188,7 +190,7 @@ const AlertsList: React.FC<AlertsListProps> = ({
                       fontWeight="bold"
                       color={alert.condition === AlertCondition.ABOVE ? 'success.main' : 'error.main'}
                     >
-                      {alert.price.toLocaleString('tr-TR', {
+                      {alert.price.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       })} TRY
@@ -197,7 +199,7 @@ const AlertsList: React.FC<AlertsListProps> = ({
                   <TableCell align="right">
                     {currentPrice ? (
                       <Typography variant="body2">
-                        {currentPrice.toLocaleString('tr-TR', {
+                        {currentPrice.toLocaleString(undefined, {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })} TRY
@@ -211,7 +213,9 @@ const AlertsList: React.FC<AlertsListProps> = ({
                   <TableCell align="center">
                     {currentPrice && (
                       <Tooltip
-                        title={`Tetiklemeden %${distance.percent.toFixed(1)} ${distance.direction === 'up' ? 'yukarıda' : 'aşağıda'}`}
+                        title={distance.direction === 'up'
+                          ? t('alerts.distance.above', { percent: distance.percent.toFixed(1) })
+                          : t('alerts.distance.below', { percent: distance.percent.toFixed(1) })}
                       >
                         <Chip
                           label={`%${distance.percent.toFixed(1)}`}
@@ -231,7 +235,7 @@ const AlertsList: React.FC<AlertsListProps> = ({
                       size="small"
                       onClick={() => handleEditClick(alert)}
                       disabled={loading}
-                      aria-label="Düzenle"
+                      aria-label={t('alerts.actions.edit')}
                     >
                       <EditIcon fontSize="small" />
                     </IconButton>
@@ -240,7 +244,7 @@ const AlertsList: React.FC<AlertsListProps> = ({
                       onClick={() => handleDeleteClick(alert)}
                       disabled={loading}
                       color="error"
-                      aria-label="Sil"
+                      aria-label={t('alerts.actions.delete')}
                     >
                       <DeleteIcon fontSize="small" />
                     </IconButton>
@@ -255,9 +259,9 @@ const AlertsList: React.FC<AlertsListProps> = ({
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>
-          Uyarıyı Düzenle
+          {t('alerts.dialogs.editTitle')}
           <IconButton
-            aria-label="close"
+            aria-label={t('common.close')}
             onClick={() => setEditDialogOpen(false)}
             sx={{ position: 'absolute', right: 8, top: 8 }}
           >
@@ -268,22 +272,22 @@ const AlertsList: React.FC<AlertsListProps> = ({
           {selectedAlert && (
             <Box sx={{ pt: 2 }}>
               <Alert severity="info" sx={{ mb: 2 }}>
-                {selectedAlert.symbol.replace('_', '/')} için uyarı düzenleniyor
+                {t('alerts.dialogs.editInfo', { symbol: selectedAlert.symbol.replace('_', '/') })}
               </Alert>
               <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>Koşul</InputLabel>
+                <InputLabel>{t('alerts.form.condition')}</InputLabel>
                 <Select
                   value={editCondition}
-                  label="Koşul"
+                  label={t('alerts.form.condition')}
                   onChange={(e) => setEditCondition(e.target.value as AlertCondition)}
                 >
-                  <MenuItem value={AlertCondition.ABOVE}>Fiyat Yükselirse</MenuItem>
-                  <MenuItem value={AlertCondition.BELOW}>Fiyat Düşerse</MenuItem>
+                  <MenuItem value={AlertCondition.ABOVE}>{t('alerts.form.priceRises')}</MenuItem>
+                  <MenuItem value={AlertCondition.BELOW}>{t('alerts.form.priceFalls')}</MenuItem>
                 </Select>
               </FormControl>
               <TextField
                 fullWidth
-                label="Hedef Fiyat (TRY)"
+                label={t('alerts.form.targetPriceTry')}
                 type="number"
                 value={editPrice}
                 onChange={(e) => setEditPrice(e.target.value)}
@@ -296,29 +300,30 @@ const AlertsList: React.FC<AlertsListProps> = ({
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>İptal</Button>
+          <Button onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
           <Button onClick={handleEditSubmit} variant="contained" disabled={loading}>
-            Kaydet
+            {t('common.save')}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>Uyarıyı Sil</DialogTitle>
+        <DialogTitle>{t('alerts.dialogs.deleteTitle')}</DialogTitle>
         <DialogContent>
           {selectedAlert && (
             <Typography>
-              {selectedAlert.symbol.replace('_', '/')} için oluşturulan{' '}
-              {selectedAlert.price.toLocaleString('tr-TR')} TRY fiyat uyarısını silmek istediğinizden
-              emin misiniz?
+              {t('alerts.dialogs.deleteConfirm', {
+                symbol: selectedAlert.symbol.replace('_', '/'),
+                price: selectedAlert.price.toLocaleString()
+              })}
             </Typography>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>İptal</Button>
+          <Button onClick={() => setDeleteDialogOpen(false)}>{t('common.cancel')}</Button>
           <Button onClick={handleDeleteConfirm} color="error" variant="contained" disabled={loading}>
-            Sil
+            {t('common.delete')}
           </Button>
         </DialogActions>
       </Dialog>

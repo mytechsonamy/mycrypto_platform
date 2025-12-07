@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Button,
@@ -46,6 +47,7 @@ const CreateAlertForm: React.FC<CreateAlertFormProps> = ({
   activeAlertsCount,
   maxAlerts,
 }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<AlertFormData>({
     symbol: 'BTC_TRY',
     condition: AlertCondition.ABOVE,
@@ -64,21 +66,21 @@ const CreateAlertForm: React.FC<CreateAlertFormProps> = ({
     const currentPrice = currentPrices[symbol];
 
     if (!price || price.trim() === '') {
-      return 'Fiyat giriniz';
+      return t('alerts.validation.enterPrice');
     }
 
     if (isNaN(priceNum) || priceNum <= 0) {
-      return 'Geçerli bir fiyat giriniz';
+      return t('alerts.validation.invalidPrice');
     }
 
     if (!currentPrice) {
-      return 'Güncel fiyat bilgisi alınamadı';
+      return t('alerts.validation.priceNotAvailable');
     }
 
     // Check if price is within acceptable range (within 50% of current price)
     const deviation = Math.abs(priceNum - currentPrice) / currentPrice * 100;
     if (deviation > MAX_PRICE_DEVIATION_PERCENT) {
-      return `Fiyat güncel fiyatın %${MAX_PRICE_DEVIATION_PERCENT} aralığında olmalı`;
+      return t('alerts.validation.priceOutOfRange', { percent: MAX_PRICE_DEVIATION_PERCENT });
     }
 
     return null;
@@ -199,7 +201,7 @@ const CreateAlertForm: React.FC<CreateAlertFormProps> = ({
     >
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <AddAlertIcon />
-        Yeni Fiyat Uyarısı Oluştur
+        {t('alerts.createAlert')}
       </Typography>
 
       {error && (
@@ -210,18 +212,17 @@ const CreateAlertForm: React.FC<CreateAlertFormProps> = ({
 
       {!canCreateAlert && (
         <Alert severity="warning" sx={{ mb: 2 }}>
-          Maksimum {maxAlerts} aktif uyarı oluşturabilirsiniz. Yeni uyarı oluşturmak için mevcut
-          uyarılardan birini silin.
+          {t('alerts.maxAlertsWarning', { max: maxAlerts })}
         </Alert>
       )}
 
       <FormControl fullWidth sx={{ mb: 2 }}>
-        <InputLabel id="symbol-label">Sembol</InputLabel>
+        <InputLabel id="symbol-label">{t('alerts.form.symbol')}</InputLabel>
         <Select
           labelId="symbol-label"
           id="symbol-select"
           value={formData.symbol}
-          label="Sembol"
+          label={t('alerts.form.symbol')}
           onChange={(e) => handleChange('symbol', e.target.value)}
           disabled={loading}
         >
@@ -235,33 +236,33 @@ const CreateAlertForm: React.FC<CreateAlertFormProps> = ({
 
       {currentPrice && (
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Güncel Fiyat: {currentPrice.toLocaleString('tr-TR')} TRY
+          {t('alerts.form.currentPriceValue', { price: currentPrice.toLocaleString() })}
         </Typography>
       )}
 
       <FormControl fullWidth sx={{ mb: 2 }}>
-        <InputLabel id="condition-label">Koşul</InputLabel>
+        <InputLabel id="condition-label">{t('alerts.form.condition')}</InputLabel>
         <Select
           labelId="condition-label"
           id="condition-select"
           value={formData.condition}
-          label="Koşul"
+          label={t('alerts.form.condition')}
           onChange={(e) => handleChange('condition', e.target.value)}
           disabled={loading}
         >
-          <MenuItem value={AlertCondition.ABOVE}>Fiyat Yükselirse (Yukarı)</MenuItem>
-          <MenuItem value={AlertCondition.BELOW}>Fiyat Düşerse (Aşağı)</MenuItem>
+          <MenuItem value={AlertCondition.ABOVE}>{t('alerts.form.priceRises')}</MenuItem>
+          <MenuItem value={AlertCondition.BELOW}>{t('alerts.form.priceFalls')}</MenuItem>
         </Select>
       </FormControl>
 
       <TextField
         fullWidth
-        label="Hedef Fiyat (TRY)"
+        label={t('alerts.form.targetPriceTry')}
         type="number"
         value={formData.price}
         onChange={(e) => handleChange('price', e.target.value)}
         error={!!validationErrors.price}
-        helperText={validationErrors.price || 'Uyarı tetiklenecek fiyat seviyesi'}
+        helperText={validationErrors.price || t('alerts.form.priceHint')}
         disabled={loading}
         sx={{ mb: 2 }}
         inputProps={{
@@ -271,7 +272,7 @@ const CreateAlertForm: React.FC<CreateAlertFormProps> = ({
       />
 
       <FormControl component="fieldset" sx={{ mb: 2 }}>
-        <FormLabel component="legend">Bildirim Türü</FormLabel>
+        <FormLabel component="legend">{t('alerts.form.notificationType')}</FormLabel>
         <FormGroup row>
           <FormControlLabel
             control={
@@ -281,7 +282,7 @@ const CreateAlertForm: React.FC<CreateAlertFormProps> = ({
                 disabled={loading}
               />
             }
-            label="E-posta"
+            label={t('alerts.form.email')}
           />
           <FormControlLabel
             control={
@@ -291,7 +292,7 @@ const CreateAlertForm: React.FC<CreateAlertFormProps> = ({
                 disabled={loading}
               />
             }
-            label="Uygulama İçi"
+            label={t('alerts.form.inApp')}
           />
         </FormGroup>
       </FormControl>
@@ -304,7 +305,7 @@ const CreateAlertForm: React.FC<CreateAlertFormProps> = ({
             disabled={loading}
           />
         }
-        label="Uyarıyı aktif olarak oluştur"
+        label={t('alerts.form.createActiveAlert')}
         sx={{ mb: 2, display: 'block' }}
       />
 
@@ -315,7 +316,7 @@ const CreateAlertForm: React.FC<CreateAlertFormProps> = ({
         disabled={loading || !canCreateAlert}
         startIcon={loading ? <CircularProgress size={20} /> : <AddAlertIcon />}
       >
-        {loading ? 'Oluşturuluyor...' : 'Uyarı Oluştur'}
+        {loading ? t('alerts.form.creating') : t('alerts.form.create')}
       </Button>
     </Box>
   );
